@@ -1,0 +1,28 @@
+.qr-code-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.qr-code-wrapper {
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #e8f5e9;
+}
+
+.qr-code-value {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.qr-code-container .btn {
+  min-width: 160px;
+}

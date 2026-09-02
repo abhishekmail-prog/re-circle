@@ -1,0 +1,133 @@
+.lot-detail-page {
+  padding: 16px 0;
+  padding-bottom: 80px;
+}
+
+.lot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.lot-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.lot-info-card {
+  padding: 16px;
+}
+
+.lot-info-card .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.lot-info-card .card-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.info-value {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.info-row.highlight {
+  background: #e8f5e9;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-bottom: none;
+  margin: 4px 0;
+}
+
+.info-row.highlight .info-value {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.recycler-info {
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.recycler-info h3 {
+  margin-bottom: 12px;
+}
+
+.qr-section {
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.qr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.qr-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.qr-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.qr-instructions {
+  text-align: center;
+}
+
+.qr-instructions p {
+  margin: 4px 0;
+}
+
+@media (max-width: 768px) {
+  .lot-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .qr-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+.traceability-section {
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.traceability-section h3 {
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+}

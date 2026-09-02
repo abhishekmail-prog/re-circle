@@ -1,0 +1,34 @@
+.admin-stats {
+  padding: 16px 0;
+}
+.admin-stats .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.admin-stats .stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-left: 4px solid var(--primary);
+}
+.admin-stats .stat-icon {
+  font-size: 32px;
+}
+.admin-stats .stat-content {
+  display: flex;
+  flex-direction: column;
+}
+.admin-stats .stat-label {
+  font-size: 14px;
+  color: #666;
+}
+.admin-stats .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+}

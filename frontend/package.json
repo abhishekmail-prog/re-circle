@@ -1,0 +1,40 @@
+{
+  "name": "recircle-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
+    "axios": "^1.6.2",
+    "dexie": "^3.2.4",
+    "global": "^4.4.0",
+    "i18next": "^23.7.6",
+    "leaflet": "^1.9.4",
+    "qrcode.react": "^3.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-i18next": "^13.5.0",
+    "react-icons": "^4.12.0",
+    "react-leaflet": "^4.2.1",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.20.1",
+    "sockjs-client": "^1.6.1"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.8",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "vite": "^5.0.8"
+  }
+}

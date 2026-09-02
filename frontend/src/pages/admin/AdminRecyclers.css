@@ -1,0 +1,34 @@
+.admin-recyclers {
+  padding: 16px 0;
+}
+.recyclers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+.recycler-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.recycler-info h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.recycler-info p {
+  margin: 4px 0;
+  color: #666;
+  font-size: 14px;
+}
+.recycler-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

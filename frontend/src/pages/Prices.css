@@ -1,0 +1,123 @@
+.prices-page {
+  padding: 16px 0;
+}
+
+.category-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.category-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.category-btn:hover {
+  border-color: var(--primary);
+  background: #f5f9f5;
+}
+
+.category-btn.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.price-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.price-card {
+  padding: 20px;
+  text-align: center;
+}
+
+.card-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.price-card.current-price .card-value {
+  color: var(--primary);
+}
+
+.price-card.average-price .card-value {
+  color: var(--secondary);
+}
+
+.recent-prices {
+  grid-column: 1 / -1;
+}
+
+.price-history {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.price-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.price-date {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.price-amount {
+  font-weight: 500;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+.error-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--danger);
+}
+
+@media (max-width: 480px) {
+  .category-selector {
+    gap: 4px;
+  }
+  
+  .category-btn {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+  
+  .price-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .recent-prices {
+    grid-column: 1 / -1;
+  }
+}

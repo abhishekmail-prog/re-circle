@@ -1,0 +1,123 @@
+.recyclers-page {
+  padding: 16px 0;
+}
+
+.lot-summary {
+  margin: 16px 0;
+}
+
+.lot-details {
+  display: flex;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.lot-details span {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.recyclers-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.recycler-card {
+  position: relative;
+  padding: 20px;
+  transition: all 0.3s;
+}
+
+.recycler-card.best-deal {
+  border: 3px solid var(--secondary);
+  background: #fff8e1;
+}
+
+.best-deal-badge {
+  position: absolute;
+  top: -12px;
+  right: 16px;
+  background: var(--secondary);
+  color: white;
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.recycler-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.recycler-header h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.recycler-details {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.detail-row .label {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.detail-row .value {
+  font-weight: 500;
+}
+
+.detail-row.highlight {
+  background: #e8f5e9;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-bottom: none;
+}
+
+.detail-row.highlight .value {
+  color: var(--primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.text-danger {
+  color: var(--danger);
+}
+
+.recommendation-reason {
+  background: #fff3e0;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 12px 0;
+  font-size: 14px;
+  color: #e65100;
+}
+
+@media (max-width: 480px) {
+  .recycler-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .lot-details {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
