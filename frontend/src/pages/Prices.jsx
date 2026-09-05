@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import api from '../api/axios'
+import { useTranslation } from '../hooks/useTranslation'
 import toast from 'react-hot-toast'
 import './Prices.css'
 
 const Prices = () => {
+  const { t } = useTranslation()
   const [selectedCategory, setSelectedCategory] = useState('PCB')
   const [priceData, setPriceData] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -23,8 +25,7 @@ const Prices = () => {
       setPriceData(response.data)
     } catch (err) {
       console.error('Price fetch error:', err)
-      setError('Failed to fetch prices. Using demo data.')
-      // Set demo data as fallback
+      setError(t('prices.error'))
       setPriceData({
         category: selectedCategory,
         currentPrice: Math.random() * 500 + 200,
@@ -44,8 +45,8 @@ const Prices = () => {
 
   return (
     <div className="prices-page">
-      <h1 className="page-title">💰 Today's Prices</h1>
-      <p className="page-subtitle text-muted">Check current market rates for e-waste materials</p>
+      <h1 className="page-title">{t('prices.title')}</h1>
+      <p className="page-subtitle text-muted">{t('prices.subtitle')}</p>
 
       <div className="category-selector">
         {categories.map((cat) => (
@@ -59,7 +60,7 @@ const Prices = () => {
         ))}
       </div>
 
-      {loading && <div className="loading-state">Loading prices...</div>}
+      {loading && <div className="loading-state">{t('prices.loading')}</div>}
 
       {error && <div className="error-state">{error}</div>}
 
@@ -67,19 +68,19 @@ const Prices = () => {
         <>
           <div className="price-cards">
             <div className="card price-card current-price">
-              <div className="card-label">Current Market Price</div>
-              <div className="card-value">₹{priceData.currentPrice?.toFixed(2) || 'N/A'}/kg</div>
+              <div className="card-label">{t('prices.currentPrice')}</div>
+              <div className="card-value">₹{priceData.currentPrice?.toFixed(2) || 'N/A'}{t('prices.perKg')}</div>
             </div>
 
             <div className="card price-card range-price">
-              <div className="card-label">Price Range</div>
+              <div className="card-label">{t('prices.priceRange')}</div>
               <div className="card-value">
-                ₹{priceData.minPrice?.toFixed(2) || 'N/A'} - ₹{priceData.maxPrice?.toFixed(2) || 'N/A'}/kg
+                ₹{priceData.minPrice?.toFixed(2) || 'N/A'} - ₹{priceData.maxPrice?.toFixed(2) || 'N/A'}{t('prices.perKg')}
               </div>
             </div>
 
             <div className="card price-card trend">
-              <div className="card-label">Trend</div>
+              <div className="card-label">{t('prices.trend')}</div>
               <div className="card-value" style={{ 
                 color: (priceData.trend || 0) >= 0 ? '#4caf50' : '#f44336' 
               }}>
@@ -89,7 +90,7 @@ const Prices = () => {
           </div>
 
           <div className="card recent-prices">
-            <h3>📊 Recent Price History</h3>
+            <h3>{t('prices.historical')}</h3>
             <div className="price-history">
               {priceData.recentPrices?.slice(0, 15).map((price, index) => (
                 <div key={index} className="price-entry">
@@ -100,7 +101,7 @@ const Prices = () => {
                       year: 'numeric'
                     }) : 'N/A'}
                   </span>
-                  <span className="price-amount">₹{typeof price.price === 'number' ? price.price.toFixed(2) : price.price}/kg</span>
+                  <span className="price-amount">₹{typeof price.price === 'number' ? price.price.toFixed(2) : price.price}{t('prices.perKg')}</span>
                   <span className="price-location">{price.location || 'India'}</span>
                 </div>
               ))}

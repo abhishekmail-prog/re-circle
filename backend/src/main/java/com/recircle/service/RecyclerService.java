@@ -14,26 +14,16 @@ public class RecyclerService {
     private RecyclerRepository recyclerRepository;
 
     public List<Recycler> getAllRecyclers() {
-        List<Recycler> recyclers = recyclerRepository.findAll();
-        System.out.println("📋 RecyclerService: Found " + recyclers.size() + " recyclers");
-        return recyclers;
+        // Only return authorized and active recyclers
+        return recyclerRepository.findByAuthorizedTrueAndIsActiveTrue();
     }
 
     public List<Recycler> getNearbyRecyclers(double lat, double lng) {
-        List<Recycler> recyclers = recyclerRepository.findNearbyRecyclers(lat, lng);
-        return recyclers;
+        return recyclerRepository.findNearbyRecyclers(lat, lng);
     }
 
     public Recycler getRecyclerById(String id) {
         return recyclerRepository.findById(UUID.fromString(id))
             .orElseThrow(() -> new RuntimeException("Recycler not found"));
-    }
-    
-    public Recycler saveRecycler(Recycler recycler) {
-        return recyclerRepository.save(recycler);
-    }
-    
-    public void deleteRecycler(String id) {
-        recyclerRepository.deleteById(UUID.fromString(id));
     }
 }

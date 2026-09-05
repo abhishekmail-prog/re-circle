@@ -121,3 +121,58 @@
     gap: 4px;
   }
 }
+/* Map Toggle */
+.map-toggle {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.map-toggle .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 10px;
+}
+
+.map-section {
+  margin: 16px 0;
+}
+
+.map-hint {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.lot-details span {
+  display: inline-block;
+  margin-right: 16px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.lot-details strong {
+  color: var(--text);
+}
+
+@media (max-width: 480px) {
+  .map-toggle {
+    flex-direction: column;
+  }
+  
+  .map-toggle .btn {
+    padding: 8px;
+    font-size: 13px;
+  }
+  
+  .lot-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .lot-details span {
+    margin-right: 0;
+  }
+}

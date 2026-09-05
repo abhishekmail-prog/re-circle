@@ -1,14 +1,22 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from '../hooks/useTranslation'
 import './Auth.css'
 
 const Login = () => {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -16,49 +24,57 @@ const Login = () => {
     const result = await login(email, password)
     setLoading(false)
     if (result.success) {
-      // Force reload to root
-      window.location.href = '/'
+      setTimeout(() => {
+        navigate('/', { replace: true })
+      }, 100)
     }
   }
 
-  const fill = (e, p) => { setEmail(e); setPassword(p) }
+  const fillCredentials = (emailVal, passwordVal) => {
+    setEmail(emailVal)
+    setPassword(passwordVal)
+  }
+
+  const demoAccounts = [
+    { email: 'collector@recircle.demo', password: 'Collector@123', label: '🟢 ' + t('auth.collector') },
+    { email: 'recycler@recircle.demo', password: 'Recycler@123', label: '🔵 ' + t('auth.recycler') },
+    { email: 'admin@recircle.demo', password: 'Admin@123', label: '🔴 ' + t('auth.admin') },
+  ]
 
   return (
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
           <div className="auth-logo">♻️</div>
-          <h1>RE-CIRCLE</h1>
-          <p className="auth-subtitle">Kabadiwala Connect</p>
+          <h1>{t('app.name')}</h1>
+          <p className="auth-subtitle">{t('app.tagline')}</p>
         </div>
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label>Email</label>
+            <label>{t('auth.email')}</label>
             <input type="email" className="form-control" value={email} onChange={e => setEmail(e.target.value)} required />
           </div>
           <div className="form-group">
-            <label>Password</label>
+            <label>{t('auth.password')}</label>
             <input type="password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} required />
           </div>
           <button type="submit" className="btn btn-primary btn-block btn-lg" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? t('common.loading') : t('auth.login')}
           </button>
         </form>
+        <p className="auth-footer">
+          {t('auth.noAccount')} <Link to="/register">{t('auth.registerHere')}</Link>
+        </p>
         <div className="demo-credentials">
-          <p style={{ fontWeight: 600, marginBottom: '12px', color: '#2e7d32' }}>Click to auto-fill:</p>
+          <p style={{ fontWeight: 600, marginBottom: '12px', color: '#2e7d32' }}>{t('auth.demoCredentials')}</p>
           <div className="demo-grid">
-            <div className="demo-item clickable" onClick={() => fill('collector@recircle.demo', 'Collector@123')}>
-              <strong>🟢 Collector</strong>
-              <span className="demo-email">collector@recircle.demo</span>
-            </div>
-            <div className="demo-item clickable" onClick={() => fill('recycler@recircle.demo', 'Recycler@123')}>
-              <strong>🔵 Recycler</strong>
-              <span className="demo-email">recycler@recircle.demo</span>
-            </div>
-            <div className="demo-item clickable" onClick={() => fill('admin@recircle.demo', 'Admin@123')}>
-              <strong>🔴 Admin</strong>
-              <span className="demo-email">admin@recircle.demo</span>
-            </div>
+            {demoAccounts.map((acc, idx) => (
+              <div key={idx} className="demo-item clickable" onClick={() => fillCredentials(acc.email, acc.password)}>
+                <strong>{acc.label}</strong>
+                <span className="demo-email">{acc.email}</span>
+                <span className="demo-hint">{t('auth.clickToFill')}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ com/recircle/entity/MaterialLot$LotStatus.class
 com/recircle/entity/User$UserRole.class
 com/recircle/entity/MaterialCategory.class
 com/recircle/repository/RecyclerRepository.class
+com/recircle/config/CorsFilter.class
 com/recircle/controller/WebSocketController.class
 com/recircle/repository/MaterialCategoryRepository.class
 com/recircle/entity/Recycler.class
@@ -38,7 +39,6 @@ com/recircle/entity/MaterialLot.class
 com/recircle/entity/User.class
 com/recircle/entity/PriceRecord.class
 com/recircle/config/WebSocketConfig.class
-com/recircle/config/CorsConfig.class
 com/recircle/security/SecurityConfig.class
 com/recircle/repository/MaterialLotRepository.class
 com/recircle/service/AuthService.class

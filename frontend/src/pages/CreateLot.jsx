@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { lotApi } from '../api/lots'
 import { useOffline } from '../context/OfflineContext'
+import { useTranslation } from '../hooks/useTranslation'
 import api from '../api/axios'
 import './CreateLot.css'
 
 const CreateLot = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { isOnline, addPendingAction } = useOffline()
   const fileInputRef = useRef(null)
@@ -58,7 +60,7 @@ const CreateLot = () => {
           ...prev,
           materialCategoryName: result.suggestedCategory
         }))
-        toast.success(`🤖 AI suggests: ${result.suggestedCategory} (${result.confidence}% confidence)`)
+        toast.success(t('createLot.aiSuggestion', { category: result.suggestedCategory, confidence: result.confidence }))
       }
     } catch (error) {
       console.error('Classification error:', error)
@@ -72,55 +74,34 @@ const CreateLot = () => {
     e.preventDefault()
     
     if (!formData.weightKg || parseFloat(formData.weightKg) <= 0) {
-      toast.error('Please enter a valid weight')
+      toast.error(t('createLot.weightError'))
       return
     }
 
     setLoading(true)
 
     const lotData = {
-      materialCategoryName: formData.materialCategoryName,
-      description: formData.description || '',
+      ...formData,
       weightKg: parseFloat(formData.weightKg),
-      condition: formData.condition,
-      sourceType: formData.sourceType,
-      collectionAddress: formData.collectionAddress || 'Mumbai, Maharashtra',
       collectionLatitude: 19.0760,
       collectionLongitude: 72.8777
     }
 
-    console.log('📤 Sending lot data:', lotData)
-
     try {
       if (isOnline) {
         const response = await lotApi.create(lotData)
-        console.log('✅ Lot created:', response.data)
-        toast.success('🎉 Lot created successfully!')
-        // Wait a moment before navigating
-        setTimeout(() => {
-          navigate(`/lot/${response.data.lotId}`)
-        }, 500)
+        toast.success(t('createLot.success'))
+        navigate(`/lot/${response.data.lotId}`)
       } else {
         await addPendingAction({
           type: 'CREATE_LOT',
           data: lotData
         })
-        toast.success('💾 Lot saved offline! Will sync when online.')
+        toast.success(t('createLot.offlineSuccess'))
         navigate('/dashboard')
       }
     } catch (error) {
-      console.error('❌ Create lot error:', error)
-      
-      // Check if it's an auth error
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        toast.error('Session expired. Please login again.')
-        setTimeout(() => {
-          window.location.href = '/login'
-        }, 1000)
-      } else {
-        const errorMessage = error.response?.data || error.message || 'Unknown error'
-        toast.error(`Failed to create lot: ${errorMessage}`)
-      }
+      toast.error(t('createLot.error', { error: error.response?.data || error.message }))
     } finally {
       setLoading(false)
     }
@@ -128,12 +109,12 @@ const CreateLot = () => {
 
   return (
     <div className="create-lot">
-      <h1 className="page-title">📸 Create Digital Lot</h1>
-      <p className="page-subtitle text-muted">Document your e-waste and get a QR code for handover</p>
+      <h1 className="page-title">{t('createLot.title')}</h1>
+      <p className="page-subtitle text-muted">{t('createLot.subtitle')}</p>
 
       <form onSubmit={handleSubmit} className="lot-form">
         <div className="form-group">
-          <label>📷 Upload Photo (AI will suggest category)</label>
+          <label>{t('createLot.takePhoto')}</label>
           <div 
             className="image-upload-area"
             onClick={() => fileInputRef.current?.click()}
@@ -163,13 +144,13 @@ const CreateLot = () => {
             ) : (
               <>
                 <span style={{ fontSize: '48px' }}>📸</span>
-                <p style={{ margin: '8px 0 4px' }}>Click to upload photo</p>
-                <small className="text-muted">AI will suggest material category</small>
+                <p style={{ margin: '8px 0 4px' }}>{t('createLot.clickToUpload')}</p>
+                <small className="text-muted">{t('createLot.aiHint')}</small>
               </>
             )}
             {isClassifying && (
               <div style={{ marginTop: '8px', color: '#2e7d32' }}>
-                🤖 Analyzing image...
+                {t('createLot.analyzing')}
               </div>
             )}
             {imagePreview && !isClassifying && (
@@ -179,54 +160,49 @@ const CreateLot = () => {
                 style={{ marginTop: '8px' }}
                 onClick={(e) => { e.stopPropagation(); setImagePreview(null); setImage(null) }}
               >
-                Remove Image
+                {t('createLot.removeImage')}
               </button>
             )}
           </div>
         </div>
 
         <div className="form-group">
-          <label>Material Category *</label>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <select
-              name="materialCategoryName"
-              className="form-control"
-              value={formData.materialCategoryName}
-              onChange={handleChange}
-              required
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-            {isClassifying && (
-              <span className="badge badge-warning">🤖 AI Analyzing...</span>
-            )}
-          </div>
+          <label>{t('createLot.materialCategory')}</label>
+          <select
+            name="materialCategoryName"
+            className="form-control"
+            value={formData.materialCategoryName}
+            onChange={handleChange}
+            required
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">
-          <label>Description</label>
+          <label>{t('createLot.description')}</label>
           <textarea
             name="description"
             className="form-control"
             value={formData.description}
             onChange={handleChange}
-            placeholder="Describe the material (optional)"
+            placeholder={t('createLot.descriptionPlaceholder')}
             rows="3"
           />
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label>Weight (kg) *</label>
+            <label>{t('createLot.weight')}</label>
             <input
               type="number"
               name="weightKg"
               className="form-control"
               value={formData.weightKg}
               onChange={handleChange}
-              placeholder="e.g., 5"
+              placeholder={t('createLot.weightPlaceholder')}
               min="0.1"
               step="0.1"
               required
@@ -234,7 +210,7 @@ const CreateLot = () => {
           </div>
 
           <div className="form-group">
-            <label>Condition *</label>
+            <label>{t('createLot.condition')}</label>
             <select
               name="condition"
               className="form-control"
@@ -243,14 +219,14 @@ const CreateLot = () => {
               required
             >
               {conditions.map((cond) => (
-                <option key={cond} value={cond}>{cond}</option>
+                <option key={cond} value={cond}>{t(`createLot.conditions.${cond.toLowerCase()}`)}</option>
               ))}
             </select>
           </div>
         </div>
 
         <div className="form-group">
-          <label>Source Type</label>
+          <label>{t('createLot.sourceType')}</label>
           <select
             name="sourceType"
             className="form-control"
@@ -258,31 +234,31 @@ const CreateLot = () => {
             onChange={handleChange}
           >
             {sources.map((src) => (
-              <option key={src} value={src}>{src}</option>
+              <option key={src} value={src}>{t(`createLot.sources.${src.toLowerCase()}`)}</option>
             ))}
           </select>
         </div>
 
         <div className="form-group">
-          <label>Location</label>
+          <label>{t('createLot.location')}</label>
           <input
             type="text"
             name="collectionAddress"
             className="form-control"
             value={formData.collectionAddress}
             onChange={handleChange}
-            placeholder="Enter your location"
+            placeholder={t('createLot.locationPlaceholder')}
           />
         </div>
 
         {!isOnline && (
           <div className="offline-warning">
-            ⚠️ You are offline. This lot will be saved and synced when you're back online.
+            {t('createLot.offlineWarning')}
           </div>
         )}
 
         <button type="submit" className="btn btn-primary btn-block btn-lg" disabled={loading}>
-          {loading ? 'Creating...' : '📸 Create Lot & Get QR Code'}
+          {loading ? t('createLot.creating') : t('createLot.create')}
         </button>
       </form>
     </div>

@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import 'leaflet/dist/leaflet.css';
 
 :root {
   --primary: #2e7d32;
@@ -39,7 +38,6 @@ button {
   font-family: inherit;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -56,9 +54,4 @@ button {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
-}
-
-/* Leaflet Fix */
-.leaflet-control-attribution {
-  font-size: 8px !important;
 }

@@ -1,17 +1,16 @@
 import axios from 'axios'
 
-// Use direct backend URL
 const API_BASE_URL = 'http://localhost:8080'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
   timeout: 30000,
 })
 
-// Always add token if present
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
@@ -24,7 +23,17 @@ api.interceptors.request.use(
 )
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Ensure we always return parsed JSON
+    if (typeof response.data === 'string') {
+      try {
+        response.data = JSON.parse(response.data)
+      } catch (e) {
+        // Keep as string if parsing fails
+      }
+    }
+    return response
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.clear()

@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from '../hooks/useTranslation'
 import './Safety.css'
 
 const Safety = () => {
+  const { t } = useTranslation()
   const [safetyData, setSafetyData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [selectedMaterial, setSelectedMaterial] = useState(null)
 
   useEffect(() => {
-    // Demo safety data (in real app, fetch from backend)
     const data = {
       general: [
-        { icon: '🧤', title: 'Wear Protective Gear', description: 'Always wear gloves, safety glasses, and closed-toe shoes when handling e-waste.' },
-        { icon: '😷', title: 'Use Respiratory Protection', description: 'Wear a dust mask or respirator when handling dusty or shredded materials.' },
-        { icon: '🧼', title: 'Wash Hands Thoroughly', description: 'Always wash hands with soap and water after handling e-waste materials.' },
-        { icon: '🚫', title: 'Keep Away from Children', description: 'E-waste contains hazardous materials. Keep away from children and pets.' },
-        { icon: '💨', title: 'Work in Ventilated Areas', description: 'Always work in well-ventilated areas to avoid inhaling harmful fumes.' },
-        { icon: '🔥', title: 'Avoid Heat Sources', description: 'Keep e-waste away from fire, sparks, and heat sources.' },
-        { icon: '📦', title: 'Proper Storage', description: 'Store e-waste in dry, cool areas. Use appropriate containers.' },
-        { icon: '♻️', title: 'Separate Materials', description: 'Keep different types of e-waste separated for safe handling.' }
+        { icon: '🧤', title: t('safety.wearGloves'), description: t('safety.glovesDesc') },
+        { icon: '😷', title: t('safety.respiratory'), description: t('safety.respiratoryDesc') },
+        { icon: '🧼', title: t('safety.washHands'), description: t('safety.washHandsDesc') },
+        { icon: '🚫', title: t('safety.keepAway'), description: t('safety.keepAwayDesc') },
+        { icon: '💨', title: t('safety.ventilate'), description: t('safety.ventilateDesc') },
+        { icon: '🔥', title: t('safety.avoidHeat'), description: t('safety.avoidHeatDesc') },
+        { icon: '📦', title: t('safety.properStorage'), description: t('safety.properStorageDesc') },
+        { icon: '♻️', title: t('safety.separateMaterials'), description: t('safety.separateMaterialsDesc') }
       ],
       materials: [
         {
@@ -116,17 +116,19 @@ const Safety = () => {
     }
     setSafetyData(data)
     setLoading(false)
-  }, [])
+  }, [t])
 
-  if (loading) return <div className="loading-state">Loading safety data...</div>
+  if (loading) return <div className="loading-state">{t('common.loading')}</div>
+
+  if (!safetyData) return null
 
   return (
     <div className="safety-page">
-      <h1 className="page-title">⚠️ Safety Guidance</h1>
-      <p className="page-subtitle text-muted">Stay safe while handling e-waste materials</p>
+      <h1 className="page-title">{t('safety.title')}</h1>
+      <p className="page-subtitle text-muted">{t('safety.subtitle')}</p>
 
       <div className="general-safety card">
-        <h3>🛡️ General Safety Tips</h3>
+        <h3>{t('safety.generalTips')}</h3>
         <div className="safety-tips-grid">
           {safetyData.general.map((tip, index) => (
             <div key={index} className="safety-tip">
@@ -141,7 +143,7 @@ const Safety = () => {
       </div>
 
       <div className="material-safety">
-        <h3 className="section-title">Material-Specific Guidance</h3>
+        <h3 className="section-title">{t('safety.materialSpecific')}</h3>
         <div className="safety-grid">
           {safetyData.materials.map((material, index) => (
             <div key={index} className="card safety-card" style={{ borderLeftColor: material.color }}>
@@ -157,7 +159,7 @@ const Safety = () => {
               </div>
 
               <div className="safety-warnings">
-                <strong>⚠️ Warnings:</strong>
+                <strong>{t('safety.warnings')}</strong>
                 <div className="warning-tags">
                   {material.warnings.map((warning, idx) => (
                     <span key={idx} className="warning-tag">{warning}</span>
@@ -167,7 +169,7 @@ const Safety = () => {
 
               {material.emergency && (
                 <div className="emergency-info">
-                  <strong>🚨 Emergency:</strong>
+                  <strong>{t('safety.emergency')}</strong>
                   <p>{material.emergency}</p>
                 </div>
               )}

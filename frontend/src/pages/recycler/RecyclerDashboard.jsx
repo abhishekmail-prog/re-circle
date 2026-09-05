@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../hooks/useTranslation'
 import toast from 'react-hot-toast'
-import { FaBox, FaMoneyBillWave, FaCheckCircle, FaClock, FaEye, FaCheck, FaTrash } from 'react-icons/fa'
+import { FaBox, FaMoneyBillWave, FaCheckCircle, FaClock, FaEye, FaCheck } from 'react-icons/fa'
 import './RecyclerDashboard.css'
 
 const RecyclerDashboard = () => {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [stats, setStats] = useState({
     incomingLots: 4,
     pendingHandovers: 3,
@@ -35,7 +37,6 @@ const RecyclerDashboard = () => {
     setLoading(true)
     try {
       await new Promise(resolve => setTimeout(resolve, 800))
-      
       const earnings = Math.round(selectedLot.weightKg * 400 + Math.random() * 500)
       
       setIncomingLots(prev => prev.filter(lot => lot.id !== selectedLot.id))
@@ -56,8 +57,7 @@ const RecyclerDashboard = () => {
       }))
       
       setHandoverCount(prev => prev + 1)
-      
-      toast.success(`✅ Handover confirmed! ₹${earnings} earned.`)
+      toast.success(t('recyclerDashboard.handoverConfirmed', { lotId: selectedLot.lotId, earnings: earnings }))
       setShowModal(false)
       setSelectedLot(null)
       
@@ -68,16 +68,11 @@ const RecyclerDashboard = () => {
     }
   }
 
-  const handleDeleteCompleted = (id) => {
-    setCompletedLots(prev => prev.filter(lot => lot.id !== id))
-    toast.success('Removed from history')
-  }
-
   const quickActions = [
-    { icon: FaBox, label: 'Incoming Lots', color: '#2196f3', count: stats.incomingLots },
-    { icon: FaClock, label: 'Pending Handovers', color: '#ff9800', count: stats.pendingHandovers },
-    { icon: FaCheckCircle, label: 'Completed', color: '#4caf50', count: stats.completedTransactions },
-    { icon: FaMoneyBillWave, label: 'Total Revenue', color: '#9c27b0', value: `₹${stats.totalEarnings}` },
+    { icon: FaBox, label: t('recyclerDashboard.incomingLots'), color: '#2196f3', count: stats.incomingLots },
+    { icon: FaClock, label: t('recyclerDashboard.pendingHandovers'), color: '#ff9800', count: stats.pendingHandovers },
+    { icon: FaCheckCircle, label: t('recyclerDashboard.completed'), color: '#4caf50', count: stats.completedTransactions },
+    { icon: FaMoneyBillWave, label: t('recyclerDashboard.totalRevenue'), color: '#9c27b0', value: `₹${stats.totalEarnings}` },
   ]
 
   const getStatusBadge = (status) => {
@@ -95,11 +90,12 @@ const RecyclerDashboard = () => {
   return (
     <div className="recycler-dashboard">
       <div className="dashboard-header">
-        <h1>🏭 Welcome, {user?.fullName || 'Recycler'}!</h1>
-        <p className="text-muted">Manage incoming e-waste lots and handovers</p>
+        <h1>{t('recyclerDashboard.title')}</h1>
+        <p className="text-muted">{t('recyclerDashboard.welcome', { name: user?.fullName || 'Recycler' })}</p>
+        <p className="text-muted">{t('recyclerDashboard.subtitle')}</p>
         {handoverCount > 0 && (
           <p className="text-muted" style={{ color: '#4caf50', fontWeight: 500 }}>
-            ✅ {handoverCount} handover{handoverCount > 1 ? 's' : ''} completed today!
+            {t('recyclerDashboard.handoversCompleted', { count: handoverCount })}
           </p>
         )}
       </div>
@@ -119,12 +115,11 @@ const RecyclerDashboard = () => {
       </div>
 
       <div className="card incoming-lots">
-        <h3>📦 Incoming Lots ({incomingLots.length})</h3>
+        <h3>{t('recyclerDashboard.incomingLots')} ({incomingLots.length})</h3>
         {incomingLots.length === 0 ? (
           <div className="empty-state">
             <span style={{ fontSize: '48px' }}>🎉</span>
-            <p>No incoming lots</p>
-            <p className="text-muted" style={{ fontSize: '13px' }}>All lots processed!</p>
+            <p>{t('recyclerDashboard.noIncomingLots')}</p>
           </div>
         ) : (
           <div className="lots-list">
@@ -144,7 +139,7 @@ const RecyclerDashboard = () => {
                     className="btn btn-primary btn-sm"
                     onClick={() => handleViewLot(lot)}
                   >
-                    <FaEye /> View & Confirm
+                    <FaEye /> {t('recyclerDashboard.viewAndConfirm')}
                   </button>
                 </div>
               </div>
@@ -155,7 +150,7 @@ const RecyclerDashboard = () => {
 
       {completedLots.length > 0 && (
         <div className="card completed-lots">
-          <h3>✅ Completed Handovers ({completedLots.length})</h3>
+          <h3>✅ {t('recyclerDashboard.completedHandovers')} ({completedLots.length})</h3>
           <div className="completed-list">
             {completedLots.map((lot) => (
               <div key={lot.id} className="completed-item">
@@ -165,15 +160,7 @@ const RecyclerDashboard = () => {
                   <span className="lot-weight">{lot.weightKg} kg</span>
                   <span className="lot-earnings">💰 ₹{lot.earnings}</span>
                 </div>
-                <div className="completed-actions">
-                  <span className="completed-time">{lot.handoverDate}</span>
-                  <button 
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDeleteCompleted(lot.id)}
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
+                <span className="completed-time">{lot.handoverDate}</span>
               </div>
             ))}
           </div>
@@ -184,54 +171,26 @@ const RecyclerDashboard = () => {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>📋 Confirm Handover</h3>
+              <h3>{t('recyclerDashboard.handoverModalTitle')}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
             </div>
             <div className="modal-body">
               <div className="modal-details">
-                <div className="modal-row">
-                  <span className="modal-label">Lot ID:</span>
-                  <span className="modal-value">{selectedLot.lotId}</span>
-                </div>
-                <div className="modal-row">
-                  <span className="modal-label">Material:</span>
-                  <span className="modal-value">{selectedLot.materialCategory?.name}</span>
-                </div>
-                <div className="modal-row">
-                  <span className="modal-label">Weight:</span>
-                  <span className="modal-value">{selectedLot.weightKg} kg</span>
-                </div>
-                <div className="modal-row">
-                  <span className="modal-label">Collector:</span>
-                  <span className="modal-value">{selectedLot.collector}</span>
-                </div>
-                <div className="modal-row">
-                  <span className="modal-label">Status:</span>
-                  <span className={`badge ${getStatusBadge(selectedLot.status)}`}>
-                    {selectedLot.status}
-                  </span>
-                </div>
+                <div className="modal-row"><span className="modal-label">{t('lotDetail.lotId')}:</span><span className="modal-value">{selectedLot.lotId}</span></div>
+                <div className="modal-row"><span className="modal-label">{t('lotDetail.material')}:</span><span className="modal-value">{selectedLot.materialCategory?.name}</span></div>
+                <div className="modal-row"><span className="modal-label">{t('lotDetail.weight')}:</span><span className="modal-value">{selectedLot.weightKg} kg</span></div>
+                <div className="modal-row"><span className="modal-label">{t('recyclerDashboard.collector')}:</span><span className="modal-value">{selectedLot.collector}</span></div>
+                <div className="modal-row"><span className="modal-label">{t('recyclerDashboard.status')}:</span><span className={`badge ${getStatusBadge(selectedLot.status)}`}>{selectedLot.status}</span></div>
                 <div className="modal-row highlight">
-                  <span className="modal-label">Estimated Earnings:</span>
-                  <span className="modal-value">
-                    ₹{Math.round(selectedLot.weightKg * 400 + Math.random() * 500)}
-                  </span>
+                  <span className="modal-label">{t('recyclerDashboard.estimatedEarnings')}</span>
+                  <span className="modal-value">₹{Math.round(selectedLot.weightKg * 400 + Math.random() * 500)}</span>
                 </div>
               </div>
               <div className="modal-actions">
-                <button 
-                  className="btn btn-success btn-block"
-                  onClick={handleConfirmHandover}
-                  disabled={loading}
-                >
-                  {loading ? 'Confirming...' : <><FaCheck /> Confirm Handover</>}
+                <button className="btn btn-success btn-block" onClick={handleConfirmHandover} disabled={loading}>
+                  {loading ? t('recyclerDashboard.confirming') : <><FaCheck /> {t('recyclerDashboard.confirmHandover')}</>}
                 </button>
-                <button 
-                  className="btn btn-outline btn-block"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </button>
+                <button className="btn btn-outline btn-block" onClick={() => setShowModal(false)}>{t('common.cancel')}</button>
               </div>
             </div>
           </div>

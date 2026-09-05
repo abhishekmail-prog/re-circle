@@ -1,5 +1,4 @@
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/CollectorProfileRepository.java
-/home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/CorsConfig.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/PriceRecordRepository.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/entity/CollectorProfile.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/dto/RegisterRequest.java
@@ -19,6 +18,7 @@
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/service/RecyclerService.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/UserController.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/EarningsController.java
+/home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/CorsFilter.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/dto/AuthRequest.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/SafetyController.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/dto/CreateLotRequest.java

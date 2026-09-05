@@ -3,6 +3,7 @@ import QRCode from 'qrcode.react'
 import './QRCode.css'
 
 const QRCodeComponent = ({ value, size = 200, showDownload = true }) => {
+
   const downloadQR = () => {
     const canvas = document.getElementById('qr-code-canvas')
     if (canvas) {
@@ -33,10 +34,10 @@ const QRCodeComponent = ({ value, size = 200, showDownload = true }) => {
       </div>
       {showDownload && (
         <button className="btn btn-primary btn-sm" onClick={downloadQR}>
-          📥 Download QR Code
+          {t('lotDetail.downloadQR')}
         </button>
       )}
-      <p className="qr-code-value">Lot ID: {value}</p>
+      <p className="qr-code-value">{t('lotDetail.lotId')}: {value}</p>
     </div>
   )
 }

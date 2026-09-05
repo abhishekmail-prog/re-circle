@@ -10,7 +10,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/recyclers")
-@CrossOrigin(origins = "*")
 public class RecyclerController {
     @Autowired
     private RecyclerRepository recyclerRepository;
@@ -18,30 +17,32 @@ public class RecyclerController {
     @GetMapping
     public ResponseEntity<?> getAllRecyclers() {
         try {
-            System.out.println("🔍 GET /recyclers called");
             List<Recycler> recyclers = recyclerRepository.findAll();
-            System.out.println("🔍 Found " + recyclers.size() + " recyclers");
-            return ResponseEntity.ok(recyclers);
+            
+            // Build simple response without any nested objects
+            List<Map<String, Object>> response = new ArrayList<>();
+            for (Recycler r : recyclers) {
+                Map<String, Object> map = new LinkedHashMap<>();
+                map.put("id", r.getId().toString());
+                map.put("companyName", r.getCompanyName());
+                map.put("facilityAddress", r.getFacilityAddress());
+                map.put("latitude", r.getLatitude());
+                map.put("longitude", r.getLongitude());
+                map.put("authorized", r.isAuthorized());
+                map.put("pickupAvailable", r.isPickupAvailable());
+                map.put("serviceArea", r.getServiceArea());
+                map.put("serviceRadiusKm", r.getServiceRadiusKm());
+                map.put("contactPerson", r.getContactPerson());
+                map.put("contactPhone", r.getContactPhone());
+                // DO NOT include user, offers, or any other nested objects
+                response.add(map);
+            }
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            System.err.println("❌ Error: " + e.getMessage());
-            e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(500).body(error);
-        }
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getRecyclerById(@PathVariable String id) {
-        try {
-            UUID uuid = UUID.fromString(id);
-            Optional<Recycler> recycler = recyclerRepository.findById(uuid);
-            if (recycler.isPresent()) {
-                return ResponseEntity.ok(recycler.get());
-            }
-            return ResponseEntity.status(404).body(Map.of("error", "Recycler not found"));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400).body(Map.of("error", "Invalid ID format"));
         }
     }
 }

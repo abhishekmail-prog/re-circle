@@ -15,7 +15,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/lots")
-@CrossOrigin(origins = "*")
 public class LotController {
     @Autowired
     private LotService lotService;
@@ -23,12 +22,20 @@ public class LotController {
     @PostMapping
     public ResponseEntity<?> createLot(@RequestBody CreateLotRequest request, Authentication authentication) {
         try {
+            System.out.println("📝 Creating lot with data: " + request);
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            System.out.println("👤 User: " + userDetails.getUsername());
             MaterialLot lot = lotService.createLot(userDetails.getUsername(), request);
+            System.out.println("✅ Lot created: " + lot.getLotId());
+            
+            // Return the full lot object
             return ResponseEntity.ok(lot);
         } catch (Exception e) {
+            System.err.println("❌ Error creating lot: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.badRequest().body("Failed to create lot: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 
@@ -46,9 +53,13 @@ public class LotController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getLotById(@PathVariable String id) {
         try {
+            System.out.println("🔍 Fetching lot by ID: " + id);
             MaterialLot lot = lotService.getLotByLotId(id);
+            System.out.println("✅ Found lot: " + lot.getLotId());
             return ResponseEntity.ok(lot);
         } catch (Exception e) {
+            System.err.println("❌ Error fetching lot: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Lot not found: " + e.getMessage());
         }
     }
@@ -57,18 +68,13 @@ public class LotController {
     public ResponseEntity<?> selectRecycler(@PathVariable String id, @RequestBody Map<String, String> request) {
         try {
             System.out.println("🔍 Selecting recycler for lot: " + id);
-            System.out.println("🔍 Request body: " + request);
-            
             String recyclerId = request.get("recyclerId");
             if (recyclerId == null || recyclerId.isEmpty()) {
                 return ResponseEntity.badRequest().body("recyclerId is required");
             }
             
-            System.out.println("🔍 Recycler ID: " + recyclerId);
-            
             MaterialLot lot = lotService.selectRecycler(id, recyclerId);
-            System.out.println("✅ Recycler selected successfully!");
-            
+            System.out.println("✅ Recycler selected for lot: " + lot.getLotId());
             return ResponseEntity.ok(lot);
         } catch (Exception e) {
             System.err.println("❌ Error selecting recycler: " + e.getMessage());

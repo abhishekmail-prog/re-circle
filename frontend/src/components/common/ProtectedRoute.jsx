@@ -14,7 +14,6 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    console.log('🔒 Not authenticated, redirecting to login')
     return <Navigate to="/login" replace />
   }
 

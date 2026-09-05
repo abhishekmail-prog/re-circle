@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { FaMoneyBillWave, FaWallet, FaChartLine, FaCalendar } from 'react-icons/fa'
+import { useTranslation } from '../../hooks/useTranslation'
+import { FaMoneyBillWave, FaWallet, FaChartLine } from 'react-icons/fa'
 import './RecyclerDashboard.css'
 
 const RecyclerEarnings = () => {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [period, setPeriod] = useState('month')
 
   const earnings = {
@@ -22,10 +24,10 @@ const RecyclerEarnings = () => {
   }
 
   const periods = [
-    { key: 'today', label: 'Today' },
-    { key: 'week', label: 'This Week' },
-    { key: 'month', label: 'This Month' },
-    { key: 'all', label: 'All Time' },
+    { key: 'today', label: t('recyclerEarnings.today') },
+    { key: 'week', label: t('recyclerEarnings.week') },
+    { key: 'month', label: t('recyclerEarnings.month') },
+    { key: 'all', label: t('recyclerEarnings.all') },
   ]
 
   const getPeriodEarnings = () => {
@@ -40,8 +42,8 @@ const RecyclerEarnings = () => {
   return (
     <div className="recycler-dashboard">
       <div className="dashboard-header">
-        <h1>💰 Earnings</h1>
-        <p className="text-muted">Track your revenue and payments</p>
+        <h1>{t('recyclerEarnings.title')}</h1>
+        <p className="text-muted">{t('recyclerEarnings.subtitle')}</p>
       </div>
 
       <div className="filter-buttons" style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
@@ -69,28 +71,28 @@ const RecyclerEarnings = () => {
         <div className="stat-card" style={{ borderColor: '#9c27b0' }}>
           <div className="stat-icon" style={{ color: '#9c27b0' }}><FaMoneyBillWave /></div>
           <div className="stat-content">
-            <span className="stat-label">Earnings</span>
+            <span className="stat-label">{t('recyclerEarnings.title')}</span>
             <span className="stat-value">₹{getPeriodEarnings().toLocaleString()}</span>
           </div>
         </div>
         <div className="stat-card" style={{ borderColor: '#4caf50' }}>
           <div className="stat-icon" style={{ color: '#4caf50' }}><FaWallet /></div>
           <div className="stat-content">
-            <span className="stat-label">Total Revenue</span>
+            <span className="stat-label">{t('recyclerEarnings.totalRevenue')}</span>
             <span className="stat-value">₹{earnings.total.toLocaleString()}</span>
           </div>
         </div>
         <div className="stat-card" style={{ borderColor: '#ff9800' }}>
           <div className="stat-icon" style={{ color: '#ff9800' }}><FaChartLine /></div>
           <div className="stat-content">
-            <span className="stat-label">Transactions</span>
+            <span className="stat-label">{t('recyclerEarnings.transactions')}</span>
             <span className="stat-value">{earnings.transactions.length}</span>
           </div>
         </div>
       </div>
 
       <div className="card incoming-lots">
-        <h3>📋 Transaction History</h3>
+        <h3>{t('recyclerEarnings.transactionHistory')}</h3>
         <div className="lots-list">
           {earnings.transactions.map((tx) => (
             <div key={tx.id} className="lot-item">

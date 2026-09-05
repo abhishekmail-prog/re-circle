@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from '../hooks/useTranslation'
 import './Auth.css'
 
 const Register = () => {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,10 +24,8 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    
     const result = await register(formData)
     setLoading(false)
-    
     if (result.success) {
       navigate('/')
     }
@@ -36,83 +36,39 @@ const Register = () => {
       <div className="auth-container">
         <div className="auth-header">
           <div className="auth-logo">♻️</div>
-          <h1>RE-CIRCLE</h1>
-          <p className="auth-subtitle">Create your account</p>
+          <h1>{t('app.name')}</h1>
+          <p className="auth-subtitle">{t('auth.registerTitle')}</p>
         </div>
-        
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label>Full Name</label>
-            <input
-              type="text"
-              name="fullName"
-              className="form-control"
-              value={formData.fullName}
-              onChange={handleChange}
-              placeholder="Enter your full name"
-              required
-            />
+            <label>{t('auth.fullName')}</label>
+            <input type="text" name="fullName" className="form-control" value={formData.fullName} onChange={handleChange} required />
           </div>
-          
           <div className="form-group">
-            <label>Email Address</label>
-            <input
-              type="email"
-              name="email"
-              className="form-control"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              required
-            />
+            <label>{t('auth.email')}</label>
+            <input type="email" name="email" className="form-control" value={formData.email} onChange={handleChange} required />
           </div>
-          
           <div className="form-group">
-            <label>Phone Number</label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              className="form-control"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              placeholder="Enter your phone number"
-              required
-            />
+            <label>{t('auth.phoneNumber')}</label>
+            <input type="tel" name="phoneNumber" className="form-control" value={formData.phoneNumber} onChange={handleChange} required />
           </div>
-          
           <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              name="password"
-              className="form-control"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password"
-              required
-            />
+            <label>{t('auth.password')}</label>
+            <input type="password" name="password" className="form-control" value={formData.password} onChange={handleChange} required />
           </div>
-          
           <div className="form-group">
-            <label>I am a</label>
-            <select
-              name="role"
-              className="form-control"
-              value={formData.role}
-              onChange={handleChange}
-            >
-              <option value="COLLECTOR">Collector / Kabadiwala</option>
-              <option value="RECYCLER">Recycler</option>
+            <label>{t('auth.role')}</label>
+            <select name="role" className="form-control" value={formData.role} onChange={handleChange}>
+              <option value="COLLECTOR">{t('auth.collector')}</option>
+              <option value="RECYCLER">{t('auth.recycler')}</option>
             </select>
           </div>
-          
           <button type="submit" className="btn btn-primary btn-block btn-lg" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Register'}
+            {loading ? t('common.loading') : t('auth.register')}
           </button>
         </form>
-        
         <p className="auth-footer">
-          Already have an account? <Link to="/login">Login here</Link>
+          {t('auth.haveAccount')} <Link to="/login">{t('auth.loginHere')}</Link>
         </p>
       </div>
     </div>
