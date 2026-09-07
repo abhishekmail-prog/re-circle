@@ -67,39 +67,25 @@ public class LotService {
             .orElseThrow(() -> new RuntimeException("Lot not found: " + lotId));
     }
 
+    public List<MaterialLot> getAllLots() {
+        return lotRepository.findAll();
+    }
+
     public MaterialLot selectRecycler(String lotId, String recyclerId) {
-        System.out.println("🔍 LotService: Selecting recycler for lot: " + lotId);
-        System.out.println("🔍 LotService: Recycler ID: " + recyclerId);
-        
         MaterialLot lot = getLotByLotId(lotId);
-        System.out.println("🔍 LotService: Found lot: " + lot.getLotId());
-        
-        UUID recyclerUuid;
-        try {
-            recyclerUuid = UUID.fromString(recyclerId);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid recycler ID format: " + recyclerId);
-        }
-        
-        Recycler recycler = recyclerRepository.findById(recyclerUuid)
-            .orElseThrow(() -> new RuntimeException("Recycler not found with ID: " + recyclerId));
-        
-        System.out.println("🔍 LotService: Found recycler: " + recycler.getCompanyName());
+        Recycler recycler = recyclerRepository.findById(UUID.fromString(recyclerId))
+            .orElseThrow(() -> new RuntimeException("Recycler not found"));
         
         lot.setSelectedRecycler(recycler);
         lot.setStatus(MaterialLot.LotStatus.MATCHED);
         
-        // Calculate net earnings
         if (lot.getEstimatedValue() != null) {
             double transportCost = recycler.isPickupAvailable() ? 0 : 200;
             lot.setTransportCost(transportCost);
             lot.setNetEarnings(lot.getEstimatedValue() - transportCost);
         }
         
-        MaterialLot saved = lotRepository.save(lot);
-        System.out.println("✅ LotService: Recycler selected successfully!");
-        
-        return saved;
+        return lotRepository.save(lot);
     }
 
     public MaterialLot updateLotStatus(String lotId, MaterialLot.LotStatus status) {

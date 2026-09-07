@@ -16,30 +16,25 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/lots")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = "*")
 public class LotController {
     @Autowired
     private LotService lotService;
 
+    @Autowired
+    private WebSocketController webSocketController;
+
     @PostMapping
     public ResponseEntity<?> createLot(@RequestBody CreateLotRequest request, Authentication authentication) {
         try {
-            System.out.println("📝 Creating lot with data: " + request);
-            
-            if (authentication == null) {
-                System.err.println("❌ Authentication is null");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required");
-            }
-            
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            System.out.println("👤 User: " + userDetails.getUsername());
-            
             MaterialLot lot = lotService.createLot(userDetails.getUsername(), request);
-            System.out.println("✅ Lot created: " + lot.getLotId());
+            
+            // Send real-time notification
+            webSocketController.notifyLotCreated(lot);
             
             return ResponseEntity.ok(lot);
         } catch (Exception e) {
-            System.err.println("❌ Error creating lot: " + e.getMessage());
             e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
@@ -68,6 +63,16 @@ public class LotController {
         }
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllLots() {
+        try {
+            List<MaterialLot> lots = lotService.getAllLots();
+            return ResponseEntity.ok(lots);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to fetch lots: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/{id}/select-recycler")
     public ResponseEntity<?> selectRecycler(@PathVariable String id, @RequestBody Map<String, String> request) {
         try {
@@ -77,6 +82,10 @@ public class LotController {
             }
             
             MaterialLot lot = lotService.selectRecycler(id, recyclerId);
+            
+            // Send real-time notification
+            webSocketController.notifyLotMatched(lot);
+            
             return ResponseEntity.ok(lot);
         } catch (Exception e) {
             e.printStackTrace();

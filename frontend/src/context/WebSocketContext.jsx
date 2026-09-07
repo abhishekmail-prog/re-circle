@@ -12,6 +12,13 @@ export const WebSocketProvider = ({ children }) => {
   const { isAuthenticated } = useAuth()
   const [connected, setConnected] = useState(false)
   const [notifications, setNotifications] = useState([])
+  const [realtimeData, setRealtimeData] = useState({
+    lots: [],
+    recyclers: [],
+    handovers: [],
+    earnings: null,
+    stats: null
+  })
   const stompClient = useRef(null)
 
   useEffect(() => {
@@ -19,7 +26,6 @@ export const WebSocketProvider = ({ children }) => {
 
     const connect = () => {
       try {
-        // Create SockJS connection
         const socket = new SockJS('http://localhost:8080/ws')
         
         stompClient.current = new Client({
@@ -39,12 +45,16 @@ export const WebSocketProvider = ({ children }) => {
             console.log('✅ WebSocket connected!')
             toast.success('🔌 Real-time connection established!')
             
-            // Subscribe to topics
+            // Subscribe to ALL topics
             stompClient.current.subscribe('/topic/lots', (message) => {
               try {
                 const data = JSON.parse(message.body)
                 console.log('📦 Lot update:', data)
                 handleNotification(data)
+                setRealtimeData(prev => ({
+                  ...prev,
+                  lots: [data.data, ...prev.lots].slice(0, 50)
+                }))
               } catch (e) {
                 console.error('Failed to parse message:', e)
               }
@@ -70,10 +80,64 @@ export const WebSocketProvider = ({ children }) => {
               }
             })
 
+            stompClient.current.subscribe('/topic/earnings', (message) => {
+              try {
+                const data = JSON.parse(message.body)
+                console.log('💰 Earnings update:', data)
+                handleNotification(data)
+              } catch (e) {
+                console.error('Failed to parse message:', e)
+              }
+            })
+
+            stompClient.current.subscribe('/topic/stats', (message) => {
+              try {
+                const data = JSON.parse(message.body)
+                console.log('📊 Stats update:', data)
+                setRealtimeData(prev => ({
+                  ...prev,
+                  stats: data.data
+                }))
+                handleNotification(data)
+              } catch (e) {
+                console.error('Failed to parse message:', e)
+              }
+            })
+
             stompClient.current.subscribe('/topic/payments', (message) => {
               try {
                 const data = JSON.parse(message.body)
                 console.log('💰 Payment update:', data)
+                handleNotification(data)
+              } catch (e) {
+                console.error('Failed to parse message:', e)
+              }
+            })
+
+            stompClient.current.subscribe('/topic/admin', (message) => {
+              try {
+                const data = JSON.parse(message.body)
+                console.log('👑 Admin update:', data)
+                handleNotification(data)
+              } catch (e) {
+                console.error('Failed to parse message:', e)
+              }
+            })
+
+            stompClient.current.subscribe('/topic/collector', (message) => {
+              try {
+                const data = JSON.parse(message.body)
+                console.log('👤 Collector update:', data)
+                handleNotification(data)
+              } catch (e) {
+                console.error('Failed to parse message:', e)
+              }
+            })
+
+            stompClient.current.subscribe('/topic/recycler', (message) => {
+              try {
+                const data = JSON.parse(message.body)
+                console.log('🏭 Recycler update:', data)
                 handleNotification(data)
               } catch (e) {
                 console.error('Failed to parse message:', e)
@@ -130,6 +194,7 @@ export const WebSocketProvider = ({ children }) => {
   const value = {
     connected,
     notifications,
+    realtimeData,
     isWebSocketAvailable: true
   }
 

@@ -16,13 +16,59 @@ public class WebSocketController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    @MessageMapping("/hello")
-    @SendTo("/topic/greetings")
-    public Map<String, String> greeting(Map<String, String> message) {
-        Map<String, String> response = new HashMap<>();
-        response.put("content", "Hello, " + message.get("name") + "!");
-        response.put("timestamp", LocalDateTime.now().toString());
-        return response;
+    public void sendToAll(String topic, String eventType, Object data) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("type", eventType);
+        message.put("data", data);
+        message.put("timestamp", LocalDateTime.now().toString());
+        messagingTemplate.convertAndSend("/topic/" + topic, message);
+    }
+
+    // ========== LOT EVENTS ==========
+    public void notifyLotCreated(Object lotData) {
+        sendToAll("lots", "LOT_CREATED", lotData);
+        sendToAll("admin", "NEW_LOT", lotData);
+        sendToAll("recycler", "NEW_LOT", lotData);
+    }
+
+    public void notifyLotMatched(Object lotData) {
+        sendToAll("lots", "LOT_MATCHED", lotData);
+    }
+
+    // ========== RECYCLER EVENTS ==========
+    public void notifyRecyclerVerified(Object recyclerData) {
+        sendToAll("recyclers", "RECYCLER_VERIFIED", recyclerData);
+        sendToAll("admin", "RECYCLER_VERIFIED", recyclerData);
+    }
+
+    public void notifyRecyclerAdded(Object recyclerData) {
+        sendToAll("recyclers", "RECYCLER_ADDED", recyclerData);
+        sendToAll("admin", "RECYCLER_ADDED", recyclerData);
+    }
+
+    // ========== HANDOVER EVENTS ==========
+    public void notifyHandoverConfirmed(Object handoverData) {
+        sendToAll("handovers", "HANDOVER_CONFIRMED", handoverData);
+        sendToAll("admin", "HANDOVER_CONFIRMED", handoverData);
+        sendToAll("collector", "HANDOVER_CONFIRMED", handoverData);
+    }
+
+    // ========== PAYMENT EVENTS ==========
+    public void notifyPaymentUpdated(Object paymentData) {
+        sendToAll("payments", "PAYMENT_UPDATED", paymentData);
+        sendToAll("admin", "PAYMENT_UPDATED", paymentData);
+        sendToAll("collector", "PAYMENT_UPDATED", paymentData);
+    }
+
+    // ========== EARNINGS EVENTS ==========
+    public void notifyEarningsUpdated(Object earningsData) {
+        sendToAll("earnings", "EARNINGS_UPDATED", earningsData);
+        sendToAll("admin", "EARNINGS_UPDATED", earningsData);
+    }
+
+    // ========== STATS EVENTS ==========
+    public void notifyStatsUpdated(Object statsData) {
+        sendToAll("stats", "STATS_UPDATED", statsData);
     }
 
     @MessageMapping("/ping")
@@ -32,34 +78,5 @@ public class WebSocketController {
         response.put("status", "pong");
         response.put("timestamp", LocalDateTime.now().toString());
         return response;
-    }
-
-    // Send real-time updates to all connected clients
-    public void sendToAll(String topic, String eventType, Object data) {
-        Map<String, Object> message = new HashMap<>();
-        message.put("type", eventType);
-        message.put("data", data);
-        message.put("timestamp", LocalDateTime.now().toString());
-        messagingTemplate.convertAndSend("/topic/" + topic, message);
-    }
-
-    public void notifyLotCreated(Object lotData) {
-        sendToAll("lots", "LOT_CREATED", lotData);
-    }
-
-    public void notifyRecyclerSelected(Object lotData) {
-        sendToAll("lots", "RECYCLER_SELECTED", lotData);
-    }
-
-    public void notifyHandoverConfirmed(Object handoverData) {
-        sendToAll("handovers", "HANDOVER_CONFIRMED", handoverData);
-    }
-
-    public void notifyPaymentUpdated(Object paymentData) {
-        sendToAll("payments", "PAYMENT_UPDATED", paymentData);
-    }
-
-    public void notifyRecyclerVerified(Object recyclerData) {
-        sendToAll("recyclers", "RECYCLER_VERIFIED", recyclerData);
     }
 }
