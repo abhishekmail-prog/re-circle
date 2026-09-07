@@ -18,12 +18,12 @@
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/service/RecyclerService.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/UserController.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/EarningsController.java
-/home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/CorsFilter.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/dto/AuthRequest.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/SafetyController.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/dto/CreateLotRequest.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/PriceController.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/entity/PriceRecord.java
+/home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/SimpleCorsFilter.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/HealthController.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/DataSeeder.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/RecyclerOfferRepository.java

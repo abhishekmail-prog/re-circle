@@ -1,12 +1,14 @@
-import React from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { useTranslation } from '../../hooks/useTranslation'
+import { useWebSocket } from '../../context/WebSocketContext'
+import { useOffline } from '../../context/OfflineContext'
 import { 
   FaHome, FaCamera, FaMoneyBillWave, FaRecycle, FaWallet, 
   FaShieldAlt, FaUser, FaSignOutAlt, FaBox, FaChartLine, FaUsers,
-  FaCheckCircle, FaGlobe
+  FaCheckCircle, FaGlobe, FaBell, FaWifi, FaSync
 } from 'react-icons/fa'
 import './Navbar.css'
 
@@ -14,14 +16,23 @@ const Navbar = () => {
   const { user, logout } = useAuth()
   const { language, changeLanguage } = useLanguage()
   const { t } = useTranslation()
+  const { notifications, connected } = useWebSocket()
+  const { isOnline, pendingSyncCount, isSyncing, syncNow } = useOffline()
   const navigate = useNavigate()
-  const [showLanguageMenu, setShowLanguageMenu] = React.useState(false)
-  const menuRef = React.useRef(null)
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const menuRef = useRef(null)
+  const notificationRef = useRef(null)
+  
+  const unreadCount = notifications.filter(n => !n.read).length
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setShowLanguageMenu(false)
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -79,6 +90,18 @@ const Navbar = () => {
 
   const currentLanguage = languages.find(l => l.code === language) || languages[0]
 
+  const getNotificationIcon = (type) => {
+    switch(type) {
+      case 'LOT_CREATED': return '📝'
+      case 'RECYCLER_SELECTED': return '🤝'
+      case 'HANDOVER_CONFIRMED': return '✅'
+      case 'RECYCLER_VERIFIED': return '🏭'
+      case 'PAYMENT_UPDATED': return '💰'
+      case 'EARNINGS_UPDATED': return '📊'
+      default: return '📌'
+    }
+  }
+
   return (
     <nav className="navbar">
       <div className="navbar-content">
@@ -95,13 +118,103 @@ const Navbar = () => {
           ))}
         </div>
         <div className="navbar-footer">
+          {/* Offline Status */}
+          <div className="offline-status" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            fontSize: '10px',
+            fontWeight: '500',
+            background: isOnline ? '#e8f5e9' : '#fce4ec',
+            color: isOnline ? '#2e7d32' : '#c62828'
+          }}>
+            <span style={{ fontSize: '12px' }}>{isOnline ? '🟢' : '🔴'}</span>
+            <span>{isOnline ? 'Online' : 'Offline'}</span>
+            {isOnline && pendingSyncCount > 0 && (
+              <button 
+                onClick={syncNow} 
+                disabled={isSyncing}
+                style={{
+                  background: '#ff8f00',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '0 8px',
+                  fontSize: '9px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px'
+                }}
+              >
+                <FaSync size={8} />
+                {pendingSyncCount}
+              </button>
+            )}
+          </div>
+
+          {/* Notification Bell */}
+          <div className="notification-wrapper" ref={notificationRef}>
+            <button 
+              className="notification-btn"
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+              <FaBell className="bell-icon" />
+              {unreadCount > 0 && (
+                <span className="notification-badge">{unreadCount}</span>
+              )}
+            </button>
+            {showNotifications && (
+              <div className="notification-dropdown">
+                <div className="notification-header">
+                  <span>Notifications</span>
+                  {unreadCount > 0 && (
+                    <button className="mark-read-btn">Mark all read</button>
+                  )}
+                </div>
+                <div className="notification-list">
+                  {notifications.length === 0 ? (
+                    <div className="no-notifications">No notifications</div>
+                  ) : (
+                    notifications.slice(0, 10).map((notif, index) => (
+                      <div key={index} className={`notification-item ${notif.read ? 'read' : 'unread'}`}>
+                        <span className="notif-icon">{getNotificationIcon(notif.type)}</span>
+                        <div className="notif-content">
+                          <div className="notif-message">
+                            {notif.type === 'LOT_CREATED' && `New lot created: ${notif.data?.lotId || 'N/A'}`}
+                            {notif.type === 'RECYCLER_SELECTED' && `Recycler selected for lot: ${notif.data?.lotId || 'N/A'}`}
+                            {notif.type === 'HANDOVER_CONFIRMED' && `Handover confirmed for lot: ${notif.data?.lotId || 'N/A'}`}
+                            {notif.type === 'RECYCLER_VERIFIED' && `Recycler verified: ${notif.data?.companyName || 'N/A'}`}
+                            {notif.type === 'PAYMENT_UPDATED' && `Payment updated for lot: ${notif.data?.lotId || 'N/A'}`}
+                            {notif.type === 'EARNINGS_UPDATED' && `Earnings updated!`}
+                            {!notif.type && 'Update received'}
+                          </div>
+                          <div className="notif-time">
+                            {notif.timestamp ? new Date(notif.timestamp).toLocaleTimeString() : 'Just now'}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {connected && notifications.length > 0 && (
+                  <div className="notification-footer">
+                    <span className="live-indicator">🔴 Live</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="language-switcher-wrapper" ref={menuRef}>
             <button 
               className="language-toggle-btn"
               onClick={() => setShowLanguageMenu(!showLanguageMenu)}
             >
               <FaGlobe className="lang-icon" />
-              <span>{currentLanguage.flag} {currentLanguage.label}</span>
+              <span>{currentLanguage.flag}</span>
               <span className="lang-arrow">{showLanguageMenu ? '▲' : '▼'}</span>
             </button>
             {showLanguageMenu && (

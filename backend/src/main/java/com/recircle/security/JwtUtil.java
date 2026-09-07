@@ -24,6 +24,7 @@ public class JwtUtil {
 
     private Key getSigningKey() {
         byte[] keyBytes = secret.getBytes();
+        System.out.println("🔑 JWT Secret length: " + keyBytes.length);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -41,15 +42,23 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            System.err.println("❌ Failed to parse JWT: " + e.getMessage());
+            throw e;
+        }
     }
 
     private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        Date expiration = extractExpiration(token);
+        boolean expired = expiration.before(new Date());
+        System.out.println("🔍 Token expired: " + expired + " (expires: " + expiration + ")");
+        return expired;
     }
 
     public String generateToken(UserDetails userDetails) {

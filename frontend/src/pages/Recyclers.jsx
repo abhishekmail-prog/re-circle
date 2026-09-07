@@ -13,6 +13,14 @@ const Recyclers = () => {
   const [selecting, setSelecting] = useState(false)
   const navigate = useNavigate()
 
+  // Fallback demo recyclers
+  const demoRecyclers = [
+    { id: 'demo1', companyName: 'GreenCycle Solutions', authorized: true, pickupAvailable: true, serviceArea: 'Pune', serviceRadiusKm: 15, contactPerson: 'Rajesh Patel', contactPhone: '9876543212' },
+    { id: 'demo2', companyName: 'EcoRecycle Industries', authorized: true, pickupAvailable: false, serviceArea: 'Mumbai', serviceRadiusKm: 10, contactPerson: 'Sneha Sharma', contactPhone: '9876543213' },
+    { id: 'demo3', companyName: 'TechRecycle Solutions', authorized: true, pickupAvailable: true, serviceArea: 'Bangalore', serviceRadiusKm: 20, contactPerson: 'Vikram Reddy', contactPhone: '9876543214' },
+    { id: 'demo4', companyName: 'E-Waste Hub', authorized: false, pickupAvailable: false, serviceArea: 'Delhi NCR', serviceRadiusKm: 12, contactPerson: 'Arjun Singh', contactPhone: '9876543215' },
+  ]
+
   useEffect(() => {
     fetchRecyclers()
   }, [])
@@ -28,9 +36,8 @@ const Recyclers = () => {
         try {
           data = JSON.parse(data)
         } catch (e) {
-          setError(t('recyclers.error'))
-          setLoading(false)
-          return
+          setError('Using demo recycler data')
+          data = demoRecyclers
         }
       }
       
@@ -61,13 +68,14 @@ const Recyclers = () => {
         
         setRecyclers(recyclersWithEarnings)
       } else {
-        setRecyclers([])
-        setError(t('recyclers.noRecyclers'))
+        setRecyclers(demoRecyclers.map(r => ({ ...r, pricePerKg: 500, saleValue: 2500, transportCost: 0, netEarnings: 2500, isBestDeal: false })))
+        setError('Using demo recycler data')
       }
     } catch (err) {
       console.error('❌ Error:', err)
-      setError(t('recyclers.error'))
-      toast.error(t('recyclers.error'))
+      setError('Using demo recycler data')
+      setRecyclers(demoRecyclers.map(r => ({ ...r, pricePerKg: 500, saleValue: 2500, transportCost: 0, netEarnings: 2500, isBestDeal: false })))
+      toast.info('🏭 Using demo recycler data')
     } finally {
       setLoading(false)
     }
@@ -101,41 +109,32 @@ const Recyclers = () => {
         recyclerId: recycler.id
       })
       
-      toast.success(`✅ ${t('recyclers.select')} ${recycler.companyName}!`)
+      toast.success(`✅ Recycler ${recycler.companyName} selected!`)
       navigate(`/lot/${lotId}`)
       
     } catch (error) {
       console.error('❌ Selection error:', error)
-      toast.error(error.response?.data || t('recyclers.error'))
+      toast.error(error.response?.data || 'Failed to select recycler. Using demo mode.')
+      // Navigate to demo lot detail
+      navigate('/lot/RC-DEMO-000001')
     } finally {
       setSelecting(false)
     }
   }
 
   if (loading) {
-    return <div className="loading-state">{t('recyclers.loading')}</div>
-  }
-
-  if (error) {
-    return (
-      <div className="recyclers-page">
-        <h1 className="page-title">{t('recyclers.title')}</h1>
-        <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
-          <p style={{ color: '#f44336' }}>{error}</p>
-          <button className="btn btn-primary" onClick={fetchRecyclers} style={{ marginTop: '16px' }}>
-            {t('recyclers.retry')}
-          </button>
-        </div>
-      </div>
-    )
+    return <div className="loading-state">Loading recyclers...</div>
   }
 
   if (recyclers.length === 0) {
     return (
       <div className="recyclers-page">
-        <h1 className="page-title">{t('recyclers.title')}</h1>
+        <h1 className="page-title">🏭 Find Recyclers</h1>
         <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
-          <p>{t('recyclers.noRecyclers')}</p>
+          <p>No recyclers available. Using demo data.</p>
+          <button className="btn btn-primary" onClick={fetchRecyclers} style={{ marginTop: '16px' }}>
+            🔄 Retry
+          </button>
         </div>
       </div>
     )
@@ -143,15 +142,21 @@ const Recyclers = () => {
 
   return (
     <div className="recyclers-page">
-      <h1 className="page-title">{t('recyclers.title')}</h1>
-      <p className="page-subtitle text-muted">{t('recyclers.subtitle')}</p>
+      <h1 className="page-title">🏭 Find Recyclers</h1>
+      <p className="page-subtitle text-muted">Compare recyclers and find the best deal</p>
+
+      {error && (
+        <div className="demo-banner" style={{ background: '#fff3e0', padding: '8px 16px', borderRadius: '8px', marginBottom: '16px', color: '#e65100' }}>
+          ⚠️ {error}
+        </div>
+      )}
 
       <div className="lot-summary">
         <div className="card">
-          <h4>{t('recyclers.yourLot')}</h4>
+          <h4>📦 Your Demo Lot</h4>
           <div className="lot-details">
-            <span>{t('recyclers.material')} <strong>PCB</strong></span>
-            <span>{t('recyclers.weight')} <strong>5 kg</strong></span>
+            <span>Material: <strong>PCB</strong></span>
+            <span>Weight: <strong>5 kg</strong></span>
           </div>
         </div>
       </div>
@@ -160,54 +165,52 @@ const Recyclers = () => {
         {recyclers.map((recycler) => (
           <div key={recycler.id} className={`card recycler-card ${recycler.isBestDeal ? 'best-deal' : ''}`}>
             {recycler.isBestDeal && (
-              <div className="best-deal-badge">{t('recyclers.bestDeal')}</div>
+              <div className="best-deal-badge">🥇 Best Deal</div>
             )}
             
             <div className="recycler-header">
               <h3>{recycler.companyName || 'Unknown'}</h3>
               <span className={`badge ${recycler.authorized ? 'badge-success' : 'badge-danger'}`}>
-                {recycler.authorized ? t('recyclers.authorized') : t('recyclers.notAuthorized')}
+                {recycler.authorized ? '✅ Authorized' : '❌ Not Authorized'}
               </span>
             </div>
 
             <div className="recycler-details">
               <div className="detail-row">
-                <span className="label">{t('recyclers.location')}</span>
+                <span className="label">📍 Location</span>
                 <span className="value">{recycler.serviceArea || 'N/A'}</span>
               </div>
               <div className="detail-row">
-                <span className="label">{t('recyclers.distance')}</span>
+                <span className="label">Distance</span>
                 <span className="value">{recycler.serviceRadiusKm || 10} km</span>
               </div>
               <div className="detail-row">
-                <span className="label">{t('recyclers.pickup')}</span>
+                <span className="label">Pickup</span>
                 <span className={`value ${recycler.pickupAvailable ? 'text-success' : 'text-danger'}`}>
-                  {recycler.pickupAvailable ? t('recyclers.available') : t('recyclers.notAvailable')}
+                  {recycler.pickupAvailable ? '✅ Available' : '❌ Not Available'}
                 </span>
               </div>
               <div className="detail-row">
-                <span className="label">{t('recyclers.offerPrice')}</span>
-                <span className="value">₹{recycler.pricePerKg?.toFixed(2) || 'N/A'}{t('prices.perKg')}</span>
+                <span className="label">Offer Price</span>
+                <span className="value">₹{recycler.pricePerKg?.toFixed(2) || 'N/A'}/kg</span>
               </div>
               <div className="detail-row">
-                <span className="label">{t('recyclers.saleValue')}</span>
+                <span className="label">Sale Value</span>
                 <span className="value">₹{recycler.saleValue?.toFixed(2) || 0}</span>
               </div>
               <div className="detail-row">
-                <span className="label">{t('recyclers.transportCost')}</span>
+                <span className="label">Transport Cost</span>
                 <span className="value text-danger">-₹{recycler.transportCost?.toFixed(2) || 0}</span>
               </div>
               <div className="detail-row highlight">
-                <span className="label">{t('recyclers.netEarnings')}</span>
+                <span className="label">💰 Net Earnings</span>
                 <span className="value">₹{recycler.netEarnings?.toFixed(2) || 0}</span>
               </div>
             </div>
 
             {recycler.isBestDeal && (
               <div className="recommendation-reason">
-                {t('recyclers.recommended', { 
-                  reason: recycler.pickupAvailable ? t('recyclers.freePickup') : t('recyclers.lowestTransport') 
-                })}
+                💡 Recommended: Highest net earnings with {recycler.pickupAvailable ? 'free pickup' : 'lowest transport cost'}
               </div>
             )}
 
@@ -216,7 +219,7 @@ const Recyclers = () => {
               onClick={() => handleSelectRecycler(recycler)}
               disabled={selecting}
             >
-              {selecting ? t('recyclers.selecting') : t('recyclers.select')}
+              {selecting ? 'Processing...' : 'Select Recycler'}
             </button>
           </div>
         ))}

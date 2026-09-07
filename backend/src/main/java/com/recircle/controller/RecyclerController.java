@@ -14,12 +14,13 @@ public class RecyclerController {
     @Autowired
     private RecyclerRepository recyclerRepository;
 
+    @Autowired
+    private WebSocketController webSocketController;
+
     @GetMapping
     public ResponseEntity<?> getAllRecyclers() {
         try {
             List<Recycler> recyclers = recyclerRepository.findAll();
-            
-            // Build simple response without any nested objects
             List<Map<String, Object>> response = new ArrayList<>();
             for (Recycler r : recyclers) {
                 Map<String, Object> map = new LinkedHashMap<>();
@@ -34,15 +35,30 @@ public class RecyclerController {
                 map.put("serviceRadiusKm", r.getServiceRadiusKm());
                 map.put("contactPerson", r.getContactPerson());
                 map.put("contactPhone", r.getContactPhone());
-                // DO NOT include user, offers, or any other nested objects
                 response.add(map);
             }
-            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(500).body(error);
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/verify")
+    public ResponseEntity<?> verifyRecycler(@PathVariable String id) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            Recycler recycler = recyclerRepository.findById(uuid)
+                .orElseThrow(() -> new RuntimeException("Recycler not found"));
+            
+            recycler.setAuthorized(true);
+            recyclerRepository.save(recycler);
+            
+            // Send real-time notification
+            webSocketController.notifyRecyclerVerified(recycler);
+            
+            return ResponseEntity.ok(Map.of("message", "Recycler verified successfully", "id", id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to verify recycler: " + e.getMessage());
         }
     }
 }

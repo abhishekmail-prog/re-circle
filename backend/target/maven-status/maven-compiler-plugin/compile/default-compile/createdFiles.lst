@@ -2,8 +2,8 @@ com/recircle/entity/MaterialLot$LotStatus.class
 com/recircle/entity/User$UserRole.class
 com/recircle/entity/MaterialCategory.class
 com/recircle/repository/RecyclerRepository.class
-com/recircle/config/CorsFilter.class
 com/recircle/controller/WebSocketController.class
+com/recircle/config/SimpleCorsFilter.class
 com/recircle/repository/MaterialCategoryRepository.class
 com/recircle/entity/Recycler.class
 com/recircle/dto/AuthRequest.class

@@ -43,12 +43,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.disable())
+            .cors(cors -> cors.disable())  // CORS handled by SimpleCorsFilter
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/health", "/uploads/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/auth/**", "/health", "/uploads/**", "/ws/**").permitAll()
+                .anyRequest().authenticated()  // Require authentication for all other endpoints
             )
             .authenticationProvider(authenticationProvider(null));
         

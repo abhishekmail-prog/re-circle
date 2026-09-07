@@ -6,42 +6,60 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 @Controller
 public class WebSocketController {
-    
+
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    @MessageMapping("/status")
-    @SendTo("/topic/updates")
-    public Map<String, Object> sendStatusUpdate(Map<String, Object> update) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("type", "STATUS_UPDATE");
-        response.put("data", update);
-        response.put("timestamp", System.currentTimeMillis());
+    @MessageMapping("/hello")
+    @SendTo("/topic/greetings")
+    public Map<String, String> greeting(Map<String, String> message) {
+        Map<String, String> response = new HashMap<>();
+        response.put("content", "Hello, " + message.get("name") + "!");
+        response.put("timestamp", LocalDateTime.now().toString());
         return response;
     }
 
-    @MessageMapping("/handover")
-    @SendTo("/topic/handovers")
-    public Map<String, Object> sendHandoverUpdate(Map<String, Object> update) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("type", "HANDOVER_CONFIRMED");
-        response.put("data", update);
-        response.put("timestamp", System.currentTimeMillis());
+    @MessageMapping("/ping")
+    @SendTo("/topic/pong")
+    public Map<String, String> ping() {
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "pong");
+        response.put("timestamp", LocalDateTime.now().toString());
         return response;
     }
-    
-    public void notifyHandover(String lotId, String status) {
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("lotId", lotId);
-        notification.put("status", status);
-        notification.put("message", "Handover status updated to: " + status);
-        notification.put("timestamp", System.currentTimeMillis());
-        
-        messagingTemplate.convertAndSend("/topic/handovers", notification);
+
+    // Send real-time updates to all connected clients
+    public void sendToAll(String topic, String eventType, Object data) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("type", eventType);
+        message.put("data", data);
+        message.put("timestamp", LocalDateTime.now().toString());
+        messagingTemplate.convertAndSend("/topic/" + topic, message);
+    }
+
+    public void notifyLotCreated(Object lotData) {
+        sendToAll("lots", "LOT_CREATED", lotData);
+    }
+
+    public void notifyRecyclerSelected(Object lotData) {
+        sendToAll("lots", "RECYCLER_SELECTED", lotData);
+    }
+
+    public void notifyHandoverConfirmed(Object handoverData) {
+        sendToAll("handovers", "HANDOVER_CONFIRMED", handoverData);
+    }
+
+    public void notifyPaymentUpdated(Object paymentData) {
+        sendToAll("payments", "PAYMENT_UPDATED", paymentData);
+    }
+
+    public void notifyRecyclerVerified(Object recyclerData) {
+        sendToAll("recyclers", "RECYCLER_VERIFIED", recyclerData);
     }
 }

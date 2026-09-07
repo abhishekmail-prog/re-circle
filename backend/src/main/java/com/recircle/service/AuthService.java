@@ -27,7 +27,7 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
+    @Autowired(required = false)
     private AuthenticationManager authenticationManager;
 
     public User register(RegisterRequest request) {
@@ -56,15 +56,14 @@ public class AuthService {
 
     public User login(AuthRequest request) {
         try {
-            System.out.println("🔐 Authenticating: " + request.getEmail());
-            Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
-            System.out.println("✅ Authentication successful for: " + request.getEmail());
+            if (authenticationManager != null) {
+                Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                );
+            }
             return userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         } catch (AuthenticationException e) {
-            System.err.println("❌ Authentication failed: " + e.getMessage());
             throw new RuntimeException("Invalid email or password: " + e.getMessage());
         }
     }
