@@ -1,4 +1,5 @@
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/CollectorProfileRepository.java
+/home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/CorsConfig.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/PriceRecordRepository.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/entity/CollectorProfile.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/dto/RegisterRequest.java
