@@ -4,92 +4,51 @@ import com.recircle.dto.CreateLotRequest;
 import com.recircle.entity.MaterialLot;
 import com.recircle.service.LotService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/lots")
-@CrossOrigin(origins = "*")
 public class LotController {
+
     @Autowired
     private LotService lotService;
 
-    @Autowired
-    private WebSocketController webSocketController;
-
+    // Create a new lot (COLLECTOR only)
     @PostMapping
-    public ResponseEntity<?> createLot(@RequestBody CreateLotRequest request, Authentication authentication) {
-        try {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            MaterialLot lot = lotService.createLot(userDetails.getUsername(), request);
-            
-            // Send real-time notification
-            webSocketController.notifyLotCreated(lot);
-            
-            return ResponseEntity.ok(lot);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+    @PreAuthorize("hasRole('COLLECTOR')")
+    public ResponseEntity<MaterialLot> createLot(@RequestBody CreateLotRequest request, Principal principal) {
+        MaterialLot lot = lotService.createLot(principal.getName(), request);
+        return ResponseEntity.ok(lot);
     }
 
+    // Get current collector's lots
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('COLLECTOR')")
+    public ResponseEntity<List<MaterialLot>> getMyLots(Principal principal) {
+        return ResponseEntity.ok(lotService.getLotsByCollector(principal.getName()));
+    }
+
+    // Get all lots (ADMIN or RECYCLER)
     @GetMapping
-    public ResponseEntity<?> getMyLots(Authentication authentication) {
-        try {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            List<MaterialLot> lots = lotService.getLotsByCollector(userDetails.getUsername());
-            return ResponseEntity.ok(lots);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to fetch lots: " + e.getMessage());
-        }
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECYCLER')")
+    public ResponseEntity<List<MaterialLot>> getAllLots() {
+        return ResponseEntity.ok(lotService.getAllLots());
     }
 
+    // Get a lot by database id
     @GetMapping("/{id}")
-    public ResponseEntity<?> getLotById(@PathVariable String id) {
-        try {
-            MaterialLot lot = lotService.getLotByLotId(id);
-            return ResponseEntity.ok(lot);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lot not found: " + e.getMessage());
-        }
+    public ResponseEntity<MaterialLot> getLotById(@PathVariable String id) {
+        return ResponseEntity.ok(lotService.getLotByLotId(id));
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<?> getAllLots() {
-        try {
-            List<MaterialLot> lots = lotService.getAllLots();
-            return ResponseEntity.ok(lots);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to fetch lots: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/{id}/select-recycler")
-    public ResponseEntity<?> selectRecycler(@PathVariable String id, @RequestBody Map<String, String> request) {
-        try {
-            String recyclerId = request.get("recyclerId");
-            if (recyclerId == null || recyclerId.isEmpty()) {
-                return ResponseEntity.badRequest().body("recyclerId is required");
-            }
-            
-            MaterialLot lot = lotService.selectRecycler(id, recyclerId);
-            
-            // Send real-time notification
-            webSocketController.notifyLotMatched(lot);
-            
-            return ResponseEntity.ok(lot);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body("Failed to select recycler: " + e.getMessage());
-        }
+    // Get a lot by its public lotId (e.g., RC-XXXX)
+    @GetMapping("/lot/{lotId}")
+    public ResponseEntity<MaterialLot> getLotByLotId(@PathVariable String lotId) {
+        return ResponseEntity.ok(lotService.getLotByLotId(lotId));
     }
 }
