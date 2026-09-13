@@ -20,7 +20,7 @@ public class SimpleCorsFilter implements Filter {
         "http://localhost:5173",
         "http://localhost:3000",
         "http://10.252.126.192:5173",
-        "https://recircle-frontend.onrender.com" // ⚠️ REPLACE WITH YOUR ACTUAL RENDER FRONTEND URL
+        "https://recircle-backend-b1gl.onrender.com"
     );
 
     @Override
