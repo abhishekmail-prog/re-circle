@@ -17,7 +17,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173", "http://localhost:3000", "http://10.252.126.192:5173", "https://recircle-frontend.onrender.com")
+                        .allowedOrigins("http://localhost:5173", "http://localhost:3000", "http://10.252.126.192:5173", "https://recircle-backend-b1gl.onrender.com")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
