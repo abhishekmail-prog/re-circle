@@ -18,6 +18,7 @@ public class RecyclerOffer {
 
     @ManyToOne
     @JoinColumn(name = "recycler_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Recycler recycler;
 
     @ManyToOne

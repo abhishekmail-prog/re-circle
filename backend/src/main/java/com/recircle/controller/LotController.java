@@ -54,4 +54,31 @@ public class LotController {
         MaterialLot updated = lotService.selectRecycler(lotId, recyclerId);
         return ResponseEntity.ok(updated);
     }
+
+    // ─── Recycler: list lots assigned to me that need handover ─────
+    @GetMapping("/recycler/pending-handovers")
+    public ResponseEntity<?> getMyPendingHandovers(Principal principal) {
+        try {
+            return ResponseEntity.ok(
+                lotService.getPendingHandoversForRecycler(principal.getName())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ─── Recycler: confirm handover with verified weight + final price ─────
+    @PostMapping("/{lotId}/handover")
+    public ResponseEntity<?> confirmHandover(@PathVariable String lotId,
+                                             @RequestBody Map<String, Object> body,
+                                             Principal principal) {
+        try {
+            MaterialLot updated = lotService.confirmHandover(
+                lotId, principal.getName(), body
+            );
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

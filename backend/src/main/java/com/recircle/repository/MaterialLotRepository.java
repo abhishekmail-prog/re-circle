@@ -26,4 +26,7 @@ public interface MaterialLotRepository extends JpaRepository<MaterialLot, UUID> 
     
     @Query("SELECT SUM(l.netEarnings) FROM MaterialLot l WHERE l.collector = :collector AND l.status = 'COMPLETED'")
     Double sumNetEarningsByCollector(@Param("collector") User collector);
+
+    List<MaterialLot> findBySelectedRecyclerAndStatusInOrderByCreatedAtDesc(
+            com.recircle.entity.Recycler recycler, List<LotStatus> statuses);
 }

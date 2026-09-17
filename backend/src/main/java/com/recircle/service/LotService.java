@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -102,6 +103,74 @@ public class LotService {
     public MaterialLot updateLotStatus(String lotId, MaterialLot.LotStatus status) {
         MaterialLot lot = getLotByLotId(lotId);
         lot.setStatus(status);
+        return lotRepository.save(lot);
+    }
+
+    public List<MaterialLot> getPendingHandoversForRecycler(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        Recycler recycler = recyclerRepository.findByUser(user)
+            .orElseThrow(() -> new RuntimeException("Recycler profile not found"));
+
+        // Return ALL lots assigned to this recycler — the frontend needs
+        // paid + pending together to compute correct totals.
+        return lotRepository.findBySelectedRecyclerAndStatusInOrderByCreatedAtDesc(
+            recycler,
+            List.of(
+                MaterialLot.LotStatus.MATCHED,
+                MaterialLot.LotStatus.HANDED_OVER,
+                MaterialLot.LotStatus.PAYMENT_PENDING,
+                MaterialLot.LotStatus.PAID,
+                MaterialLot.LotStatus.COMPLETED
+            )
+        );
+    }
+
+    public MaterialLot confirmHandover(String lotId, String email, Map<String, Object> body) {
+        MaterialLot lot = getLotByLotId(lotId);
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        Recycler recycler = recyclerRepository.findByUser(user)
+            .orElseThrow(() -> new RuntimeException("Recycler profile not found"));
+
+        // Only the assigned recycler can confirm
+        if (lot.getSelectedRecycler() == null
+                || !lot.getSelectedRecycler().getId().equals(recycler.getId())) {
+            throw new RuntimeException("This lot is not assigned to you");
+        }
+
+        // Parse body
+        Object vw = body.get("verifiedWeight");
+        Object fp = body.get("finalPrice");
+        String paymentStatus = (String) body.getOrDefault("paymentStatus", "PAID");
+
+        if (vw != null) {
+            lot.setVerifiedWeightKg(Double.parseDouble(vw.toString()));
+        }
+        if (fp != null) {
+            double finalVal = Double.parseDouble(fp.toString());
+            lot.setFinalValue(finalVal);
+            if (lot.getVerifiedWeightKg() != null && lot.getVerifiedWeightKg() > 0) {
+                lot.setFinalPricePerKg(finalVal / lot.getVerifiedWeightKg());
+            }
+        }
+
+        // Recompute net earnings
+        double transport = lot.getTransportCost() != null ? lot.getTransportCost() : 200.0;
+        lot.setTransportCost(transport);
+        if (lot.getFinalValue() != null) {
+            lot.setNetEarnings(lot.getFinalValue() - transport);
+        }
+
+        if ("PAID".equalsIgnoreCase(paymentStatus)) {
+            lot.setStatus(MaterialLot.LotStatus.PAID);
+            lot.setCompletedAt(java.time.LocalDateTime.now());
+        } else {
+            lot.setStatus(MaterialLot.LotStatus.PAYMENT_PENDING);
+        }
+        lot.setHandoverAt(java.time.LocalDateTime.now());
+
+        logger.info("Handover confirmed for {} by recycler {}", lotId, email);
         return lotRepository.save(lot);
     }
 }

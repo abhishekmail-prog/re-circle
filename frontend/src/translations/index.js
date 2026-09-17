@@ -1,6 +1,19 @@
 const translations = {
   en: {
     app: { name: 'RE-CIRCLE', tagline: 'Kabadiwala Connect' },
+
+    scanner: {
+      title: 'Scan Lot QR',
+      scanning: 'Point the camera at the QR code on the lot',
+      scanButton: 'Scan QR for Handover',
+      cameraError: 'Could not start camera',
+      noCamera: 'No camera available on this device',
+      permissionDenied: 'Camera permission denied — check browser settings',
+      insecureContext: 'Camera needs HTTPS or localhost. Try opening the app via localhost or an https:// tunnel.',
+      manualEntry: 'Enter lot ID manually',
+      enterLotId: 'Lot ID',
+      lotNotFound: 'No pending handover found for this QR'
+    },
     nav: {
       dashboard: 'Dashboard',
       createLot: 'Create Lot',
@@ -244,7 +257,9 @@ const translations = {
       total: 'Total',
       pending: 'Pending',
       completed: 'Completed',
-      totalRevenue: 'Total Revenue',
+      totalRevenue: 'Total Spent',
+      pendingCommitment: 'Pending Commitment',
+      totalSpent: 'Total Spent',
       completeHandover: 'Complete Handover',
       confirmPayment: 'Confirm Payment',
       verifiedWeight: 'Verified Weight (kg)',
@@ -260,7 +275,10 @@ const translations = {
     recyclerEarnings: {
       title: '💰 Earnings',
       subtitle: 'Track your revenue and payments',
-      totalRevenue: 'Total Revenue',
+      totalRevenue: 'Total Spent',
+      totalPurchases: 'Total Purchases',
+      spentOnMaterial: 'Spent on material',
+      procurementSubtitle: 'Amount paid to collectors for e-waste',
       transactions: 'Transactions',
       transactionHistory: '📋 Transaction History',
       today: 'Today',
@@ -345,6 +363,19 @@ const translations = {
   },
   hi: {
     app: { name: 'री-सर्कल', tagline: 'कबाड़ीवाला कनेक्ट' },
+
+    scanner: {
+      title: 'लॉट QR स्कैन करें',
+      scanning: 'कैमरे को लॉट पर QR कोड की ओर इंगित करें',
+      scanButton: 'हैंडओवर के लिए QR स्कैन करें',
+      cameraError: 'कैमरा शुरू नहीं हो सका',
+      noCamera: 'इस डिवाइस पर कोई कैमरा उपलब्ध नहीं',
+      permissionDenied: 'कैमरा अनुमति अस्वीकृत — ब्राउज़र सेटिंग्स जांचें',
+      insecureContext: 'कैमरे के लिए HTTPS या localhost आवश्यक है।',
+      manualEntry: 'मैन्युअल रूप से लॉट आईडी दर्ज करें',
+      enterLotId: 'लॉट आईडी',
+      lotNotFound: 'इस QR के लिए कोई लंबित हैंडओवर नहीं मिला'
+    },
     nav: {
       dashboard: 'डैशबोर्ड',
       createLot: 'लॉट बनाएं',
@@ -588,7 +619,9 @@ const translations = {
       total: 'कुल',
       pending: 'लंबित',
       completed: 'पूर्ण',
-      totalRevenue: 'कुल राजस्व',
+      totalRevenue: 'कुल खर्च',
+      pendingCommitment: 'लंबित प्रतिबद्धता',
+      totalSpent: 'कुल खर्च',
       completeHandover: 'हैंडओवर पूरा करें',
       confirmPayment: 'भुगतान पुष्टि करें',
       verifiedWeight: 'सत्यापित वजन (किग्रा)',
@@ -604,7 +637,10 @@ const translations = {
     recyclerEarnings: {
       title: '💰 कमाई',
       subtitle: 'अपने राजस्व और भुगतान ट्रैक करें',
-      totalRevenue: 'कुल राजस्व',
+      totalRevenue: 'कुल खर्च',
+      totalPurchases: 'कुल खरीद',
+      spentOnMaterial: 'सामग्री पर खर्च',
+      procurementSubtitle: 'ई-कचरे के लिए कलेक्टरों को भुगतान की गई राशि',
       transactions: 'लेन-देन',
       transactionHistory: '📋 लेन-देन इतिहास',
       today: 'आज',
@@ -689,6 +725,19 @@ const translations = {
   },
   mr: {
     app: { name: 'री-सर्कल', tagline: 'कबाडीवाला कनेक्ट' },
+
+    scanner: {
+      title: 'लॉट QR स्कॅन करा',
+      scanning: 'कॅमेरा लॉटवरील QR कोडकडे निर्देशित करा',
+      scanButton: 'हँडओव्हरसाठी QR स्कॅन करा',
+      cameraError: 'कॅमेरा सुरू करता आला नाही',
+      noCamera: 'या डिव्हाइसवर कॅमेरा उपलब्ध नाही',
+      permissionDenied: 'कॅमेरा परवानगी नाकारली — ब्राउझर सेटिंग्ज तपासा',
+      insecureContext: 'कॅमेऱ्यासाठी HTTPS किंवा localhost आवश्यक आहे.',
+      manualEntry: 'मॅन्युअली लॉट आयडी प्रविष्ट करा',
+      enterLotId: 'लॉट आयडी',
+      lotNotFound: 'या QR साठी कोणतेही प्रलंबित हँडओव्हर आढळले नाही'
+    },
     nav: {
       dashboard: 'डॅशबोर्ड',
       createLot: 'लॉट तयार करा',
@@ -932,7 +981,9 @@ const translations = {
       total: 'एकूण',
       pending: 'प्रलंबित',
       completed: 'पूर्ण',
-      totalRevenue: 'एकूण महसूल',
+      totalRevenue: 'एकूण खर्च',
+      pendingCommitment: 'प्रलंबित वचनबद्धता',
+      totalSpent: 'एकूण खर्च',
       completeHandover: 'हँडओव्हर पूर्ण करा',
       confirmPayment: 'पैसे पुष्टी करा',
       verifiedWeight: 'सत्यापित वजन (किग्रॅ)',
@@ -948,7 +999,10 @@ const translations = {
     recyclerEarnings: {
       title: '💰 कमाई',
       subtitle: 'तुमचा महसूल आणि पैसे ट्रॅक करा',
-      totalRevenue: 'एकूण महसूल',
+      totalRevenue: 'एकूण खर्च',
+      totalPurchases: 'एकूण खरेदी',
+      spentOnMaterial: 'सामग्रीवर खर्च',
+      procurementSubtitle: 'ई-कचऱ्यासाठी कलेक्टरांना दिलेली रक्कम',
       transactions: 'व्यवहार',
       transactionHistory: '📋 व्यवहार इतिहास',
       today: 'आज',
@@ -1033,6 +1087,19 @@ const translations = {
   },
   ta: {
     app: { name: 'ரீ-சர்க்கிள்', tagline: 'கபாடிவாலா கனெக்ட்' },
+
+    scanner: {
+      title: 'லாட் QR ஸ்கேன் செய்',
+      scanning: 'லாட் மீதான QR குறியீட்டை நோக்கி கேமராவை காட்டுங்கள்',
+      scanButton: 'ஒப்படைப்புக்கு QR ஸ்கேன் செய்',
+      cameraError: 'கேமராவை தொடங்க முடியவில்லை',
+      noCamera: 'இந்த சாதனத்தில் கேமரா இல்லை',
+      permissionDenied: 'கேமரா அனுமதி மறுக்கப்பட்டது — உலாவி அமைப்புகளை சரிபார்க்கவும்',
+      insecureContext: 'கேமராவுக்கு HTTPS அல்லது localhost தேவை.',
+      manualEntry: 'கைமுறையாக லாட் ஐடி உள்ளிடவும்',
+      enterLotId: 'லாட் ஐடி',
+      lotNotFound: 'இந்த QR க்கு நிலுவையில் உள்ள ஒப்படைப்பு இல்லை'
+    },
     nav: {
       dashboard: 'டாஷ்போர்டு',
       createLot: 'லாட் உருவாக்கு',
@@ -1276,7 +1343,9 @@ const translations = {
       total: 'மொத்தம்',
       pending: 'நிலுவையில்',
       completed: 'முடிந்தது',
-      totalRevenue: 'மொத்த வருவாய்',
+      totalRevenue: 'மொத்த செலவு',
+      pendingCommitment: 'நிலுவை உறுதிமொழி',
+      totalSpent: 'மொத்த செலவு',
       completeHandover: 'ஒப்படைப்பை முடி',
       confirmPayment: 'பணம் செலுத்துதலை உறுதிப்படுத்து',
       verifiedWeight: 'சரிபார்க்கப்பட்ட எடை (கிலோ)',
@@ -1292,7 +1361,10 @@ const translations = {
     recyclerEarnings: {
       title: '💰 வருவாய்',
       subtitle: 'உங்கள் வருவாய் மற்றும் பணம் செலுத்துதல்களை கண்காணியுங்கள்',
-      totalRevenue: 'மொத்த வருவாய்',
+      totalRevenue: 'மொத்த செலவு',
+      totalPurchases: 'மொத்த கொள்முதல்',
+      spentOnMaterial: 'பொருட்களுக்கு செலவு',
+      procurementSubtitle: 'மின்-கழிவுக்காக சேகரிப்பாளர்களுக்கு செலுத்தப்பட்ட தொகை',
       transactions: 'பரிவர்த்தனைகள்',
       transactionHistory: '📋 பரிவர்த்தனை வரலாறு',
       today: 'இன்று',
@@ -1361,6 +1433,19 @@ const translations = {
   },
   te: {
     app: { name: 'రీ-సర్కిల్', tagline: 'కబాడీవాలా కనెక్ట్' },
+
+    scanner: {
+      title: 'లాట్ QR స్కాన్ చేయండి',
+      scanning: 'లాట్‌పై ఉన్న QR కోడ్ వైపు కెమెరాను చూపండి',
+      scanButton: 'అప్పగింత కోసం QR స్కాన్ చేయండి',
+      cameraError: 'కెమెరా ప్రారంభించలేకపోయింది',
+      noCamera: 'ఈ పరికరంలో కెమెరా అందుబాటులో లేదు',
+      permissionDenied: 'కెమెరా అనుమతి నిరాకరించబడింది — బ్రౌజర్ సెట్టింగ్‌లను తనిఖీ చేయండి',
+      insecureContext: 'కెమెరాకు HTTPS లేదా localhost అవసరం.',
+      manualEntry: 'మాన్యువల్‌గా లాట్ ఐడిని నమోదు చేయండి',
+      enterLotId: 'లాట్ ఐడి',
+      lotNotFound: 'ఈ QR కు పెండింగ్ అప్పగింత కనుగొనబడలేదు'
+    },
     nav: {
       dashboard: 'డాష్‌బోర్డ్',
       createLot: 'లాట్ సృష్టించు',
@@ -1604,7 +1689,9 @@ const translations = {
       total: 'మొత్తం',
       pending: 'పెండింగ్‌లో',
       completed: 'పూర్తయింది',
-      totalRevenue: 'మొత్తం ఆదాయం',
+      totalRevenue: 'మొత్తం ఖర్చు',
+      pendingCommitment: 'పెండింగ్ నిబద్ధత',
+      totalSpent: 'మొత్తం ఖర్చు',
       completeHandover: 'అప్పగింత పూర్తి చేయండి',
       confirmPayment: 'చెల్లింపును నిర్ధారించండి',
       verifiedWeight: 'ధృవీకరించిన బరువు (కిలోలు)',
@@ -1620,7 +1707,10 @@ const translations = {
     recyclerEarnings: {
       title: '💰 ఆదాయం',
       subtitle: 'మీ ఆదాయం మరియు చెల్లింపులను ట్రాక్ చేయండి',
-      totalRevenue: 'మొత్తం ఆదాయం',
+      totalRevenue: 'మొత్తం ఖర్చు',
+      totalPurchases: 'మొత్తం కొనుగోళ్లు',
+      spentOnMaterial: 'పదార్థంపై ఖర్చు',
+      procurementSubtitle: 'ఇ-వ్యర్థాల కోసం సేకర్తలకు చెల్లించిన మొత్తం',
       transactions: 'లావాదేవీలు',
       transactionHistory: '📋 లావాదేవీ చరిత్ర',
       today: 'ఈరోజు',
@@ -1689,6 +1779,19 @@ const translations = {
   },
   kn: {
     app: { name: 'ರೀ-ಸರ್ಕಲ್', tagline: 'ಕಬಾಡಿವಾಲಾ ಕನೆಕ್ಟ್' },
+
+    scanner: {
+      title: 'ಲಾಟ್ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+      scanning: 'ಲಾಟ್‌ನಲ್ಲಿರುವ QR ಕೋಡ್‌ನ ಕಡೆಗೆ ಕ್ಯಾಮೆರಾವನ್ನು ತೋರಿಸಿ',
+      scanButton: 'ಹಸ್ತಾಂತರಕ್ಕಾಗಿ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+      cameraError: 'ಕ್ಯಾಮೆರಾ ಪ್ರಾರಂಭಿಸಲಾಗಲಿಲ್ಲ',
+      noCamera: 'ಈ ಸಾಧನದಲ್ಲಿ ಕ್ಯಾಮೆರಾ ಲಭ್ಯವಿಲ್ಲ',
+      permissionDenied: 'ಕ್ಯಾಮೆರಾ ಅನುಮತಿ ನಿರಾಕರಿಸಲಾಗಿದೆ — ಬ್ರೌಸರ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಪರಿಶೀಲಿಸಿ',
+      insecureContext: 'ಕ್ಯಾಮೆರಾಗೆ HTTPS ಅಥವಾ localhost ಅಗತ್ಯವಿದೆ.',
+      manualEntry: 'ಕೈಯಿಂದ ಲಾಟ್ ಐಡಿಯನ್ನು ನಮೂದಿಸಿ',
+      enterLotId: 'ಲಾಟ್ ಐಡಿ',
+      lotNotFound: 'ಈ QR ಗೆ ಯಾವುದೇ ಬಾಕಿ ಹಸ್ತಾಂತರ ಕಂಡುಬಂದಿಲ್ಲ'
+    },
     nav: {
       dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
       createLot: 'ಲಾಟ್ ರಚಿಸಿ',
@@ -1932,7 +2035,9 @@ const translations = {
       total: 'ಒಟ್ಟು',
       pending: 'ಬಾಕಿ',
       completed: 'ಪೂರ್ಣಗೊಂಡಿದೆ',
-      totalRevenue: 'ಒಟ್ಟು ಆದಾಯ',
+      totalRevenue: 'ಒಟ್ಟು ಖರ್ಚು',
+      pendingCommitment: 'ಬಾಕಿ ಬದ್ಧತೆ',
+      totalSpent: 'ಒಟ್ಟು ಖರ್ಚು',
       completeHandover: 'ಹಸ್ತಾಂತರವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ',
       confirmPayment: 'ಪಾವತಿಯನ್ನು ದೃಢೀಕರಿಸಿ',
       verifiedWeight: 'ಪರಿಶೀಲಿಸಿದ ತೂಕ (ಕೆಜಿ)',
@@ -1948,7 +2053,10 @@ const translations = {
     recyclerEarnings: {
       title: '💰 ಗಳಿಕೆ',
       subtitle: 'ನಿಮ್ಮ ಆದಾಯ ಮತ್ತು ಪಾವತಿಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ',
-      totalRevenue: 'ಒಟ್ಟು ಆದಾಯ',
+      totalRevenue: 'ಒಟ್ಟು ಖರ್ಚು',
+      totalPurchases: 'ಒಟ್ಟು ಖರೀದಿಗಳು',
+      spentOnMaterial: 'ವಸ್ತುವಿನ ಮೇಲೆ ಖರ್ಚು',
+      procurementSubtitle: 'ಇ-ತ್ಯಾಜ್ಯಕ್ಕಾಗಿ ಸಂಗ್ರಾಹಕರಿಗೆ ಪಾವತಿಸಿದ ಮೊತ್ತ',
       transactions: 'ವಹಿವಾಟುಗಳು',
       transactionHistory: '📋 ವಹಿವಾಟು ಇತಿಹಾಸ',
       today: 'ಇಂದು',
@@ -2017,6 +2125,19 @@ const translations = {
   },
   ml: {
     app: { name: 'റീ-സർക്കിൾ', tagline: 'കബാടിവാല കണക്ട്' },
+
+    scanner: {
+      title: 'ലോട്ട് QR സ്കാൻ ചെയ്യുക',
+      scanning: 'ലോട്ടിലെ QR കോഡിലേക്ക് ക്യാമറ ചൂണ്ടിക്കാണിക്കുക',
+      scanButton: 'കൈമാറ്റത്തിനായി QR സ്കാൻ ചെയ്യുക',
+      cameraError: 'ക്യാമറ ആരംഭിക്കാൻ കഴിഞ്ഞില്ല',
+      noCamera: 'ഈ ഉപകരണത്തിൽ ക്യാമറ ലഭ്യമല്ല',
+      permissionDenied: 'ക്യാമറ അനുമതി നിഷേധിച്ചു — ബ്രൗസർ ക്രമീകരണങ്ങൾ പരിശോധിക്കുക',
+      insecureContext: 'ക്യാമറയ്ക്ക് HTTPS അല്ലെങ്കിൽ localhost ആവശ്യമാണ്.',
+      manualEntry: 'ലോട്ട് ഐഡി സ്വമേധയാ നൽകുക',
+      enterLotId: 'ലോട്ട് ഐഡി',
+      lotNotFound: 'ഈ QR ന് തീർപ്പാക്കാത്ത കൈമാറ്റം കണ്ടെത്തിയില്ല'
+    },
     nav: {
       dashboard: 'ഡാഷ്ബോർഡ്',
       createLot: 'ലോട്ട് സൃഷ്ടിക്കുക',
@@ -2260,7 +2381,9 @@ const translations = {
       total: 'ആകെ',
       pending: 'തീർപ്പാക്കാത്തത്',
       completed: 'പൂർത്തിയായി',
-      totalRevenue: 'ആകെ വരുമാനം',
+      totalRevenue: 'ആകെ ചെലവ്',
+      pendingCommitment: 'തീർപ്പാക്കാത്ത പ്രതിബദ്ധത',
+      totalSpent: 'ആകെ ചെലവ്',
       completeHandover: 'കൈമാറ്റം പൂർത്തിയാക്കുക',
       confirmPayment: 'പേയ്‌മെന്റ് സ്ഥിരീകരിക്കുക',
       verifiedWeight: 'പരിശോധിച്ച ഭാരം (കിലോ)',
@@ -2276,7 +2399,10 @@ const translations = {
     recyclerEarnings: {
       title: '💰 വരുമാനം',
       subtitle: 'നിങ്ങളുടെ വരുമാനവും പേയ്‌മെന്റുകളും ട്രാക്ക് ചെയ്യുക',
-      totalRevenue: 'ആകെ വരുമാനം',
+      totalRevenue: 'ആകെ ചെലവ്',
+      totalPurchases: 'ആകെ വാങ്ങലുകൾ',
+      spentOnMaterial: 'വസ്തുവിനായി ചെലവ്',
+      procurementSubtitle: 'ഇ-മാലിന്യത്തിനായി ശേഖരണക്കാർക്ക് നൽകിയ തുക',
       transactions: 'ഇടപാടുകൾ',
       transactionHistory: '📋 ഇടപാട് ചരിത്രം',
       today: 'ഇന്ന്',

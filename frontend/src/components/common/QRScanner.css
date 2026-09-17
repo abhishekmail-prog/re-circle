@@ -1,0 +1,137 @@
+.qr-scanner-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 12px;
+}
+
+.qr-scanner-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35);
+}
+
+.qr-scanner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.qr-scanner-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.qr-scanner-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.qr-scanner-close:hover {
+  background: #f0f0f0;
+}
+
+.qr-scanner-region {
+  width: 100%;
+  min-height: 260px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+
+.qr-scanner-region video {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+.qr-scanner-hint {
+  text-align: center;
+  margin-top: 12px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.qr-scanner-error {
+  background: #fff3e0;
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 12px;
+  color: #b71c1c;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.qr-scanner-error p {
+  margin-bottom: 10px;
+}
+
+.qr-scanner-divider {
+  text-align: center;
+  color: #999;
+  font-size: 0.85rem;
+  margin: 16px 0;
+  position: relative;
+}
+
+.qr-scanner-divider::before,
+.qr-scanner-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.qr-scanner-divider::before { left: 0; }
+.qr-scanner-divider::after { right: 0; }
+
+.qr-scanner-manual label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #333;
+}
+
+.qr-scanner-manual-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.qr-scanner-manual-actions .btn {
+  flex: 1;
+}
+
+/* Mobile: full-screen feel */
+@media (max-width: 600px) {
+  .qr-scanner-modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 16px;
+  }
+  .qr-scanner-region {
+    min-height: 320px;
+  }
+}

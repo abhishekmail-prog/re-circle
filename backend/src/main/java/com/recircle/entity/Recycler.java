@@ -65,6 +65,7 @@ public class Recycler {
     private boolean isActive = true;
 
     @OneToMany(mappedBy = "recycler", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<RecyclerOffer> offers = new ArrayList<>();
 
     @PrePersist
