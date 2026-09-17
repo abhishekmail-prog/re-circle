@@ -131,3 +131,17 @@
   font-size: 16px;
   font-weight: 600;
 }
+
+/* Lot ID row — align value and copy button on the same line */
+.info-value-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lot-id-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}

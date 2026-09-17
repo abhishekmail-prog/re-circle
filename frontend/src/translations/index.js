@@ -344,6 +344,9 @@ const translations = {
       }
     },
     common: {
+      copy: 'Copy',
+      copied: 'Copied!',
+      share: 'Share',
       loading: 'Loading...',
       error: 'Something went wrong',
       retry: 'Retry',
@@ -706,6 +709,9 @@ const translations = {
       }
     },
     common: {
+      copy: 'कॉपी करें',
+      copied: 'कॉपी हो गया!',
+      share: 'साझा करें',
       loading: 'लोड हो रहा है...',
       error: 'कुछ गड़बड़ हो गई',
       retry: 'पुनः प्रयास करें',
@@ -1068,6 +1074,9 @@ const translations = {
       }
     },
     common: {
+      copy: 'कॉपी करा',
+      copied: 'कॉपी झाले!',
+      share: 'शेअर करा',
       loading: 'लोड होत आहे...',
       error: 'काहीतरी चूक झाली',
       retry: 'पुन्हा प्रयत्न करा',
@@ -1414,6 +1423,9 @@ const translations = {
       selectRecycler: 'மறுசுழற்சியாளரை தேர்வு செய்'
     },
     common: {
+      copy: 'நகலெடு',
+      copied: 'நகலெடுக்கப்பட்டது!',
+      share: 'பகிர்',
       loading: 'ஏற்றுகிறது...',
       error: 'ஏதோ தவறு நடந்தது',
       retry: 'மீண்டும் முயற்சி',
@@ -1760,6 +1772,9 @@ const translations = {
       selectRecycler: 'పునర్వినియోగదారుని ఎంచుకోండి'
     },
     common: {
+      copy: 'కాపీ చేయండి',
+      copied: 'కాపీ చేయబడింది!',
+      share: 'షేర్ చేయండి',
       loading: 'లోడ్ అవుతోంది...',
       error: 'ఏదో తప్పు జరిగింది',
       retry: 'మళ్ళీ ప్రయత్నించండి',
@@ -2106,6 +2121,9 @@ const translations = {
       selectRecycler: 'ಮರುಬಳಕೆದಾರರನ್ನು ಆಯ್ಕೆಮಾಡಿ'
     },
     common: {
+      copy: 'ನಕಲಿಸಿ',
+      copied: 'ನಕಲಾಗಿದೆ!',
+      share: 'ಹಂಚಿಕೊಳ್ಳಿ',
       loading: 'ಲೋಡ್ ಆಗುತ್ತಿದೆ...',
       error: 'ಏನೋ ತಪ್ಪಾಗಿದೆ',
       retry: 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ',
@@ -2452,6 +2470,9 @@ const translations = {
       selectRecycler: 'റീസൈക്കിൾ ചെയ്യുന്നയാളെ തിരഞ്ഞെടുക്കുക'
     },
     common: {
+      copy: 'പകർത്തുക',
+      copied: 'പകർത്തി!',
+      share: 'പങ്കിടുക',
       loading: 'ലോഡ് ചെയ്യുന്നു...',
       error: 'എന്തോ കുഴപ്പം സംഭവിച്ചു',
       retry: 'വീണ്ടും ശ്രമിക്കുക',

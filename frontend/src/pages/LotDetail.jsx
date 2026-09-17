@@ -4,6 +4,7 @@ import api from '../api/axios'
 import { useTranslation } from '../hooks/useTranslation'
 import QRCodeComponent from '../components/common/QRCode'
 import TraceabilityTimeline from '../components/common/TraceabilityTimeline'
+import CopyButton from '../components/common/CopyButton'
 import './LotDetail.css'
 
 const LotDetail = () => {
@@ -62,7 +63,6 @@ const LotDetail = () => {
     return statusMap[status] || 'badge-info'
   }
 
-  // Build timeline events from the lot (demo fallback when API doesn't send events)
   const timelineEvents = lot?.events || [
     {
       status: lot?.status || 'CREATED',
@@ -73,6 +73,14 @@ const LotDetail = () => {
       icon: '📝'
     }
   ]
+
+  // Pre-composed share text for WhatsApp / SMS / anywhere.
+  const buildShareText = () => {
+    if (!lot) return ''
+    const material = lot.materialCategory?.name || lot.materialCategoryName || '—'
+    const weight = lot.weightKg || 0
+    return `${t('app.name')} — Lot ${lot.lotId}\n${t('lotDetail.material')}: ${material}\n${t('lotDetail.weight')}: ${weight} kg`
+  }
 
   if (loading) {
     return <div className="loading-state">{t('common.loading')}</div>
@@ -105,7 +113,17 @@ const LotDetail = () => {
           </div>
           <div className="info-row">
             <span className="info-label">{t('lotDetail.lotId')}</span>
-            <span className="info-value">{lot.lotId || 'N/A'}</span>
+            <span className="info-value info-value-row">
+              <span className="lot-id-text">{lot.lotId || 'N/A'}</span>
+              {lot.lotId && (
+                <CopyButton
+                  value={lot.lotId}
+                  shareText={buildShareText()}
+                  size="sm"
+                  showShare={true}
+                />
+              )}
+            </span>
           </div>
           <div className="info-row">
             <span className="info-label">{t('lotDetail.material')}</span>
@@ -165,8 +183,22 @@ const LotDetail = () => {
           {showQR ? t('lotDetail.hideQR') : t('lotDetail.showQR')}
         </button>
         {showQR && lot.lotId && (
-          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+          <div
+            style={{
+              marginTop: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '12px'
+            }}
+          >
             <QRCodeComponent value={lot.lotId} size={220} showDownload={true} />
+            <CopyButton
+              value={lot.lotId}
+              shareText={buildShareText()}
+              size="md"
+              showShare={true}
+            />
           </div>
         )}
       </div>

@@ -1,0 +1,74 @@
+.copy-btn-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #c8e6c9;
+  background: #f1f8f4;
+  color: #2e7d32;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.05s ease;
+}
+
+.copy-btn:hover {
+  background: #e3f2e7;
+}
+
+.copy-btn:active {
+  transform: scale(0.97);
+}
+
+.copy-btn:focus-visible {
+  outline: 2px solid #2e7d32;
+  outline-offset: 2px;
+}
+
+/* sizes */
+.copy-btn-sm {
+  padding: 3px 8px;
+  font-size: 0.75rem;
+}
+
+.copy-btn-md {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+/* copied state */
+.copy-btn.is-copied {
+  background: #2e7d32;
+  border-color: #2e7d32;
+  color: #ffffff;
+}
+
+/* share variant — slightly different tint */
+.copy-btn-share {
+  background: #e3f2fd;
+  border-color: #90caf9;
+  color: #1565c0;
+}
+
+.copy-btn-share:hover {
+  background: #d3e9fb;
+}
+
+/* hide the text on very small screens, keep icon */
+@media (max-width: 480px) {
+  .copy-btn-label {
+    display: none;
+  }
+  .copy-btn-sm,
+  .copy-btn-md {
+    padding: 6px 8px;
+  }
+}
