@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useTranslation } from '../../hooks/useTranslation'
 import { FaEye, FaCheck, FaBox, FaClock } from 'react-icons/fa'
-import toast from 'react-hot-toast'
 import './RecyclerDashboard.css'
 
 const RecyclerLots = () => {
@@ -29,11 +28,11 @@ const RecyclerLots = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 800))
       setIncomingLots(prev => prev.filter(lot => lot.id !== selectedLot.id))
-      toast.success(`✅ ${t('recyclerDashboard.handoverConfirmed', { lotId: selectedLot.lotId, earnings: 0 })}`)
+      console.log(`✅ ${t('recyclerDashboard.handoverConfirmed', { lotId: selectedLot.lotId, earnings: 0 })}`)
       setShowModal(false)
       setSelectedLot(null)
     } catch (error) {
-      toast.error('Failed to confirm handover')
+      console.error('Failed to confirm handover')
     } finally {
       setLoading(false)
     }

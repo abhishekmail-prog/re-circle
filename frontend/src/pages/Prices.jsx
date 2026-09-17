@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import api from '../api/axios'
 import { useTranslation } from '../hooks/useTranslation'
-import toast from 'react-hot-toast'
 import './Prices.css'
 
 const Prices = () => {
@@ -11,24 +10,33 @@ const Prices = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const categories = ['CRT', 'LCD Panel', 'PCB', 'Cable', 'Battery', 'Motor', 'Mixed plastic', 'Mobile phone', 'Laptop']
+  const categories = [
+    'CRT',
+    'LCD Panel',
+    'PCB',
+    'Cable',
+    'Battery',
+    'Motor',
+    'Mixed plastic',
+    'Mobile phone',
+    'Laptop'
+  ]
 
-  // Demo price data
-  const getDemoPriceData = (category) => {
+  const getDemoPriceData = useCallback((category) => {
     const basePrices = {
-      'CRT': 120,
+      CRT: 120,
       'LCD Panel': 150,
-      'PCB': 500,
-      'Cable': 350,
-      'Battery': 100,
-      'Motor': 250,
+      PCB: 500,
+      Cable: 350,
+      Battery: 100,
+      Motor: 250,
       'Mixed plastic': 50,
       'Mobile phone': 800,
-      'Laptop': 900
+      Laptop: 900
     }
     const base = basePrices[category] || 300
     return {
-      category: category,
+      category,
       currentPrice: base + (Math.random() - 0.5) * 100,
       minPrice: base * 0.8,
       maxPrice: base * 1.2,
@@ -39,13 +47,9 @@ const Prices = () => {
         location: 'Mumbai'
       }))
     }
-  }
+  }, [])
 
-  useEffect(() => {
-    fetchPrices()
-  }, [selectedCategory])
-
-  const fetchPrices = async () => {
+  const fetchPrices = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -53,18 +57,21 @@ const Prices = () => {
       setPriceData(response.data)
     } catch (err) {
       console.error('Price fetch error:', err)
-      setError('Using demo data')
+      setError(t('prices.error'))
       setPriceData(getDemoPriceData(selectedCategory))
-      toast.info('📊 Using demo price data')
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedCategory, t, getDemoPriceData])
+
+  useEffect(() => {
+    fetchPrices()
+  }, [fetchPrices])
 
   return (
     <div className="prices-page">
-      <h1 className="page-title">💰 Today's Prices</h1>
-      <p className="page-subtitle text-muted">Check current market rates for e-waste materials</p>
+      <h1 className="page-title">💰 {t('prices.title')}</h1>
+      <p className="page-subtitle text-muted">{t('prices.subtitle')}</p>
 
       <div className="category-selector">
         {categories.map((cat) => (
@@ -78,7 +85,7 @@ const Prices = () => {
         ))}
       </div>
 
-      {loading && <div className="loading-state">Loading prices...</div>}
+      {loading && <div className="loading-state">{t('prices.loading')}</div>}
 
       {error && <div className="error-state">{error}</div>}
 
@@ -86,41 +93,60 @@ const Prices = () => {
         <>
           <div className="price-cards">
             <div className="card price-card current-price">
-              <div className="card-label">Current Market Price</div>
-              <div className="card-value">₹{priceData.currentPrice?.toFixed(2) || 'N/A'}/kg</div>
+              <div className="card-label">{t('prices.currentPrice')}</div>
+              <div className="card-value">
+                ₹{priceData.currentPrice?.toFixed(2) || 'N/A'}
+                {t('prices.perKg')}
+              </div>
             </div>
 
             <div className="card price-card range-price">
-              <div className="card-label">Price Range</div>
+              <div className="card-label">{t('prices.priceRange')}</div>
               <div className="card-value">
-                ₹{priceData.minPrice?.toFixed(2) || 'N/A'} - ₹{priceData.maxPrice?.toFixed(2) || 'N/A'}/kg
+                ₹{priceData.minPrice?.toFixed(2) || 'N/A'} - ₹
+                {priceData.maxPrice?.toFixed(2) || 'N/A'}
+                {t('prices.perKg')}
               </div>
             </div>
 
             <div className="card price-card trend">
-              <div className="card-label">Trend</div>
-              <div className="card-value" style={{ 
-                color: (priceData.trend || 0) >= 0 ? '#4caf50' : '#f44336' 
-              }}>
-                {(priceData.trend || 0) >= 0 ? '📈 +' : '📉 '}{Math.abs(priceData.trend || 0).toFixed(1)}%
+              <div className="card-label">{t('prices.trend')}</div>
+              <div
+                className="card-value"
+                style={{
+                  color: (priceData.trend || 0) >= 0 ? '#4caf50' : '#f44336'
+                }}
+              >
+                {(priceData.trend || 0) >= 0 ? '📈 +' : '📉 '}
+                {Math.abs(priceData.trend || 0).toFixed(1)}%
               </div>
             </div>
           </div>
 
           <div className="card recent-prices">
-            <h3>📊 Recent Price History</h3>
+            <h3>{t('prices.historical')}</h3>
             <div className="price-history">
               {priceData.recentPrices?.slice(0, 15).map((price, index) => (
                 <div key={index} className="price-entry">
                   <span className="price-date">
-                    {price.date ? new Date(price.date).toLocaleDateString('en-IN', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric'
-                    }) : 'N/A'}
+                    {price.date
+                      ? new Date(price.date).toLocaleDateString('en-IN', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        })
+                      : 'N/A'}
                   </span>
-                  <span className="price-amount">₹{typeof price.price === 'number' ? price.price.toFixed(2) : price.price}/kg</span>
-                  <span className="price-location">{price.location || 'India'}</span>
+                  <span className="price-amount">
+                    ₹
+                    {typeof price.price === 'number'
+                      ? price.price.toFixed(2)
+                      : price.price}
+                    {t('prices.perKg')}
+                  </span>
+                  <span className="price-location">
+                    {price.location || 'India'}
+                  </span>
                 </div>
               ))}
             </div>

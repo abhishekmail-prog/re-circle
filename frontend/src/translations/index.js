@@ -16,6 +16,7 @@ const translations = {
       stats: 'Stats'
     },
     auth: {
+      registerTitle: 'Create your account',
       login: 'Login',
       register: 'Register',
       email: 'Email Address',
@@ -158,6 +159,7 @@ const translations = {
       emergency: '🚨 Emergency:'
     },
     profile: {
+      emailCannotChange: 'Email cannot be changed',
       title: 'Profile',
       edit: '✏️ Edit Profile',
       save: '💾 Save Changes',
@@ -223,7 +225,9 @@ const translations = {
       handoverConfirmed: '✅ Handover confirmed for {{lotId}}! ₹{{earnings}} earned.',
       collector: 'Collector',
       status: 'Status',
-      estimatedEarnings: 'Estimated Earnings:'
+      estimatedEarnings: 'Estimated Earnings:',
+      handoverModalTitle: 'Confirm Handover',
+      completedHandovers: 'Completed Handovers'
     },
     recyclerLots: {
       title: '📦 Incoming Lots',
@@ -231,7 +235,8 @@ const translations = {
       totalLots: 'Total Lots',
       pending: 'Pending',
       view: 'View',
-      created: 'Created'
+      created: 'Created',
+      lotDetails: 'Lot Details'
     },
     recyclerHandovers: {
       title: '🔄 Handovers & Payments',
@@ -264,6 +269,21 @@ const translations = {
       all: 'All Time'
     },
     admin: {
+
+      usersHeader: '👥 Users',
+      tableFullName: 'Full Name',
+      tableEmail: 'Email',
+      tableRole: 'Role',
+      tableTotalLots: 'Total Lots',
+      tableTotalEarnings: 'Total Earnings',
+      statsHeader: '📊 Statistics',
+      live: '🟢 Live',
+      connecting: '🔴 Connecting...',
+      recyclerVerified: '✅ Recycler verified successfully!',
+      recyclerRemoved: '🗑️ Recycler removed',
+      recyclerAdded: '🏭 Recycler added successfully!',
+      enterCompanyName: 'Please enter company name',
+      selectRecycler: 'Select Recycler',
       title: '👑 Admin Dashboard',
       subtitle: 'Platform overview and management',
       recentActivity: '🔄 Recent Activity',
@@ -340,6 +360,7 @@ const translations = {
       stats: 'आंकड़े'
     },
     auth: {
+      registerTitle: 'अपना खाता बनाएं',
       login: 'लॉगिन',
       register: 'रजिस्टर',
       email: 'ईमेल पता',
@@ -482,6 +503,7 @@ const translations = {
       emergency: '🚨 आपातकाल:'
     },
     profile: {
+      emailCannotChange: 'ईमेल बदला नहीं जा सकता',
       title: 'प्रोफाइल',
       edit: '✏️ प्रोफाइल संपादित करें',
       save: '💾 परिवर्तन सहेजें',
@@ -547,7 +569,9 @@ const translations = {
       handoverConfirmed: '✅ {{lotId}} के लिए हैंडओवर पुष्टि हुई! ₹{{earnings}} कमाए।',
       collector: 'कलेक्टर',
       status: 'स्थिति',
-      estimatedEarnings: 'अनुमानित कमाई:'
+      estimatedEarnings: 'अनुमानित कमाई:',
+      handoverModalTitle: 'हैंडओवर की पुष्टि करें',
+      completedHandovers: 'पूर्ण हैंडओवर'
     },
     recyclerLots: {
       title: '📦 आने वाले लॉट',
@@ -555,7 +579,8 @@ const translations = {
       totalLots: 'कुल लॉट',
       pending: 'लंबित',
       view: 'देखें',
-      created: 'बनाया गया'
+      created: 'बनाया गया',
+      lotDetails: 'लॉट विवरण'
     },
     recyclerHandovers: {
       title: '🔄 हैंडओवर और भुगतान',
@@ -588,6 +613,21 @@ const translations = {
       all: 'अब तक'
     },
     admin: {
+
+      usersHeader: '👥 उपयोगकर्ता',
+      tableFullName: 'पूरा नाम',
+      tableEmail: 'ईमेल',
+      tableRole: 'भूमिका',
+      tableTotalLots: 'कुल लॉट',
+      tableTotalEarnings: 'कुल कमाई',
+      statsHeader: '📊 आंकड़े',
+      live: '🟢 लाइव',
+      connecting: '🔴 कनेक्ट हो रहा है...',
+      recyclerVerified: '✅ रिसाइकलर सफलतापूर्वक सत्यापित!',
+      recyclerRemoved: '🗑️ रिसाइकलर हटाया गया',
+      recyclerAdded: '🏭 रिसाइकलर सफलतापूर्वक जोड़ा गया!',
+      enterCompanyName: 'कृपया कंपनी का नाम दर्ज करें',
+      selectRecycler: 'रिसाइकलर चुनें',
       title: '👑 एडमिन डैशबोर्ड',
       subtitle: 'प्लेटफॉर्म अवलोकन और प्रबंधन',
       recentActivity: '🔄 हाल की गतिविधि',
@@ -664,6 +704,7 @@ const translations = {
       stats: 'आकडेवारी'
     },
     auth: {
+      registerTitle: 'तुमचे खाते तयार करा',
       login: 'लॉगिन',
       register: 'नोंदणी',
       email: 'ईमेल पत्ता',
@@ -806,6 +847,7 @@ const translations = {
       emergency: '🚨 आणीबाणी:'
     },
     profile: {
+      emailCannotChange: 'ईमेल बदलता येत नाही',
       title: 'प्रोफाइल',
       edit: '✏️ प्रोफाइल संपादित करा',
       save: '💾 बदल जतन करा',
@@ -871,7 +913,9 @@ const translations = {
       handoverConfirmed: '✅ {{lotId}} साठी हँडओव्हर पुष्टी झाले! ₹{{earnings}} कमावले.',
       collector: 'कलेक्टर',
       status: 'स्थिती',
-      estimatedEarnings: 'अंदाजित कमाई:'
+      estimatedEarnings: 'अंदाजित कमाई:',
+      handoverModalTitle: 'हँडओव्हरची पुष्टी करा',
+      completedHandovers: 'पूर्ण झालेले हँडओव्हर'
     },
     recyclerLots: {
       title: '📦 आगामी लॉट',
@@ -879,7 +923,8 @@ const translations = {
       totalLots: 'एकूण लॉट',
       pending: 'प्रलंबित',
       view: 'पहा',
-      created: 'तयार केले'
+      created: 'तयार केले',
+      lotDetails: 'लॉट तपशील'
     },
     recyclerHandovers: {
       title: '🔄 हँडओव्हर आणि पैसे',
@@ -912,6 +957,21 @@ const translations = {
       all: 'आतापर्यंत'
     },
     admin: {
+
+      usersHeader: '👥 वापरकर्ते',
+      tableFullName: 'पूर्ण नाव',
+      tableEmail: 'ईमेल',
+      tableRole: 'भूमिका',
+      tableTotalLots: 'एकूण लॉट',
+      tableTotalEarnings: 'एकूण कमाई',
+      statsHeader: '📊 आकडेवारी',
+      live: '🟢 लाइव्ह',
+      connecting: '🔴 कनेक्ट होत आहे...',
+      recyclerVerified: '✅ रिसायकलर यशस्वीरीत्या सत्यापित!',
+      recyclerRemoved: '🗑️ रिसायकलर काढला',
+      recyclerAdded: '🏭 रिसायकलर यशस्वीरीत्या जोडला!',
+      enterCompanyName: 'कृपया कंपनीचे नाव प्रविष्ट करा',
+      selectRecycler: 'रिसायकलर निवडा',
       title: '👑 प्रशासक डॅशबोर्ड',
       subtitle: 'प्लॅटफॉर्म विहंगावलोकन आणि व्यवस्थापन',
       recentActivity: '🔄 अलीकडील क्रियाकलाप',

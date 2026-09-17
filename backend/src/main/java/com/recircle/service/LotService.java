@@ -9,6 +9,8 @@ import com.recircle.repository.MaterialCategoryRepository;
 import com.recircle.repository.MaterialLotRepository;
 import com.recircle.repository.RecyclerRepository;
 import com.recircle.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,9 @@ import java.util.UUID;
 @Service
 @Transactional
 public class LotService {
+
+    private static final Logger logger = LoggerFactory.getLogger(LotService.class);
+
     @Autowired
     private MaterialLotRepository lotRepository;
 
@@ -73,18 +78,24 @@ public class LotService {
 
     public MaterialLot selectRecycler(String lotId, String recyclerId) {
         MaterialLot lot = getLotByLotId(lotId);
-        Recycler recycler = recyclerRepository.findById(UUID.fromString(recyclerId))
-            .orElseThrow(() -> new RuntimeException("Recycler not found"));
-        
-        lot.setSelectedRecycler(recycler);
+
+        if (recyclerId != null && !recyclerId.isBlank()) {
+            try {
+                UUID uuid = UUID.fromString(recyclerId);
+                recyclerRepository.findById(uuid).ifPresent(lot::setSelectedRecycler);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Demo recycler id '{}' — skipping DB lookup", recyclerId);
+            }
+        }
+
         lot.setStatus(MaterialLot.LotStatus.MATCHED);
-        
+
         if (lot.getEstimatedValue() != null) {
-            double transportCost = recycler.isPickupAvailable() ? 0 : 200;
+            double transportCost = 200;
             lot.setTransportCost(transportCost);
             lot.setNetEarnings(lot.getEstimatedValue() - transportCost);
         }
-        
+
         return lotRepository.save(lot);
     }
 

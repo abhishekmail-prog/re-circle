@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useTranslation } from '../hooks/useTranslation'
-import toast from 'react-hot-toast'
 import './Profile.css'
 
 const Profile = () => {
@@ -13,7 +12,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
     phoneNumber: user?.phoneNumber || '',
-    email: user?.email || '',
+    email: user?.email || ''
   })
 
   const handleChange = (e) => {
@@ -22,33 +21,41 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    toast.success(t('profile.save'))
+    console.log(t('profile.save'))
     setIsEditing(false)
   }
 
   const languages = [
     { code: 'en', label: 'English', flag: '🇬🇧' },
     { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
-    { code: 'mr', label: 'मराठी', flag: '🇮🇳' },
+    { code: 'mr', label: 'मराठी', flag: '🇮🇳' }
   ]
 
   return (
     <div className="profile-page">
       <h1 className="page-title">{t('profile.title')}</h1>
-      
+
       <div className="card profile-card">
         <div className="profile-avatar">
           <div className="avatar-placeholder">
             {user?.fullName?.charAt(0) || 'U'}
           </div>
         </div>
-        
+
         {!isEditing ? (
           <>
             <div className="profile-info">
               <h2>{user?.fullName || 'User'}</h2>
               <p className="profile-role">
-                <span className={`badge ${user?.role === 'COLLECTOR' ? 'badge-success' : user?.role === 'RECYCLER' ? 'badge-info' : 'badge-warning'}`}>
+                <span
+                  className={`badge ${
+                    user?.role === 'COLLECTOR'
+                      ? 'badge-success'
+                      : user?.role === 'RECYCLER'
+                      ? 'badge-info'
+                      : 'badge-warning'
+                  }`}
+                >
                   {user?.role || 'User'}
                 </span>
               </p>
@@ -66,13 +73,15 @@ const Profile = () => {
               <div className="detail-item">
                 <span className="detail-label">{t('profile.memberSince')}</span>
                 <span className="detail-value">
-                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                  {user?.createdAt
+                    ? new Date(user.createdAt).toLocaleDateString()
+                    : 'N/A'}
                 </span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">{t('profile.language')}</span>
                 <span className="detail-value">
-                  <select 
+                  <select
                     className="language-select"
                     value={language}
                     onChange={(e) => changeLanguage(e.target.value)}
@@ -87,7 +96,10 @@ const Profile = () => {
               </div>
             </div>
 
-            <button className="btn btn-primary btn-block" onClick={() => setIsEditing(true)}>
+            <button
+              className="btn btn-primary btn-block"
+              onClick={() => setIsEditing(true)}
+            >
               {t('profile.edit')}
             </button>
           </>
@@ -125,11 +137,17 @@ const Profile = () => {
                 disabled
                 style={{ opacity: 0.6 }}
               />
-              <small>Email cannot be changed</small>
+              <small>{t('profile.emailCannotChange')}</small>
             </div>
             <div className="flex gap-2">
-              <button type="submit" className="btn btn-primary">{t('profile.save')}</button>
-              <button type="button" className="btn btn-outline" onClick={() => setIsEditing(false)}>
+              <button type="submit" className="btn btn-primary">
+                {t('profile.save')}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setIsEditing(false)}
+              >
                 {t('profile.cancel')}
               </button>
             </div>
@@ -142,7 +160,7 @@ const Profile = () => {
         <div className="setting-item">
           <span>{t('profile.language')}</span>
           <span className="setting-value">
-            <select 
+            <select
               className="language-select"
               value={language}
               onChange={(e) => changeLanguage(e.target.value)}

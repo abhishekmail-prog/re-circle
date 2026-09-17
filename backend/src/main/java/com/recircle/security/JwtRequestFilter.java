@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,61 +15,54 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
-    @Autowired
-    private UserDetailsService userDetailsService;
 
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private UserDetailsService userDetailsService;
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain)
             throws ServletException, IOException {
-        
-        final String authorizationHeader = request.getHeader("Authorization");
-        
-        System.out.println("🔍 Authorization Header: " + authorizationHeader);
+
+        final String authHeader = request.getHeader("Authorization");
 
         String username = null;
         String jwt = null;
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
-            System.out.println("🔍 JWT Token: " + jwt.substring(0, Math.min(jwt.length(), 30)) + "...");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
             try {
                 username = jwtUtil.extractUsername(jwt);
-                System.out.println("🔍 Extracted username: " + username);
             } catch (Exception e) {
-                System.err.println("❌ JWT Extraction error: " + e.getMessage());
-                e.printStackTrace();
+                logger.warn("JWT parse failed: " + e.getMessage());
             }
-        } else {
-            System.out.println("🔍 No valid Authorization header found");
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                System.out.println("🔍 UserDetails loaded: " + userDetails.getUsername());
-                
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 if (jwtUtil.validateToken(jwt, userDetails)) {
-                    System.out.println("✅ Token validated successfully");
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    usernamePasswordAuthenticationToken
-                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-                } else {
-                    System.out.println("❌ Token validation failed");
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    logger.debug("✅ Authenticated: " + username + " with roles " + userDetails.getAuthorities());
                 }
             } catch (Exception e) {
-                System.err.println("❌ Error loading user or validating token: " + e.getMessage());
-                e.printStackTrace();
+                logger.warn("Auth failed: " + e.getMessage());
             }
         }
 
+        // Always continue the chain
         chain.doFilter(request, response);
     }
 }

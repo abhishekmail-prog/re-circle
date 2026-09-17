@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useTranslation } from '../../hooks/useTranslation'
 import { FaCheckCircle, FaClock, FaTrash, FaMoneyBillWave, FaEdit, FaWeightHanging } from 'react-icons/fa'
-import toast from 'react-hot-toast'
 import './RecyclerDashboard.css'
 
 const RecyclerHandovers = () => {
@@ -33,11 +32,11 @@ const RecyclerHandovers = () => {
     const fPrice = parseFloat(finalPrice)
     
     if (!vWeight || vWeight <= 0) {
-      toast.error('Please enter a valid verified weight')
+      console.error('Please enter a valid verified weight')
       return
     }
     if (!fPrice || fPrice <= 0) {
-      toast.error('Please enter a valid final price')
+      console.error('Please enter a valid final price')
       return
     }
     
@@ -53,7 +52,7 @@ const RecyclerHandovers = () => {
         : h
     ))
     
-    toast.success(t('recyclerHandovers.handoverSuccess', { amount: fPrice }))
+    console.log(t('recyclerHandovers.handoverSuccess', { amount: fPrice }))
     setShowHandoverModal(false)
     setSelectedHandover(null)
   }

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useWebSocket } from '../../context/WebSocketContext'
-import { useLocation } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { 
-  FaUsers, FaRecycle, FaMoneyBillWave, FaChartLine, 
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from '../../hooks/useTranslation'
+import {
+  FaUsers, FaRecycle, FaMoneyBillWave, FaChartLine,
   FaCheckCircle, FaClock, FaUserPlus, FaEdit, FaTrash, FaCheck,
-  FaHome, FaUser
+  FaHome
 } from 'react-icons/fa'
 import './AdminDashboard.css'
 
@@ -14,7 +14,9 @@ const AdminDashboard = () => {
   const { user } = useAuth()
   const { realtimeData, connected } = useWebSocket()
   const location = useLocation()
-  
+  const navigate = useNavigate()
+  const { t } = useTranslation()
+
   const getActiveTabFromUrl = () => {
     const path = location.pathname
     if (path.includes('/admin/users')) return 'users'
@@ -33,7 +35,6 @@ const AdminDashboard = () => {
     pendingVerifications: 2
   })
 
-  // Update stats when realtime data changes
   useEffect(() => {
     if (realtimeData.stats) {
       setStats(prev => ({ ...prev, ...realtimeData.stats }))
@@ -42,28 +43,29 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     setActiveTab(getActiveTabFromUrl())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname])
 
-  const [recentActivity, setRecentActivity] = useState([
-    { icon: '📝', message: 'New lot created by Ramesh Kumar (Collector)', time: '5 min ago' },
-    { icon: '✅', message: 'Recycler GreenCycle Solutions verified', time: '1 hour ago' },
-    { icon: '💰', message: 'Payment confirmed for lot RC-2024-0005', time: '3 hours ago' },
-    { icon: '👤', message: 'New collector registered: Priya Singh', time: '5 hours ago' },
-    { icon: '🏭', message: 'Recycler TechRecycle Solutions applied for verification', time: '8 hours ago' },
+  const [recentActivity] = useState([
+    { icon: '📝', message: t('admin.activity.newLot'), time: '5 min' },
+    { icon: '✅', message: t('admin.activity.recyclerVerified'), time: '1 hr' },
+    { icon: '💰', message: t('admin.activity.paymentConfirmed'), time: '3 hr' },
+    { icon: '👤', message: t('admin.activity.newCollector'), time: '5 hr' },
+    { icon: '🏭', message: t('admin.activity.recyclerApplied'), time: '8 hr' }
   ])
 
   const [recyclers, setRecyclers] = useState([
     { id: 1, name: 'GreenCycle Solutions', status: 'Verified', location: 'Pune', authorized: true },
     { id: 2, name: 'EcoRecycle Industries', status: 'Verified', location: 'Mumbai', authorized: true },
     { id: 3, name: 'TechRecycle Solutions', status: 'Pending', location: 'Bangalore', authorized: false },
-    { id: 4, name: 'E-Waste Hub', status: 'Pending', location: 'Delhi', authorized: false },
+    { id: 4, name: 'E-Waste Hub', status: 'Pending', location: 'Delhi', authorized: false }
   ])
 
   const [users] = useState([
     { name: 'Ramesh Kumar', email: 'collector@recircle.demo', role: 'COLLECTOR', lots: 12, earnings: '₹24,500' },
     { name: 'Priya Singh', email: 'priya@recircle.demo', role: 'COLLECTOR', lots: 8, earnings: '₹16,200' },
     { name: 'GreenCycle Solutions', email: 'recycler@recircle.demo', role: 'RECYCLER', lots: 0, earnings: '₹0' },
-    { name: 'Amit Patel', email: 'amit@recircle.demo', role: 'COLLECTOR', lots: 5, earnings: '₹9,800' },
+    { name: 'Amit Patel', email: 'amit@recircle.demo', role: 'COLLECTOR', lots: 5, earnings: '₹9,800' }
   ])
 
   const [showAddModal, setShowAddModal] = useState(false)
@@ -78,32 +80,32 @@ const AdminDashboard = () => {
   })
 
   const statsCards = [
-    { icon: FaUsers, label: 'Collectors', value: stats.totalCollectors, color: '#4caf50' },
-    { icon: FaRecycle, label: 'Recyclers', value: stats.totalRecyclers, color: '#2196f3' },
-    { icon: FaChartLine, label: 'Total Lots', value: stats.totalLots, color: '#ff9800' },
-    { icon: FaMoneyBillWave, label: 'Total Earnings', value: `₹${stats.totalEarnings.toLocaleString()}`, color: '#9c27b0' },
-    { icon: FaCheckCircle, label: 'Transactions', value: stats.totalTransactions, color: '#00bcd4' },
-    { icon: FaClock, label: 'Pending Verifications', value: stats.pendingVerifications, color: '#f44336' },
+    { icon: FaUsers, label: t('admin.stats.collectors'), value: stats.totalCollectors, color: '#4caf50' },
+    { icon: FaRecycle, label: t('admin.stats.recyclers'), value: stats.totalRecyclers, color: '#2196f3' },
+    { icon: FaChartLine, label: t('admin.stats.totalLots'), value: stats.totalLots, color: '#ff9800' },
+    { icon: FaMoneyBillWave, label: t('admin.stats.totalEarnings'), value: `₹${stats.totalEarnings.toLocaleString()}`, color: '#9c27b0' },
+    { icon: FaCheckCircle, label: t('admin.stats.transactions'), value: stats.totalTransactions, color: '#00bcd4' },
+    { icon: FaClock, label: t('admin.stats.pendingVerifications'), value: stats.pendingVerifications, color: '#f44336' }
   ]
 
   const handleVerifyRecycler = (id) => {
-    setRecyclers(prev => prev.map(r => 
+    setRecyclers(prev => prev.map(r =>
       r.id === id ? { ...r, status: 'Verified', authorized: true } : r
     ))
-    toast.success('✅ Recycler verified successfully!')
+    console.log(t('admin.recyclerVerified'))
   }
 
   const handleDeleteRecycler = (id) => {
     setRecyclers(prev => prev.filter(r => r.id !== id))
-    toast.success('🗑️ Recycler removed')
+    console.log(t('admin.recyclerRemoved'))
   }
 
   const handleAddRecycler = () => {
     if (!newRecycler.companyName) {
-      toast.error('Please enter company name')
+      console.error(t('admin.enterCompanyName'))
       return
     }
-    const newId = Math.max(...recyclers.map(r => r.id)) + 1
+    const newId = Math.max(0, ...recyclers.map(r => r.id)) + 1
     setRecyclers([...recyclers, {
       id: newId,
       name: newRecycler.companyName,
@@ -113,23 +115,23 @@ const AdminDashboard = () => {
     }])
     setNewRecycler({ companyName: '', facilityAddress: '', contactPerson: '', contactPhone: '' })
     setShowAddModal(false)
-    toast.success('🏭 Recycler added successfully!')
+    console.log(t('admin.recyclerAdded'))
   }
 
   const tabs = [
-    { key: 'dashboard', icon: FaHome, label: 'Dashboard' },
-    { key: 'users', icon: FaUsers, label: 'Users' },
-    { key: 'recyclers', icon: FaRecycle, label: 'Recyclers' },
-    { key: 'stats', icon: FaChartLine, label: 'Stats' },
+    { key: 'dashboard', icon: FaHome, label: t('nav.dashboard') },
+    { key: 'users', icon: FaUsers, label: t('nav.users') },
+    { key: 'recyclers', icon: FaRecycle, label: t('nav.recyclers') },
+    { key: 'stats', icon: FaChartLine, label: t('nav.stats') }
   ]
 
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
-        <h1>👑 Admin Dashboard</h1>
-        <p className="text-muted">Platform overview and management</p>
+        <h1>{t('admin.title')}</h1>
+        <p className="text-muted">{t('admin.subtitle')}</p>
         <div className="live-status">
-          {connected ? '🟢 Live' : '🔴 Connecting...'}
+          {connected ? t('admin.live') : t('admin.connecting')}
         </div>
       </div>
 
@@ -139,7 +141,8 @@ const AdminDashboard = () => {
             key={tab.key}
             className={`admin-tab ${activeTab === tab.key ? 'active' : ''}`}
             onClick={() => {
-              window.location.href = `/admin/${tab.key === 'dashboard' ? 'dashboard' : tab.key}`
+              const path = tab.key === 'dashboard' ? '/admin/dashboard' : `/admin/${tab.key}`
+              navigate(path)
             }}
           >
             <tab.icon />
@@ -166,7 +169,7 @@ const AdminDashboard = () => {
 
           <div className="admin-grid">
             <div className="card admin-section">
-              <h3>🔄 Recent Activity</h3>
+              <h3>{t('admin.recentActivity')}</h3>
               <div className="activity-list">
                 {recentActivity.map((activity, index) => (
                   <div key={index} className="activity-item">
@@ -179,19 +182,26 @@ const AdminDashboard = () => {
             </div>
 
             <div className="card admin-section">
-              <h3>⚙️ Quick Actions</h3>
+              <h3>{t('admin.quickActions')}</h3>
               <div className="admin-actions">
                 <button className="btn btn-primary btn-block" onClick={() => setShowAddModal(true)}>
-                  <FaUserPlus /> Add Recycler
+                  <FaUserPlus /> {t('admin.addRecycler')}
                 </button>
                 <button className="btn btn-secondary btn-block">
-                  <FaCheckCircle /> Verify Recyclers
+                  <FaCheckCircle /> {t('admin.verifyRecyclers')}
                 </button>
                 <button className="btn btn-outline btn-block">
-                  <FaUsers /> View All Users
+                  <FaUsers /> {t('admin.viewUsers')}
                 </button>
-                <button className="btn btn-outline btn-block" onClick={() => { setEditingCategory(null); setCategoryForm({ name: '', price: '', active: true }); setShowCategoryModal(true) }}>
-                  <FaEdit /> Manage Categories
+                <button
+                  className="btn btn-outline btn-block"
+                  onClick={() => {
+                    setEditingCategory(null)
+                    setCategoryForm({ name: '', price: '', active: true })
+                    setShowCategoryModal(true)
+                  }}
+                >
+                  <FaEdit /> {t('admin.manageCategories')}
                 </button>
               </div>
             </div>
@@ -201,16 +211,16 @@ const AdminDashboard = () => {
 
       {activeTab === 'users' && (
         <div className="card admin-section">
-          <h3>👥 Users ({users.length})</h3>
+          <h3>{t('admin.usersHeader')} ({users.length})</h3>
           <div className="table-responsive">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Full Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Total Lots</th>
-                  <th>Total Earnings</th>
+                  <th>{t('admin.tableFullName')}</th>
+                  <th>{t('admin.tableEmail')}</th>
+                  <th>{t('admin.tableRole')}</th>
+                  <th>{t('admin.tableTotalLots')}</th>
+                  <th>{t('admin.tableTotalEarnings')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -218,7 +228,11 @@ const AdminDashboard = () => {
                   <tr key={index}>
                     <td>{u.name}</td>
                     <td>{u.email}</td>
-                    <td><span className={`badge ${u.role === 'COLLECTOR' ? 'badge-success' : 'badge-info'}`}>{u.role}</span></td>
+                    <td>
+                      <span className={`badge ${u.role === 'COLLECTOR' ? 'badge-success' : 'badge-info'}`}>
+                        {u.role}
+                      </span>
+                    </td>
                     <td>{u.lots}</td>
                     <td>{u.earnings}</td>
                   </tr>
@@ -231,7 +245,7 @@ const AdminDashboard = () => {
 
       {activeTab === 'recyclers' && (
         <div className="card admin-section recyclers-list">
-          <h3>🏭 Recyclers ({recyclers.length})</h3>
+          <h3>{t('admin.recyclersList')} ({recyclers.length})</h3>
           <div className="recycler-items">
             {recyclers.map((recycler) => (
               <div key={recycler.id} className="recycler-item">
@@ -245,17 +259,21 @@ const AdminDashboard = () => {
                   </span>
                   {!recycler.authorized && (
                     <button className="btn btn-success btn-sm" onClick={() => handleVerifyRecycler(recycler.id)}>
-                      <FaCheck /> Verify
+                      <FaCheck /> {t('admin.verify')}
                     </button>
                   )}
                   <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRecycler(recycler.id)}>
-                    <FaTrash /> Delete
+                    <FaTrash /> {t('admin.delete')}
                   </button>
                 </div>
               </div>
             ))}
-            <button className="btn btn-primary btn-block" style={{ marginTop: '12px' }} onClick={() => setShowAddModal(true)}>
-              <FaUserPlus /> Add Recycler
+            <button
+              className="btn btn-primary btn-block"
+              style={{ marginTop: '12px' }}
+              onClick={() => setShowAddModal(true)}
+            >
+              <FaUserPlus /> {t('admin.addRecycler')}
             </button>
           </div>
         </div>
@@ -263,7 +281,7 @@ const AdminDashboard = () => {
 
       {activeTab === 'stats' && (
         <div className="card admin-section">
-          <h3>📊 Statistics</h3>
+          <h3>{t('admin.statsHeader')}</h3>
           <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
             {statsCards.map((stat, index) => (
               <div key={index} className="stat-card" style={{ borderColor: stat.color }}>
@@ -280,61 +298,99 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Add Recycler Modal */}
       {showAddModal && (
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>🏭 Add Recycler</h3>
+              <h3>{t('admin.addRecyclerModal')}</h3>
               <button className="modal-close" onClick={() => setShowAddModal(false)}>✕</button>
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Company Name *</label>
+                <label>{t('admin.companyName')} *</label>
                 <input
                   type="text"
                   className="form-control"
                   value={newRecycler.companyName}
-                  onChange={(e) => setNewRecycler({...newRecycler, companyName: e.target.value})}
-                  placeholder="Enter company name"
+                  onChange={(e) => setNewRecycler({ ...newRecycler, companyName: e.target.value })}
+                  placeholder={t('admin.companyName')}
                 />
               </div>
               <div className="form-group">
-                <label>Address</label>
+                <label>{t('admin.address')}</label>
                 <input
                   type="text"
                   className="form-control"
                   value={newRecycler.facilityAddress}
-                  onChange={(e) => setNewRecycler({...newRecycler, facilityAddress: e.target.value})}
-                  placeholder="Enter address"
+                  onChange={(e) => setNewRecycler({ ...newRecycler, facilityAddress: e.target.value })}
+                  placeholder={t('admin.address')}
                 />
               </div>
               <div className="form-group">
-                <label>Contact Person</label>
+                <label>{t('admin.contactPerson')}</label>
                 <input
                   type="text"
                   className="form-control"
                   value={newRecycler.contactPerson}
-                  onChange={(e) => setNewRecycler({...newRecycler, contactPerson: e.target.value})}
-                  placeholder="Enter contact person"
+                  onChange={(e) => setNewRecycler({ ...newRecycler, contactPerson: e.target.value })}
+                  placeholder={t('admin.contactPerson')}
                 />
               </div>
               <div className="form-group">
-                <label>Contact Phone</label>
+                <label>{t('admin.contactPhone')}</label>
                 <input
                   type="text"
                   className="form-control"
                   value={newRecycler.contactPhone}
-                  onChange={(e) => setNewRecycler({...newRecycler, contactPhone: e.target.value})}
-                  placeholder="Enter phone number"
+                  onChange={(e) => setNewRecycler({ ...newRecycler, contactPhone: e.target.value })}
+                  placeholder={t('admin.contactPhone')}
                 />
               </div>
               <div className="modal-actions">
                 <button className="btn btn-primary btn-block" onClick={handleAddRecycler}>
-                  <FaUserPlus /> Add Recycler
+                  <FaUserPlus /> {t('admin.addRecycler')}
                 </button>
                 <button className="btn btn-outline btn-block" onClick={() => setShowAddModal(false)}>
-                  Cancel
+                  {t('common.cancel')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCategoryModal && (
+        <div className="modal-overlay" onClick={() => setShowCategoryModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingCategory ? t('admin.editCategory') : t('admin.categoryModal')}</h3>
+              <button className="modal-close" onClick={() => setShowCategoryModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>{t('admin.categoryName')}</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={categoryForm.name}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>{t('admin.pricePerKg')}</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={categoryForm.price}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, price: e.target.value })}
+                />
+              </div>
+              <div className="modal-actions">
+                <button className="btn btn-primary btn-block" onClick={() => setShowCategoryModal(false)}>
+                  {t('common.save')}
+                </button>
+                <button className="btn btn-outline btn-block" onClick={() => setShowCategoryModal(false)}>
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>

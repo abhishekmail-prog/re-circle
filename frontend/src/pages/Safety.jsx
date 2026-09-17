@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import './Safety.css'
 
@@ -7,8 +7,11 @@ const Safety = () => {
   const [safetyData, setSafetyData] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const data = {
+  // useMemo so the arrays don't get re-created on every render.
+  // The old code called setSafetyData inside useEffect([t]), and since t
+  // changes identity each render, it looped forever (Maximum update depth).
+  const data = useMemo(
+    () => ({
       general: [
         { icon: '🧤', title: t('safety.wearGloves'), description: t('safety.glovesDesc') },
         { icon: '😷', title: t('safety.respiratory'), description: t('safety.respiratoryDesc') },
@@ -113,13 +116,17 @@ const Safety = () => {
           emergency: '🚨 If shock: Seek immediate medical attention. If oil spill: Use absorbent material.'
         }
       ]
-    }
+    }),
+    [t]
+  )
+
+  // Single assignment — no setState in useEffect, no loop.
+  useEffect(() => {
     setSafetyData(data)
     setLoading(false)
-  }, [t])
+  }, [data])
 
   if (loading) return <div className="loading-state">{t('common.loading')}</div>
-
   if (!safetyData) return null
 
   return (
@@ -146,15 +153,21 @@ const Safety = () => {
         <h3 className="section-title">{t('safety.materialSpecific')}</h3>
         <div className="safety-grid">
           {safetyData.materials.map((material, index) => (
-            <div key={index} className="card safety-card" style={{ borderLeftColor: material.color }}>
+            <div
+              key={index}
+              className="card safety-card"
+              style={{ borderLeftColor: material.color }}
+            >
               <div className="safety-header">
                 <span className="safety-icon">{material.icon}</span>
                 <h4>{material.category}</h4>
               </div>
-              
+
               <div className="safety-guidance-list">
                 {material.guidance.map((item, idx) => (
-                  <div key={idx} className="guidance-item">{item}</div>
+                  <div key={idx} className="guidance-item">
+                    {item}
+                  </div>
                 ))}
               </div>
 
@@ -162,7 +175,9 @@ const Safety = () => {
                 <strong>{t('safety.warnings')}</strong>
                 <div className="warning-tags">
                   {material.warnings.map((warning, idx) => (
-                    <span key={idx} className="warning-tag">{warning}</span>
+                    <span key={idx} className="warning-tag">
+                      {warning}
+                    </span>
                   ))}
                 </div>
               </div>

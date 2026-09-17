@@ -1,5 +1,4 @@
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/CollectorProfileRepository.java
-/home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/CorsConfig.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/PriceRecordRepository.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/entity/CollectorProfile.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/dto/RegisterRequest.java
@@ -9,7 +8,6 @@
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/MaterialCategoryRepository.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/entity/MaterialCategory.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/entity/MaterialLot.java
-/home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/WebConfig.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/dto/AuthResponse.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/MaterialLotRepository.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/entity/Recycler.java
@@ -24,7 +22,6 @@
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/dto/CreateLotRequest.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/PriceController.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/entity/PriceRecord.java
-/home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/SimpleCorsFilter.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/controller/HealthController.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/config/DataSeeder.java
 /home/abhishek/projects/re-circle/backend/src/main/java/com/recircle/repository/RecyclerOfferRepository.java
