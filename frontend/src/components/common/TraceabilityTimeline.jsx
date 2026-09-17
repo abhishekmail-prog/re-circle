@@ -1,7 +1,9 @@
 import React from 'react'
+import { useTranslation } from '../../hooks/useTranslation'
 import './TraceabilityTimeline.css'
 
 const TraceabilityTimeline = ({ events }) => {
+  const { t } = useTranslation()
 
   if (!events || events.length === 0) {
     return (
@@ -15,7 +17,10 @@ const TraceabilityTimeline = ({ events }) => {
     <div className="traceability-timeline">
       {events.map((event, index) => (
         <div key={index} className="timeline-item">
-          <div className="timeline-icon" style={{ background: event.color || getStatusColor(event.status) }}>
+          <div
+            className="timeline-icon"
+            style={{ background: event.color || getStatusColor(event.status) }}
+          >
             <span>{event.icon || getDefaultIcon(event.status)}</span>
           </div>
           <div className="timeline-content">
@@ -41,30 +46,32 @@ const TraceabilityTimeline = ({ events }) => {
 
 const getDefaultIcon = (status) => {
   const icons = {
-    'CREATED': '📝',
-    'MATCHED': '🤝',
-    'PICKUP_SCHEDULED': '🚚',
-    'IN_TRANSIT': '🚛',
-    'HANDED_OVER': '📦',
-    'RECEIVED': '✅',
-    'PAYMENT_PENDING': '⏳',
-    'PAID': '💰',
-    'COMPLETED': '🎉'
+    CREATED: '📝',
+    BIDDING: '🔨',
+    MATCHED: '🤝',
+    PICKUP_SCHEDULED: '🚡',
+    IN_TRANSIT: '🚛',
+    HANDED_OVER: '📦',
+    RECEIVED: '✅',
+    PAYMENT_PENDING: '⏳',
+    PAID: '💰',
+    COMPLETED: '🎉'
   }
   return icons[status] || '🔄'
 }
 
 const getStatusColor = (status) => {
   const colors = {
-    'CREATED': '#2196f3',
-    'MATCHED': '#ff9800',
-    'PICKUP_SCHEDULED': '#ff9800',
-    'IN_TRANSIT': '#ff9800',
-    'HANDED_OVER': '#4caf50',
-    'RECEIVED': '#4caf50',
-    'PAYMENT_PENDING': '#ff9800',
-    'PAID': '#4caf50',
-    'COMPLETED': '#4caf50'
+    CREATED: '#2196f3',
+    BIDDING: '#9c27b0',
+    MATCHED: '#ff9800',
+    PICKUP_SCHEDULED: '#ff9800',
+    IN_TRANSIT: '#ff9800',
+    HANDED_OVER: '#4caf50',
+    RECEIVED: '#4caf50',
+    PAYMENT_PENDING: '#ff9800',
+    PAID: '#4caf50',
+    COMPLETED: '#4caf50'
   }
   return colors[status] || '#999'
 }

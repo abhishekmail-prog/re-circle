@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useTranslation } from '../hooks/useTranslation'
+import QRCodeComponent from '../components/common/QRCode'
+import TraceabilityTimeline from '../components/common/TraceabilityTimeline'
 import './LotDetail.css'
 
 const LotDetail = () => {
@@ -17,7 +19,6 @@ const LotDetail = () => {
       fetchLotDetails()
     } else {
       setLoading(false)
-      console.error('Invalid lot ID')
       navigate('/dashboard')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -31,7 +32,6 @@ const LotDetail = () => {
       setLot(response.data)
     } catch (error) {
       console.error('Failed to fetch lot:', error)
-      // Don't crash — show a demo shell so the page still renders
       setLot({
         lotId: id,
         status: 'CREATED',
@@ -49,6 +49,7 @@ const LotDetail = () => {
   const getStatusBadge = (status) => {
     const statusMap = {
       CREATED: 'badge-info',
+      BIDDING: 'badge-warning',
       MATCHED: 'badge-warning',
       PICKUP_SCHEDULED: 'badge-warning',
       IN_TRANSIT: 'badge-warning',
@@ -60,6 +61,18 @@ const LotDetail = () => {
     }
     return statusMap[status] || 'badge-info'
   }
+
+  // Build timeline events from the lot (demo fallback when API doesn't send events)
+  const timelineEvents = lot?.events || [
+    {
+      status: lot?.status || 'CREATED',
+      timestamp: lot?.createdAt
+        ? new Date(lot.createdAt).toLocaleString()
+        : new Date().toLocaleString(),
+      actor: lot?.collector?.fullName || 'Collector',
+      icon: '📝'
+    }
+  ]
 
   if (loading) {
     return <div className="loading-state">{t('common.loading')}</div>
@@ -127,9 +140,7 @@ const LotDetail = () => {
           {lot.finalValue != null && (
             <div className="info-row">
               <span className="info-label">{t('lotDetail.finalValue')}</span>
-              <span className="info-value">
-                ₹{lot.finalValue.toFixed(2)}
-              </span>
+              <span className="info-value">₹{lot.finalValue.toFixed(2)}</span>
             </div>
           )}
           {lot.netEarnings != null && (
@@ -153,14 +164,18 @@ const LotDetail = () => {
         >
           {showQR ? t('lotDetail.hideQR') : t('lotDetail.showQR')}
         </button>
-        {showQR && (
-          <div className="qr-placeholder" style={{ marginTop: '16px' }}>
-            <p style={{ fontSize: '48px' }}>📱</p>
-            <p className="text-muted">
-              {lot.lotId ? `QR: ${lot.lotId}` : 'QR code unavailable'}
-            </p>
+        {showQR && lot.lotId && (
+          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+            <QRCodeComponent value={lot.lotId} size={220} showDownload={true} />
           </div>
         )}
+      </div>
+
+      <div className="card timeline-section" style={{ marginTop: '16px' }}>
+        <div className="card-header">
+          <span className="card-title">{t('lotDetail.traceability')}</span>
+        </div>
+        <TraceabilityTimeline events={timelineEvents} />
       </div>
     </div>
   )

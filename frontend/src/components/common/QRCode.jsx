@@ -1,33 +1,44 @@
 import React from 'react'
-import QRCode from 'qrcode.react'
+import { QRCodeCanvas } from 'qrcode.react'
+import { useTranslation } from '../../hooks/useTranslation'
 import './QRCode.css'
 
 const QRCodeComponent = ({ value, size = 200, showDownload = true }) => {
+  const { t } = useTranslation()
+  const canvasId = `qr-${value}`
 
   const downloadQR = () => {
-    const canvas = document.getElementById('qr-code-canvas')
-    if (canvas) {
-      const pngUrl = canvas
-        .toDataURL('image/png')
-        .replace('image/png', 'image/octet-stream')
-      const downloadLink = document.createElement('a')
-      downloadLink.href = pngUrl
-      downloadLink.download = `qr-${value}.png`
-      document.body.appendChild(downloadLink)
-      downloadLink.click()
-      document.body.removeChild(downloadLink)
-    }
+    const canvas = document.getElementById(canvasId)
+    if (!canvas) return
+    // If a user passed a non-canvas element by mistake, guard it
+    if (typeof canvas.toDataURL !== 'function') return
+
+    const pngUrl = canvas.toDataURL('image/png')
+    const link = document.createElement('a')
+    link.href = pngUrl
+    link.download = `qr-${value}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  if (!value) {
+    return (
+      <div className="qr-code-container">
+        <p className="qr-code-value">{t('common.noData')}</p>
+      </div>
+    )
   }
 
   return (
     <div className="qr-code-container">
       <div className="qr-code-wrapper">
-        <QRCode
-          id="qr-code-canvas"
+        <QRCodeCanvas
+          id={canvasId}
           value={value}
           size={size}
           level="H"
-          includeMargin={true}
+          marginSize={2}
           bgColor="#ffffff"
           fgColor="#2e7d32"
         />
@@ -37,7 +48,9 @@ const QRCodeComponent = ({ value, size = 200, showDownload = true }) => {
           {t('lotDetail.downloadQR')}
         </button>
       )}
-      <p className="qr-code-value">{t('lotDetail.lotId')}: {value}</p>
+      <p className="qr-code-value">
+        {t('lotDetail.lotId')}: {value}
+      </p>
     </div>
   )
 }
