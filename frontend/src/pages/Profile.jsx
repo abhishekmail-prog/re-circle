@@ -29,7 +29,8 @@ const Profile = () => {
     { code: 'en', label: 'English', flag: '🇬🇧' },
     { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
     { code: 'mr', label: 'मराठी', flag: '🇮🇳' },
-    { code: 'ta', label: 'தமிழ்', flag: '🇮🇳' }
+    { code: 'ta', label: 'தமிழ்', flag: '🇮🇳' },
+    { code: 'te', label: 'తెలుగు', flag: '🇮🇳' }
   ]
 
   return (
