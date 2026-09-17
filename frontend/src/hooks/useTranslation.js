@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import translations from '../translations'
 
-// Look up a dotted key path inside a language block.
-// Returns undefined if any segment is missing.
 const lookup = (langBlock, keys) => {
   let value = langBlock
   for (const k of keys) {
@@ -25,10 +23,9 @@ export const useTranslation = () => {
       const keys = key.split('.')
       const langBlock = translations[language] || translations.en
 
-      // 1) try the chosen language
       let value = lookup(langBlock, keys)
 
-      // 2) fall back to English so missing keys never show the raw path
+      // English fallback so missing keys never show the raw path
       if (value === undefined || typeof value !== 'string') {
         const fallback = lookup(translations.en, keys)
         if (typeof fallback === 'string') {
