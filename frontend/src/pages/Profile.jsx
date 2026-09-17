@@ -31,7 +31,8 @@ const Profile = () => {
     { code: 'mr', label: 'मराठी', flag: '🇮🇳' },
     { code: 'ta', label: 'தமிழ்', flag: '🇮🇳' },
     { code: 'te', label: 'తెలుగు', flag: '🇮🇳' },
-    { code: 'kn', label: 'ಕನ್ನಡ', flag: '🇮🇳' }
+    { code: 'kn', label: 'ಕನ್ನಡ', flag: '🇮🇳' },
+    { code: 'ml', label: 'മലയാളം', flag: '🇮🇳' }
   ]
 
   return (

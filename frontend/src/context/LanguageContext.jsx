@@ -14,7 +14,7 @@ export const LanguageProvider = ({ children }) => {
   }, [language])
 
   const changeLanguage = (lang) => {
-    if (['en', 'hi', 'mr', 'ta', 'te', 'kn'].includes(lang)) {
+    if (['en', 'hi', 'mr', 'ta', 'te', 'kn', 'ml'].includes(lang)) {
       setLanguage(lang)
       localStorage.setItem('language', lang)
       window.location.reload()

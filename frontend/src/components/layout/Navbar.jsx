@@ -89,6 +89,7 @@ const Navbar = () => {
     { code: 'ta', label: 'தமிழ்', flag: '🇮🇳' },
     { code: 'te', label: 'తెలుగు', flag: '🇮🇳' },
     { code: 'kn', label: 'ಕನ್ನಡ', flag: '🇮🇳' },
+    { code: 'ml', label: 'മലയാളം', flag: '🇮🇳' },
   ]
 
   const currentLanguage = languages.find(l => l.code === language) || languages[0]
