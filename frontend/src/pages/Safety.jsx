@@ -7,9 +7,6 @@ const Safety = () => {
   const [safetyData, setSafetyData] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // useMemo so the arrays don't get re-created on every render.
-  // The old code called setSafetyData inside useEffect([t]), and since t
-  // changes identity each render, it looped forever (Maximum update depth).
   const data = useMemo(
     () => ({
       general: [
@@ -24,103 +21,52 @@ const Safety = () => {
       ],
       materials: [
         {
-          category: 'Battery',
+          key: 'battery',
           icon: '🔋',
           color: '#f44336',
-          guidance: [
-            '⚠️ Do NOT puncture or pierce batteries',
-            '⚠️ Do NOT burn or expose to high heat',
-            '⚠️ Do NOT crush or deform batteries',
-            '⚠️ Keep away from water and moisture',
-            '⚠️ Store in cool, dry place away from flammable materials',
-            '⚠️ Tape terminals with non-conductive tape',
-            '⚠️ Do NOT attempt to disassemble batteries'
-          ],
-          warnings: ['☠️ Toxic chemicals can leak', '🔥 Risk of fire or explosion', '💨 Harmful gases when damaged'],
-          emergency: '🚨 If battery leaks: Avoid contact. Use gloves. If fire: Use Class D extinguisher.'
+          guidanceCount: 7,
+          warningsCount: 3
         },
         {
-          category: 'CRT',
+          key: 'crt',
           icon: '🖥️',
           color: '#ff9800',
-          guidance: [
-            '⚠️ Handle with EXTREME care',
-            '⚠️ Do NOT attempt to open CRT casings',
-            '⚠️ Risk of implosion if damaged or dropped',
-            '⚠️ Contains lead, mercury, and hazardous materials',
-            '⚠️ Use appropriate protective equipment',
-            '⚠️ Do NOT break CRT glass',
-            '⚠️ Store upright and secure'
-          ],
-          warnings: ['💥 Risk of implosion', '☠️ Contains toxic lead', '⚡ Dangerous high voltage'],
-          emergency: '🚨 If broken: Evacuate area. Use proper cleanup. Seek medical attention if exposed.'
+          guidanceCount: 7,
+          warningsCount: 3
         },
         {
-          category: 'PCB',
+          key: 'pcb',
           icon: '💻',
           color: '#2196f3',
-          guidance: [
-            '⚠️ Do NOT use acid or chemical processing',
-            '⚠️ Contains precious metals and hazardous materials',
-            '⚠️ Use appropriate PPE (gloves, mask, safety glasses)',
-            '⚠️ Avoid breaking boards - releases toxic dust',
-            '⚠️ Store in dry, cool location',
-            '⚠️ Handle components carefully - sharp edges possible'
-          ],
-          warnings: ['☠️ Contains lead and mercury', '💨 Toxic dust when broken', '⚡ Risk of electrical shock'],
-          emergency: '🚨 If exposed to dust: Use HEPA vacuum. Wear respirator. If burning: Use dry chemical extinguisher.'
+          guidanceCount: 6,
+          warningsCount: 3
         },
         {
-          category: 'Cable',
+          key: 'cable',
           icon: '🔌',
           color: '#4caf50',
-          guidance: [
-            '⚠️ Do NOT burn cables to extract copper',
-            '⚠️ Separate copper from plastic when possible',
-            '⚠️ Avoid contact with water when stripping',
-            '⚠️ Use proper wire stripping tools',
-            '⚠️ Insulated cables may contain toxic materials',
-            '⚠️ Store in organized manner'
-          ],
-          warnings: ['☠️ Burning releases toxic fumes', '⚠️ Sharp edges when stripped'],
-          emergency: '🚨 If burning: Use appropriate fire extinguisher. Avoid smoke inhalation.'
+          guidanceCount: 6,
+          warningsCount: 2
         },
         {
-          category: 'LCD Panel',
+          key: 'lcd',
           icon: '📱',
           color: '#9c27b0',
-          guidance: [
-            '⚠️ Handle LCD screens with extreme care',
-            '⚠️ Do NOT break or shatter LCD panels',
-            '⚠️ Contains mercury and hazardous materials',
-            '⚠️ Toxic liquid crystal can leak if damaged',
-            '⚠️ Use proper storage to prevent cracking',
-            '⚠️ Do NOT bend or flex panels'
-          ],
-          warnings: ['☠️ Contains mercury vapor', '💧 Toxic liquid crystal leaks', '⚠️ Sharp glass fragments'],
-          emergency: '🚨 If broken: Ventilate area. Use gloves for cleanup. Wash skin immediately.'
+          guidanceCount: 6,
+          warningsCount: 3
         },
         {
-          category: 'Motor',
+          key: 'motor',
           icon: '⚡',
           color: '#ff5722',
-          guidance: [
-            '⚠️ Handle heavy motors with care',
-            '⚠️ Discharge capacitors before handling',
-            '⚠️ Contains copper, steel, and hazardous materials',
-            '⚠️ Check for oil leaks from older motors',
-            '⚠️ Use proper lifting techniques',
-            '⚠️ Store in dry place to prevent corrosion'
-          ],
-          warnings: ['⚡ Risk of electrical shock', '💧 Oil contamination possible', '⚠️ Heavy - crush injuries'],
-          emergency: '🚨 If shock: Seek immediate medical attention. If oil spill: Use absorbent material.'
+          guidanceCount: 6,
+          warningsCount: 3
         }
       ]
     }),
     [t]
   )
 
-  // Single assignment — no setState in useEffect, no loop.
   useEffect(() => {
     setSafetyData(data)
     setLoading(false)
@@ -152,21 +98,21 @@ const Safety = () => {
       <div className="material-safety">
         <h3 className="section-title">{t('safety.materialSpecific')}</h3>
         <div className="safety-grid">
-          {safetyData.materials.map((material, index) => (
+          {safetyData.materials.map((material) => (
             <div
-              key={index}
+              key={material.key}
               className="card safety-card"
               style={{ borderLeftColor: material.color }}
             >
               <div className="safety-header">
                 <span className="safety-icon">{material.icon}</span>
-                <h4>{material.category}</h4>
+                <h4>{t(`safety.mat.${material.key}.name`)}</h4>
               </div>
 
               <div className="safety-guidance-list">
-                {material.guidance.map((item, idx) => (
-                  <div key={idx} className="guidance-item">
-                    {item}
+                {Array.from({ length: material.guidanceCount }, (_, i) => i + 1).map((n) => (
+                  <div key={n} className="guidance-item">
+                    {t(`safety.mat.${material.key}.g${n}`)}
                   </div>
                 ))}
               </div>
@@ -174,20 +120,18 @@ const Safety = () => {
               <div className="safety-warnings">
                 <strong>{t('safety.warnings')}</strong>
                 <div className="warning-tags">
-                  {material.warnings.map((warning, idx) => (
-                    <span key={idx} className="warning-tag">
-                      {warning}
+                  {Array.from({ length: material.warningsCount }, (_, i) => i + 1).map((n) => (
+                    <span key={n} className="warning-tag">
+                      {t(`safety.mat.${material.key}.w${n}`)}
                     </span>
                   ))}
                 </div>
               </div>
 
-              {material.emergency && (
-                <div className="emergency-info">
-                  <strong>{t('safety.emergency')}</strong>
-                  <p>{material.emergency}</p>
-                </div>
-              )}
+              <div className="emergency-info">
+                <strong>{t('safety.emergency')}</strong>
+                <p>{t(`safety.mat.${material.key}.em`)}</p>
+              </div>
             </div>
           ))}
         </div>
