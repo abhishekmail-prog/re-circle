@@ -1,53 +1,112 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useTranslation } from '../../hooks/useTranslation'
-import { FaEye, FaCheck, FaBox, FaClock } from 'react-icons/fa'
+import api from '../../api/axios'
+import bidApi from '../../api/bids'
+import { FaGavel, FaBox, FaSync, FaTrophy, FaCheck } from 'react-icons/fa'
 import './RecyclerDashboard.css'
 
 const RecyclerLots = () => {
   const { user } = useAuth()
   const { t } = useTranslation()
-  const [incomingLots, setIncomingLots] = useState([
-    { id: 1, lotId: 'RC-2024-000001', materialCategory: { name: 'PCB' }, weightKg: 5, status: 'MATCHED', collector: 'Ramesh Kumar', createdAt: '2024-09-02 10:30' },
-    { id: 2, lotId: 'RC-2024-000002', materialCategory: { name: 'Battery' }, weightKg: 3, status: 'MATCHED', collector: 'Priya Singh', createdAt: '2024-09-02 11:45' },
-    { id: 3, lotId: 'RC-2024-000003', materialCategory: { name: 'LCD Panel' }, weightKg: 8, status: 'PICKUP_SCHEDULED', collector: 'Amit Patel', createdAt: '2024-09-02 09:20' },
-    { id: 4, lotId: 'RC-2024-000004', materialCategory: { name: 'Cable' }, weightKg: 12, status: 'MATCHED', collector: 'Sneha Sharma', createdAt: '2024-09-02 14:00' },
-  ])
-  const [selectedLot, setSelectedLot] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [allLots, setAllLots] = useState([])
+  const [myBids, setMyBids] = useState({}) // { [lotId]: { id, amountPerKg, status } }
+  const [bidInputs, setBidInputs] = useState({})
+  const [placing, setPlacing] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const handleViewLot = (lot) => {
-    setSelectedLot(lot)
-    setShowModal(true)
-  }
-
-  const handleConfirmHandover = async () => {
-    if (!selectedLot) return
+  const fetchAll = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
-      setIncomingLots(prev => prev.filter(lot => lot.id !== selectedLot.id))
-      console.log(`✅ ${t('recyclerDashboard.handoverConfirmed', { lotId: selectedLot.lotId, earnings: 0 })}`)
-      setShowModal(false)
-      setSelectedLot(null)
-    } catch (error) {
-      console.error('Failed to confirm handover')
+      const res = await api.get('/lots')
+      const lots = Array.isArray(res.data) ? res.data : []
+      setAllLots(lots)
+      // NOTE: we do NOT fan-out a /bids call per lot here.
+      // That caused 30+ parallel requests and races. Instead, we only
+      // remember "your bid" for lots you actually bid on in this session.
+    } catch (e) {
+      console.error('Failed to load lots:', e)
+      setError(t('common.error'))
+      setAllLots([])
     } finally {
       setLoading(false)
     }
+  }, [t])
+
+  useEffect(() => {
+    fetchAll()
+  }, [fetchAll])
+
+  const handlePlaceBid = async (lot) => {
+    const amount = parseFloat(bidInputs[lot.lotId])
+    if (!amount || amount <= 0) {
+      console.error('Invalid bid amount')
+      return
+    }
+    setPlacing(lot.lotId)
+    try {
+      const res = await bidApi.place(lot.lotId, amount)
+      const bid = res.data
+
+      // Optimistically update: record my bid locally
+      setMyBids((prev) => ({
+        ...prev,
+        [lot.lotId]: {
+          id: bid.id,
+          amountPerKg: bid.amountPerKg,
+          status: bid.status
+        }
+      }))
+
+      // Flip the lot's status to BIDDING locally (no refetch)
+      setAllLots((prev) =>
+        prev.map((l) =>
+          l.lotId === lot.lotId && l.status === 'CREATED'
+            ? { ...l, status: 'BIDDING' }
+            : l
+        )
+      )
+
+      setBidInputs((prev) => ({ ...prev, [lot.lotId]: '' }))
+      console.log(t('auction.bidPlaced'))
+    } catch (e) {
+      console.error(t('auction.bidError'), e?.response?.data || e.message)
+    } finally {
+      setPlacing(null)
+    }
   }
 
+  const isMyBidPending = (lotId) => {
+    const b = myBids[lotId]
+    return b && b.status === 'PENDING'
+  }
+
+  const openLots = allLots.filter(
+    (l) => l.status === 'CREATED' || l.status === 'BIDDING'
+  )
+
+  const myAssignedLots = allLots.filter(
+    (l) =>
+      l.selectedRecycler?.user?.email === user?.email &&
+      (l.status === 'MATCHED' ||
+        l.status === 'HANDED_OVER' ||
+        l.status === 'PAYMENT_PENDING')
+  )
+
   const getStatusBadge = (status) => {
-    const statusMap = {
-      'MATCHED': 'badge-warning',
-      'PICKUP_SCHEDULED': 'badge-info',
-      'HANDED_OVER': 'badge-success',
-      'PAYMENT_PENDING': 'badge-warning',
-      'PAID': 'badge-success',
-      'COMPLETED': 'badge-success'
+    const map = {
+      CREATED: 'badge-info',
+      BIDDING: 'badge-warning',
+      MATCHED: 'badge-warning',
+      PICKUP_SCHEDULED: 'badge-info',
+      HANDED_OVER: 'badge-success',
+      PAYMENT_PENDING: 'badge-warning',
+      PAID: 'badge-success',
+      COMPLETED: 'badge-success'
     }
-    return statusMap[status] || 'badge-info'
+    return map[status] || 'badge-info'
   }
 
   return (
@@ -57,81 +116,161 @@ const RecyclerLots = () => {
         <p className="text-muted">{t('recyclerLots.subtitle')}</p>
       </div>
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-        <div className="stat-card" style={{ borderColor: '#2196f3' }}>
-          <div className="stat-icon" style={{ color: '#2196f3' }}><FaBox /></div>
-          <div className="stat-content">
-            <span className="stat-label">{t('recyclerLots.totalLots')}</span>
-            <span className="stat-value">{incomingLots.length}</span>
-          </div>
-        </div>
-        <div className="stat-card" style={{ borderColor: '#ff9800' }}>
-          <div className="stat-icon" style={{ color: '#ff9800' }}><FaClock /></div>
-          <div className="stat-content">
-            <span className="stat-label">{t('recyclerLots.pending')}</span>
-            <span className="stat-value">{incomingLots.filter(l => l.status === 'MATCHED').length}</span>
-          </div>
-        </div>
+      <div style={{ margin: '12px 0', display: 'flex', gap: '12px' }}>
+        <button className="btn btn-outline" onClick={fetchAll} disabled={loading}>
+          <FaSync /> {t('common.retry')}
+        </button>
       </div>
 
+      {error && (
+        <div
+          style={{
+            background: '#ffebee',
+            color: '#b71c1c',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            marginBottom: '12px'
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      {/* ─── OPEN LOTS FOR BIDDING ───────────────────────── */}
       <div className="card incoming-lots">
-        <h3>{t('recyclerLots.title')} ({incomingLots.length})</h3>
-        {incomingLots.length === 0 ? (
+        <h3>
+          <FaGavel /> {t('auction.openLots')} ({openLots.length})
+        </h3>
+        {loading ? (
+          <div className="empty-state">
+            <p>{t('common.loading')}</p>
+          </div>
+        ) : openLots.length === 0 ? (
           <div className="empty-state">
             <span style={{ fontSize: '48px' }}>🎉</span>
+            <p>{t('auction.noOpenLots')}</p>
+          </div>
+        ) : (
+          <div className="lots-list">
+            {openLots.map((lot) => {
+              const myBid = myBids[lot.lotId]
+              const bidIsPending = isMyBidPending(lot.lotId)
+              const inputValue = bidInputs[lot.lotId] ?? ''
+
+              return (
+                <div key={lot.lotId} className="lot-item">
+                  <div className="lot-info">
+                    <span className="lot-id">{lot.lotId}</span>
+                    <span className="lot-material">
+                      {lot.materialCategory?.name || '—'}
+                    </span>
+                    <span className="lot-weight">{lot.weightKg} kg</span>
+                    <span className="lot-collector">
+                      👤 {lot.collector?.fullName || '—'}
+                    </span>
+                    <span className={`badge ${getStatusBadge(lot.status)}`}>
+                      {lot.status}
+                    </span>
+                  </div>
+
+                  <div
+                    className="lot-actions"
+                    style={{
+                      display: 'flex',
+                      gap: '8px',
+                      alignItems: 'center',
+                      flexWrap: 'wrap'
+                    }}
+                  >
+                    {myBid && (
+                      <span
+                        className="bid-your-amount"
+                        style={{
+                          fontSize: '0.85rem',
+                          color: bidIsPending ? '#1565c0' : '#666'
+                        }}
+                      >
+                        {bidIsPending ? (
+                          <>
+                            <FaTrophy /> {t('auction.you')}: ₹
+                            {myBid.amountPerKg}/kg
+                          </>
+                        ) : (
+                          <>
+                            <FaCheck /> {myBid.status}: ₹
+                            {myBid.amountPerKg}/kg
+                          </>
+                        )}
+                      </span>
+                    )}
+
+                    <input
+                      type="number"
+                      className="form-control"
+                      style={{ width: '120px' }}
+                      placeholder={t('auction.yourBid')}
+                      value={inputValue}
+                      onChange={(e) =>
+                        setBidInputs((prev) => ({
+                          ...prev,
+                          [lot.lotId]: e.target.value
+                        }))
+                      }
+                      step="1"
+                      min="1"
+                    />
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => handlePlaceBid(lot)}
+                      disabled={placing === lot.lotId || !inputValue}
+                    >
+                      <FaGavel />{' '}
+                      {placing === lot.lotId
+                        ? t('common.loading')
+                        : t('auction.placeBid')}
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ─── MY MATCHED LOTS ──────────────────────────── */}
+      <div className="card incoming-lots" style={{ marginTop: '16px' }}>
+        <h3>
+          <FaBox /> {t('recyclerLots.title')} ({myAssignedLots.length})
+        </h3>
+        {myAssignedLots.length === 0 ? (
+          <div className="empty-state">
+            <span style={{ fontSize: '48px' }}>📭</span>
             <p>{t('recyclerDashboard.noIncomingLots')}</p>
           </div>
         ) : (
           <div className="lots-list">
-            {incomingLots.map((lot) => (
-              <div key={lot.id} className="lot-item">
+            {myAssignedLots.map((lot) => (
+              <div key={lot.lotId} className="lot-item">
                 <div className="lot-info">
                   <span className="lot-id">{lot.lotId}</span>
-                  <span className="lot-material">{lot.materialCategory?.name}</span>
+                  <span className="lot-material">
+                    {lot.materialCategory?.name || '—'}
+                  </span>
                   <span className="lot-weight">{lot.weightKg} kg</span>
-                  <span className="lot-collector">👤 {lot.collector}</span>
-                  <span className="lot-time">{lot.createdAt}</span>
+                  <span className="lot-collector">
+                    👤 {lot.collector?.fullName || '—'}
+                  </span>
                 </div>
                 <div className="lot-actions">
                   <span className={`badge ${getStatusBadge(lot.status)}`}>
                     {lot.status}
                   </span>
-                  <button className="btn btn-primary btn-sm" onClick={() => handleViewLot(lot)}>
-                    <FaEye /> {t('recyclerLots.view')}
-                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
-
-      {showModal && selectedLot && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{t('recyclerLots.lotDetails')}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="modal-details">
-                <div className="modal-row"><span className="modal-label">{t('lotDetail.lotId')}:</span><span className="modal-value">{selectedLot.lotId}</span></div>
-                <div className="modal-row"><span className="modal-label">{t('lotDetail.material')}:</span><span className="modal-value">{selectedLot.materialCategory?.name}</span></div>
-                <div className="modal-row"><span className="modal-label">{t('lotDetail.weight')}:</span><span className="modal-value">{selectedLot.weightKg} kg</span></div>
-                <div className="modal-row"><span className="modal-label">{t('recyclerDashboard.collector')}:</span><span className="modal-value">{selectedLot.collector}</span></div>
-                <div className="modal-row"><span className="modal-label">{t('recyclerDashboard.status')}:</span><span className={`badge ${getStatusBadge(selectedLot.status)}`}>{selectedLot.status}</span></div>
-                <div className="modal-row"><span className="modal-label">{t('recyclerLots.created')}:</span><span className="modal-value">{selectedLot.createdAt}</span></div>
-              </div>
-              <div className="modal-actions">
-                <button className="btn btn-success btn-block" onClick={handleConfirmHandover} disabled={loading}>
-                  {loading ? t('recyclerDashboard.confirming') : <><FaCheck /> {t('recyclerDashboard.confirmHandover')}</>}
-                </button>
-                <button className="btn btn-outline btn-block" onClick={() => setShowModal(false)}>{t('common.close')}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -2,6 +2,23 @@ const translations = {
   en: {
     app: { name: 'RE-CIRCLE', tagline: 'Kabadiwala Connect' },
 
+    auction: {
+      liveBids: 'Live Bids',
+      noBidsYet: 'No bids yet — recyclers can bid on this lot',
+      noBids: 'No bids on this lot',
+      highest: 'Highest',
+      accepted: 'Accepted',
+      rejected: 'Rejected',
+      accept: 'Accept',
+      accepting: 'Accepting…',
+      you: 'You',
+      placeBid: 'Place Bid',
+      yourBid: 'Your Bid (₹/kg)',
+      bidPlaced: '✅ Bid placed!',
+      bidError: 'Could not place bid',
+      openLots: 'Open Lots for Bidding',
+      noOpenLots: 'No lots open for bidding right now'
+    },
     scanner: {
       title: 'Scan Lot QR',
       scanning: 'Point the camera at the QR code on the lot',
@@ -449,6 +466,23 @@ const translations = {
   hi: {
     app: { name: 'री-सर्कल', tagline: 'कबाड़ीवाला कनेक्ट' },
 
+    auction: {
+      liveBids: 'लाइव बोलियां',
+      noBidsYet: 'अभी कोई बोली नहीं — रिसाइकलर इस लॉट पर बोली लगा सकते हैं',
+      noBids: 'इस लॉट पर कोई बोली नहीं',
+      highest: 'उच्चतम',
+      accepted: 'स्वीकृत',
+      rejected: 'अस्वीकृत',
+      accept: 'स्वीकार करें',
+      accepting: 'स्वीकार हो रहा है…',
+      you: 'आप',
+      placeBid: 'बोली लगाएं',
+      yourBid: 'आपकी बोली (₹/किग्रा)',
+      bidPlaced: '✅ बोली लग गई!',
+      bidError: 'बोली नहीं लग सकी',
+      openLots: 'बोली के लिए खुले लॉट',
+      noOpenLots: 'अभी कोई लॉट बोली के लिए खुला नहीं'
+    },
     scanner: {
       title: 'लॉट QR स्कैन करें',
       scanning: 'कैमरे को लॉट पर QR कोड की ओर इंगित करें',
@@ -896,6 +930,23 @@ const translations = {
   mr: {
     app: { name: 'री-सर्कल', tagline: 'कबाडीवाला कनेक्ट' },
 
+    auction: {
+      liveBids: 'लाइव्ह बोली',
+      noBidsYet: 'अजून बोली नाही — रिसायकलर या लॉटवर बोली लावू शकतात',
+      noBids: 'या लॉटवर बोली नाही',
+      highest: 'सर्वोच्च',
+      accepted: 'स्वीकारले',
+      rejected: 'नाकारले',
+      accept: 'स्वीकार करा',
+      accepting: 'स्वीकारत आहे…',
+      you: 'तुम्ही',
+      placeBid: 'बोली लावा',
+      yourBid: 'तुमची बोली (₹/किग्रॅ)',
+      bidPlaced: '✅ बोली लावली!',
+      bidError: 'बोली लावता आली नाही',
+      openLots: 'बोलीसाठी खुले लॉट',
+      noOpenLots: 'सध्या बोलीसाठी कोणतेही लॉट खुले नाही'
+    },
     scanner: {
       title: 'लॉट QR स्कॅन करा',
       scanning: 'कॅमेरा लॉटवरील QR कोडकडे निर्देशित करा',
@@ -1343,6 +1394,23 @@ const translations = {
   ta: {
     app: { name: 'ரீ-சர்க்கிள்', tagline: 'கபாடிவாலா கனெக்ட்' },
 
+    auction: {
+      liveBids: 'நேரடி ஏலங்கள்',
+      noBidsYet: 'இன்னும் ஏலங்கள் இல்லை — மறுசுழற்சியாளர்கள் ஏலம் விடலாம்',
+      noBids: 'இந்த லாட்டில் ஏலங்கள் இல்லை',
+      highest: 'அதிகபட்சம்',
+      accepted: 'ஏற்கப்பட்டது',
+      rejected: 'நிராகரிக்கப்பட்டது',
+      accept: 'ஏற்கவும்',
+      accepting: 'ஏற்கிறது…',
+      you: 'நீங்கள்',
+      placeBid: 'ஏலம் விடுங்கள்',
+      yourBid: 'உங்கள் ஏலம் (₹/கிலோ)',
+      bidPlaced: '✅ ஏலம் விடப்பட்டது!',
+      bidError: 'ஏலம் விட முடியவில்லை',
+      openLots: 'ஏலத்திற்கு திறந்த லாட்கள்',
+      noOpenLots: 'இப்போது ஏலத்திற்கு திறந்த லாட்கள் இல்லை'
+    },
     scanner: {
       title: 'லாட் QR ஸ்கேன் செய்',
       scanning: 'லாட் மீதான QR குறியீட்டை நோக்கி கேமராவை காட்டுங்கள்',
@@ -1774,6 +1842,23 @@ const translations = {
   te: {
     app: { name: 'రీ-సర్కిల్', tagline: 'కబాడీవాలా కనెక్ట్' },
 
+    auction: {
+      liveBids: 'లైవ్ బిడ్‌లు',
+      noBidsYet: 'ఇంకా బిడ్‌లు లేవు — పునర్వినియోగదారులు బిడ్ చేయవచ్చు',
+      noBids: 'ఈ లాట్‌పై బిడ్‌లు లేవు',
+      highest: 'అత్యధికం',
+      accepted: 'అంగీకరించబడింది',
+      rejected: 'తిరస్కరించబడింది',
+      accept: 'అంగీకరించు',
+      accepting: 'అంగీకరిస్తోంది…',
+      you: 'మీరు',
+      placeBid: 'బిడ్ పెట్టండి',
+      yourBid: 'మీ బిడ్ (₹/కిలో)',
+      bidPlaced: '✅ బిడ్ పెట్టబడింది!',
+      bidError: 'బిడ్ పెట్టలేకపోయింది',
+      openLots: 'బిడ్ కోసం తెరిచిన లాట్‌లు',
+      noOpenLots: 'ప్రస్తుతం బిడ్ కోసం తెరిచిన లాట్‌లు లేవు'
+    },
     scanner: {
       title: 'లాట్ QR స్కాన్ చేయండి',
       scanning: 'లాట్‌పై ఉన్న QR కోడ్ వైపు కెమెరాను చూపండి',
@@ -2205,6 +2290,23 @@ const translations = {
   kn: {
     app: { name: 'ರೀ-ಸರ್ಕಲ್', tagline: 'ಕಬಾಡಿವಾಲಾ ಕನೆಕ್ಟ್' },
 
+    auction: {
+      liveBids: 'ಲೈವ್ ಬಿಡ್‌ಗಳು',
+      noBidsYet: 'ಇನ್ನೂ ಬಿಡ್‌ಗಳಿಲ್ಲ — ಮರುಬಳಕೆದಾರರು ಬಿಡ್ ಮಾಡಬಹುದು',
+      noBids: 'ಈ ಲಾಟ್‌ನಲ್ಲಿ ಬಿಡ್‌ಗಳಿಲ್ಲ',
+      highest: 'ಅತ್ಯಧಿಕ',
+      accepted: 'ಸ್ವೀಕರಿಸಲಾಗಿದೆ',
+      rejected: 'ತಿರಸ್ಕರಿಸಲಾಗಿದೆ',
+      accept: 'ಸ್ವೀಕರಿಸಿ',
+      accepting: 'ಸ್ವೀಕರಿಸುತ್ತಿದೆ…',
+      you: 'ನೀವು',
+      placeBid: 'ಬಿಡ್ ಮಾಡಿ',
+      yourBid: 'ನಿಮ್ಮ ಬಿಡ್ (₹/ಕೆಜಿ)',
+      bidPlaced: '✅ ಬಿಡ್ ಮಾಡಲಾಗಿದೆ!',
+      bidError: 'ಬಿಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ',
+      openLots: 'ಬಿಡ್‌ಗಾಗಿ ತೆರೆದ ಲಾಟ್‌ಗಳು',
+      noOpenLots: 'ಸದ್ಯಕ್ಕೆ ಬಿಡ್‌ಗಾಗಿ ತೆರೆದ ಲಾಟ್‌ಗಳಿಲ್ಲ'
+    },
     scanner: {
       title: 'ಲಾಟ್ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
       scanning: 'ಲಾಟ್‌ನಲ್ಲಿರುವ QR ಕೋಡ್‌ನ ಕಡೆಗೆ ಕ್ಯಾಮೆರಾವನ್ನು ತೋರಿಸಿ',
@@ -2636,6 +2738,23 @@ const translations = {
   ml: {
     app: { name: 'റീ-സർക്കിൾ', tagline: 'കബാടിവാല കണക്ട്' },
 
+    auction: {
+      liveBids: 'ലൈവ് ബിഡുകൾ',
+      noBidsYet: 'ഇതുവരെ ബിഡുകളില്ല — റീസൈക്കിൾ ചെയ്യുന്നവർക്ക് ബിഡ് ചെയ്യാം',
+      noBids: 'ഈ ലോട്ടിൽ ബിഡുകളില്ല',
+      highest: 'ഏറ്റവും ഉയർന്നത്',
+      accepted: 'അംഗീകരിച്ചു',
+      rejected: 'നിരസിച്ചു',
+      accept: 'അംഗീകരിക്കുക',
+      accepting: 'അംഗീകരിക്കുന്നു…',
+      you: 'നിങ്ങൾ',
+      placeBid: 'ബിഡ് ചെയ്യുക',
+      yourBid: 'നിങ്ങളുടെ ബിഡ് (₹/കിലോ)',
+      bidPlaced: '✅ ബിഡ് ചെയ്തു!',
+      bidError: 'ബിഡ് ചെയ്യാനായില്ല',
+      openLots: 'ബിഡിനായി തുറന്ന ലോട്ടുകൾ',
+      noOpenLots: 'ഇപ്പോൾ ബിഡിനായി തുറന്ന ലോട്ടുകളില്ല'
+    },
     scanner: {
       title: 'ലോട്ട് QR സ്കാൻ ചെയ്യുക',
       scanning: 'ലോട്ടിലെ QR കോഡിലേക്ക് ക്യാമറ ചൂണ്ടിക്കാണിക്കുക',

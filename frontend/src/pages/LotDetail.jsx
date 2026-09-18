@@ -5,6 +5,7 @@ import { useTranslation } from '../hooks/useTranslation'
 import QRCodeComponent from '../components/common/QRCode'
 import TraceabilityTimeline from '../components/common/TraceabilityTimeline'
 import CopyButton from '../components/common/CopyButton'
+import BidPanel from '../components/common/BidPanel'
 import './LotDetail.css'
 
 const LotDetail = () => {
@@ -202,6 +203,10 @@ const LotDetail = () => {
           </div>
         )}
       </div>
+
+      {lot.status === 'CREATED' || lot.status === 'BIDDING' || lot.status === 'MATCHED' ? (
+        <BidPanel lot={lot} onLotUpdated={fetchLotDetails} />
+      ) : null}
 
       <div className="card timeline-section" style={{ marginTop: '16px' }}>
         <div className="card-header">

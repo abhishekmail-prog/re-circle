@@ -119,6 +119,7 @@ public class MaterialLot {
 
     public enum LotStatus {
         CREATED,
+        BIDDING,
         MATCHED,
         PICKUP_SCHEDULED,
         IN_TRANSIT,

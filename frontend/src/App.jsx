@@ -31,6 +31,14 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 
 import './styles/App.css'
 
+const RecyclerOnly = ({ children }) => (
+  <ProtectedRoute allowedRoles={['RECYCLER']}>{children}</ProtectedRoute>
+)
+
+const AdminOnly = ({ children }) => (
+  <ProtectedRoute allowedRoles={['ADMIN']}>{children}</ProtectedRoute>
+)
+
 const RootRedirect = () => {
   const { user, loading, isAuthenticated } = useAuth()
   if (loading) return <div className="loading-screen">Loading...</div>
@@ -62,14 +70,14 @@ function App() {
                 <Route path="safety" element={<Safety />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="lot/:id" element={<LotDetail />} />
-                <Route path="recycler/dashboard" element={<RecyclerDashboard />} />
-                <Route path="recycler/lots" element={<RecyclerLots />} />
-                <Route path="recycler/handovers" element={<RecyclerHandovers />} />
-                <Route path="recycler/earnings" element={<RecyclerEarnings />} />
-                <Route path="admin/dashboard" element={<AdminDashboard />} />
-                <Route path="admin/users" element={<AdminDashboard />} />
-                <Route path="admin/recyclers" element={<AdminDashboard />} />
-                <Route path="admin/stats" element={<AdminDashboard />} />
+                <Route path="recycler/dashboard" element={<RecyclerOnly><RecyclerDashboard /></RecyclerOnly>} />
+                <Route path="recycler/lots" element={<RecyclerOnly><RecyclerLots /></RecyclerOnly>} />
+                <Route path="recycler/handovers" element={<RecyclerOnly><RecyclerHandovers /></RecyclerOnly>} />
+                <Route path="recycler/earnings" element={<RecyclerOnly><RecyclerEarnings /></RecyclerOnly>} />
+                <Route path="admin/dashboard" element={<AdminOnly><AdminDashboard /></AdminOnly>} />
+                <Route path="admin/users" element={<AdminOnly><AdminDashboard /></AdminOnly>} />
+                <Route path="admin/recyclers" element={<AdminOnly><AdminDashboard /></AdminOnly>} />
+                <Route path="admin/stats" element={<AdminOnly><AdminDashboard /></AdminOnly>} />
               </Route>
             </Routes>
           </LanguageProvider>
