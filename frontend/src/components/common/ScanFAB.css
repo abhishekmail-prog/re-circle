@@ -1,0 +1,90 @@
+.scan-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 90px;
+  z-index: 1500;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  font-family: inherit;
+
+  box-shadow:
+    0 6px 16px rgba(46, 125, 50, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.scan-fab:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 22px rgba(46, 125, 50, 0.45),
+    0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.scan-fab:active {
+  transform: scale(0.97);
+}
+
+.scan-fab:focus-visible {
+  outline: 3px solid rgba(46, 125, 50, 0.4);
+  outline-offset: 3px;
+}
+
+.scan-fab svg {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 480px) {
+  .scan-fab {
+    right: 16px;
+    bottom: 82px;
+    padding: 16px;
+    border-radius: 50%;
+  }
+  .scan-fab-label {
+    display: none;
+  }
+  .scan-fab svg {
+    font-size: 1.5rem;
+  }
+}
+
+.scan-fab-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 160px;
+  z-index: 1600;
+  max-width: 320px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: #ffebee;
+  color: #b71c1c;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  animation: scan-fab-toast-in 0.18s ease-out;
+}
+
+@keyframes scan-fab-toast-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+  .scan-fab-toast {
+    right: 12px;
+    left: 12px;
+    max-width: none;
+    bottom: 150px;
+  }
+}

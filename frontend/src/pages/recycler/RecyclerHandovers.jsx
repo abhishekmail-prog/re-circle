@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from '../../hooks/useTranslation'
 import api from '../../api/axios'
 import {
@@ -45,6 +46,22 @@ const RecyclerHandovers = () => {
   useEffect(() => {
     fetchHandovers()
   }, [fetchHandovers])
+
+  // Auto-open handover modal when arriving with ?scan=LOTID
+  const [searchParams, setSearchParams] = useSearchParams()
+  useEffect(() => {
+    const scanFromUrl = searchParams.get('scan')
+    if (!scanFromUrl || loading) return
+    const found = handovers.find(
+      (h) => h.lotId?.toUpperCase() === scanFromUrl.toUpperCase()
+    )
+    if (found) {
+      handleConfirmHandover(found)
+      searchParams.delete('scan')
+      setSearchParams(searchParams, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, handovers, searchParams])
 
   const handleConfirmHandover = (handover) => {
     setSelectedHandover(handover)

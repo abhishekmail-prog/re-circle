@@ -3,6 +3,11 @@ const translations = {
     app: { name: 'RE-CIRCLE', tagline: 'Kabadiwala Connect' },
 
     auction: {
+      scanNow: 'Scan Lot QR',
+      scanNotYours: 'This lot is not assigned to you',
+      scanNotFound: 'Lot not found',
+      scanReady: 'Lot found — opening handover',
+
       liveBids: 'Live Bids',
       noBidsYet: 'No bids yet — recyclers can bid on this lot',
       noBids: 'No bids on this lot',
@@ -467,6 +472,11 @@ const translations = {
     app: { name: 'री-सर्कल', tagline: 'कबाड़ीवाला कनेक्ट' },
 
     auction: {
+      scanNow: 'लॉट QR स्कैन करें',
+      scanNotYours: 'यह लॉट आपको सौंपा नहीं गया है',
+      scanNotFound: 'लॉट नहीं मिला',
+      scanReady: 'लॉट मिला — हैंडओवर खुल रहा है',
+
       liveBids: 'लाइव बोलियां',
       noBidsYet: 'अभी कोई बोली नहीं — रिसाइकलर इस लॉट पर बोली लगा सकते हैं',
       noBids: 'इस लॉट पर कोई बोली नहीं',
@@ -931,6 +941,11 @@ const translations = {
     app: { name: 'री-सर्कल', tagline: 'कबाडीवाला कनेक्ट' },
 
     auction: {
+      scanNow: 'लॉट QR स्कॅन करा',
+      scanNotYours: 'हा लॉट तुम्हाला दिलेला नाही',
+      scanNotFound: 'लॉट सापडला नाही',
+      scanReady: 'लॉट सापडला — हँडओव्हर उघडत आहे',
+
       liveBids: 'लाइव्ह बोली',
       noBidsYet: 'अजून बोली नाही — रिसायकलर या लॉटवर बोली लावू शकतात',
       noBids: 'या लॉटवर बोली नाही',
@@ -1395,6 +1410,11 @@ const translations = {
     app: { name: 'ரீ-சர்க்கிள்', tagline: 'கபாடிவாலா கனெக்ட்' },
 
     auction: {
+      scanNow: 'லாட் QR ஸ்கேன் செய்',
+      scanNotYours: 'இந்த லாட் உங்களுக்கு ஒதுக்கப்படவில்லை',
+      scanNotFound: 'லாட் கிடைக்கவில்லை',
+      scanReady: 'லாட் கிடைத்தது — ஒப்படைப்பு திறக்கிறது',
+
       liveBids: 'நேரடி ஏலங்கள்',
       noBidsYet: 'இன்னும் ஏலங்கள் இல்லை — மறுசுழற்சியாளர்கள் ஏலம் விடலாம்',
       noBids: 'இந்த லாட்டில் ஏலங்கள் இல்லை',
@@ -1843,6 +1863,11 @@ const translations = {
     app: { name: 'రీ-సర్కిల్', tagline: 'కబాడీవాలా కనెక్ట్' },
 
     auction: {
+      scanNow: 'లాట్ QR స్కాన్ చేయండి',
+      scanNotYours: 'ఈ లాట్ మీకు కేటాయించబడలేదు',
+      scanNotFound: 'లాట్ కనుగొనబడలేదు',
+      scanReady: 'లాట్ కనుగొనబడింది — అప్పగింత తెరుస్తోంది',
+
       liveBids: 'లైవ్ బిడ్‌లు',
       noBidsYet: 'ఇంకా బిడ్‌లు లేవు — పునర్వినియోగదారులు బిడ్ చేయవచ్చు',
       noBids: 'ఈ లాట్‌పై బిడ్‌లు లేవు',
@@ -2291,6 +2316,11 @@ const translations = {
     app: { name: 'ರೀ-ಸರ್ಕಲ್', tagline: 'ಕಬಾಡಿವಾಲಾ ಕನೆಕ್ಟ್' },
 
     auction: {
+      scanNow: 'ಲಾಟ್ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+      scanNotYours: 'ಈ ಲಾಟ್ ನಿಮಗೆ ನಿಗದಿಪಡಿಸಲಾಗಿಲ್ಲ',
+      scanNotFound: 'ಲಾಟ್ ಕಂಡುಬಂದಿಲ್ಲ',
+      scanReady: 'ಲಾಟ್ ಕಂಡುಬಂದಿದೆ — ಹಸ್ತಾಂತರ ತೆರೆಯುತ್ತಿದೆ',
+
       liveBids: 'ಲೈವ್ ಬಿಡ್‌ಗಳು',
       noBidsYet: 'ಇನ್ನೂ ಬಿಡ್‌ಗಳಿಲ್ಲ — ಮರುಬಳಕೆದಾರರು ಬಿಡ್ ಮಾಡಬಹುದು',
       noBids: 'ಈ ಲಾಟ್‌ನಲ್ಲಿ ಬಿಡ್‌ಗಳಿಲ್ಲ',
@@ -2739,6 +2769,11 @@ const translations = {
     app: { name: 'റീ-സർക്കിൾ', tagline: 'കബാടിവാല കണക്ട്' },
 
     auction: {
+      scanNow: 'ലോട്ട് QR സ്കാൻ ചെയ്യുക',
+      scanNotYours: 'ഈ ലോട്ട് നിങ്ങൾക്ക് നൽകിയിട്ടില്ല',
+      scanNotFound: 'ലോട്ട് കണ്ടെത്തിയില്ല',
+      scanReady: 'ലോട്ട് കണ്ടെത്തി — കൈമാറ്റം തുറക്കുന്നു',
+
       liveBids: 'ലൈവ് ബിഡുകൾ',
       noBidsYet: 'ഇതുവരെ ബിഡുകളില്ല — റീസൈക്കിൾ ചെയ്യുന്നവർക്ക് ബിഡ് ചെയ്യാം',
       noBids: 'ഈ ലോട്ടിൽ ബിഡുകളില്ല',

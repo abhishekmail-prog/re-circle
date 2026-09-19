@@ -85,6 +85,22 @@ const CreateLot = () => {
       navigate(`/lot/${response.data.lotId}`)
     } catch (error) {
       console.error('Create lot error:', error)
+
+      // Offline or network failure → queue it for later
+      const isNetworkError =
+        !navigator.onLine ||
+        error?.code === 'ERR_NETWORK' ||
+        error?.message?.includes('Network Error') ||
+        error?.message?.includes('timeout')
+
+      if (isNetworkError) {
+        await addPendingAction({ type: 'CREATE_LOT', data: lotData })
+        console.log(t('createLot.offlineSuccess'))
+        alert(t('createLot.offlineSuccess'))
+        navigate('/dashboard')
+        return
+      }
+
       alert(t('createLot.error', { error: error.message || 'Unknown' }))
     } finally {
       setLoading(false)

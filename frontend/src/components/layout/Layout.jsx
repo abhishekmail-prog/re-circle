@@ -1,6 +1,7 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
+import ScanFAB from '../common/ScanFAB'
 import { useOffline } from '../../context/OfflineContext'
 
 const Layout = () => {
@@ -33,6 +34,7 @@ const Layout = () => {
         <Outlet />
       </main>
       <Navbar />
+      <ScanFAB />
     </div>
   )
 }
