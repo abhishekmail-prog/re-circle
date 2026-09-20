@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from '../../hooks/useTranslation'
+import { useWebSocket } from '../../context/WebSocketContext'
 import api from '../../api/axios'
 import {
   FaCheckCircle,
@@ -16,6 +17,7 @@ import './RecyclerDashboard.css'
 
 const RecyclerHandovers = () => {
   const { t } = useTranslation()
+  const { client, connected } = useWebSocket()
   const [handovers, setHandovers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -24,6 +26,7 @@ const RecyclerHandovers = () => {
   const [verifiedWeight, setVerifiedWeight] = useState('')
   const [finalPrice, setFinalPrice] = useState('')
   const [paymentStatus, setPaymentStatus] = useState('PAID')
+  const [paymentMethod, setPaymentMethod] = useState('CASH')
   const [submitting, setSubmitting] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
   const [scanError, setScanError] = useState(null)
@@ -46,6 +49,16 @@ const RecyclerHandovers = () => {
   useEffect(() => {
     fetchHandovers()
   }, [fetchHandovers])
+
+  // Live updates — refetch when any lot changes (e.g. auction closes)
+  useEffect(() => {
+    if (!client || !connected) return
+    const sub = client.subscribe('/topic/lots', (msg) => {
+      console.log('Lot event (handovers):', msg.body)
+      fetchHandovers()
+    })
+    return () => sub.unsubscribe()
+  }, [client, connected, fetchHandovers])
 
   // Auto-open handover modal when arriving with ?scan=LOTID
   const [searchParams, setSearchParams] = useSearchParams()
@@ -130,7 +143,8 @@ const RecyclerHandovers = () => {
       await api.post(`/lots/${selectedHandover.lotId}/handover`, {
         verifiedWeight: vWeight,
         finalPrice: fPrice,
-        paymentStatus
+        paymentStatus,
+        paymentMethod
       })
       console.log(t('recyclerHandovers.handoverSuccess', { amount: fPrice }))
       await fetchHandovers()
@@ -462,6 +476,19 @@ const RecyclerHandovers = () => {
                   <option value="PAYMENT_PENDING">
                     {t('recyclerHandovers.pendingPayment')}
                   </option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Payment Method</label>
+                <select
+                  className="form-control"
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                >
+                  <option value="CASH">💵 Cash</option>
+                  <option value="UPI">📱 UPI</option>
+                  <option value="BANK_TRANSFER">🏦 Bank Transfer</option>
                 </select>
               </div>
 

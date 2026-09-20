@@ -11,6 +11,18 @@ import './BidPanel.css'
  * Collector sees all bids + Accept button.
  * Recycler sees their own bid highlighted.
  */
+const haversineKm = (lat1, lon1, lat2, lon2) => {
+  if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null
+  const R = 6371
+  const toRad = (d) => (d * Math.PI) / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
+}
+
 const BidPanel = ({ lot, onLotUpdated }) => {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -143,6 +155,20 @@ const BidPanel = ({ lot, onLotUpdated }) => {
                     {isMine && (
                       <span className="bid-you"> ({t('auction.you')})</span>
                     )}
+                    {(() => {
+                      const dist = haversineKm(
+                        lot?.collectionLatitude,
+                        lot?.collectionLongitude,
+                        bid.recycler?.latitude,
+                        bid.recycler?.longitude
+                      )
+                      if (dist == null) return null
+                      return (
+                        <span className="bid-distance">
+                          {' '}📍 {dist} km
+                        </span>
+                      )
+                    })()}
                   </span>
                   {isBest && (
                     <span className="bid-badge-best">

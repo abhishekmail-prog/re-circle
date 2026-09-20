@@ -14,7 +14,6 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import CreateLot from './pages/CreateLot'
 import Prices from './pages/Prices'
-import Recyclers from './pages/Recyclers'
 import Earnings from './pages/Earnings'
 import Safety from './pages/Safety'
 import Profile from './pages/Profile'
@@ -65,7 +64,6 @@ function App() {
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="create-lot" element={<CreateLot />} />
                 <Route path="prices" element={<Prices />} />
-                <Route path="recyclers" element={<Recyclers />} />
                 <Route path="earnings" element={<Earnings />} />
                 <Route path="safety" element={<Safety />} />
                 <Route path="profile" element={<Profile />} />

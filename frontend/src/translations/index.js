@@ -3,6 +3,12 @@ const translations = {
     app: { name: 'RE-CIRCLE', tagline: 'Kabadiwala Connect' },
 
     auction: {
+      timeLeft: 'Auction ends in',
+      ended: 'Auction ended',
+      closed: 'Auction closed',
+      closeNow: 'Close Auction Now',
+      closeConfirm: 'Close this auction and accept the highest bid?',
+
       scanNow: 'Scan Lot QR',
       scanNotYours: 'This lot is not assigned to you',
       scanNotFound: 'Lot not found',
@@ -37,6 +43,7 @@ const translations = {
       lotNotFound: 'No pending handover found for this QR'
     },
     nav: {
+      spending: 'Spending',
       dashboard: 'Dashboard',
       createLot: 'Create Lot',
       prices: 'Prices',
@@ -84,6 +91,10 @@ const translations = {
       earnings: 'Earnings'
     },
     createLot: {
+      useAiSuggestion: 'Use This',
+      aiOffline: 'Photo AI needs internet — pick category manually',
+      aiError: 'Could not analyze image — pick category manually',
+
       title: 'Create Digital Lot',
       subtitle: 'Document your e-waste and get a QR code for handover',
       takePhoto: '📷 Upload Photo (AI will suggest category)',
@@ -377,8 +388,8 @@ const translations = {
       noHandovers: 'No handovers yet'
     },
     recyclerEarnings: {
-      title: '💰 Earnings',
-      subtitle: 'Track your revenue and payments',
+      title: '💸 Spending',
+      subtitle: 'Track your spending on e-waste procurement',
       totalRevenue: 'Total Spent',
       totalPurchases: 'Total Purchases',
       spentOnMaterial: 'Spent on material',
@@ -472,6 +483,12 @@ const translations = {
     app: { name: 'री-सर्कल', tagline: 'कबाड़ीवाला कनेक्ट' },
 
     auction: {
+      timeLeft: 'नीलामी समाप्त होने में',
+      ended: 'नीलामी समाप्त',
+      closed: 'नीलामी बंद',
+      closeNow: 'अभी नीलामी बंद करें',
+      closeConfirm: 'यह नीलामी बंद करें और सबसे ऊंची बोली स्वीकार करें?',
+
       scanNow: 'लॉट QR स्कैन करें',
       scanNotYours: 'यह लॉट आपको सौंपा नहीं गया है',
       scanNotFound: 'लॉट नहीं मिला',
@@ -506,6 +523,7 @@ const translations = {
       lotNotFound: 'इस QR के लिए कोई लंबित हैंडओवर नहीं मिला'
     },
     nav: {
+      spending: 'खर्च',
       dashboard: 'डैशबोर्ड',
       createLot: 'लॉट बनाएं',
       prices: 'कीमतें',
@@ -553,6 +571,10 @@ const translations = {
       earnings: 'कमाई'
     },
     createLot: {
+      useAiSuggestion: 'यह उपयोग करें',
+      aiOffline: 'फोटो AI को इंटरनेट चाहिए — श्रेणी मैन्युअल चुनें',
+      aiError: 'छवि का विश्लेषण नहीं हो सका — श्रेणी मैन्युअल चुनें',
+
       title: 'डिजिटल लॉट बनाएं',
       subtitle: 'अपने ई-कचरे को दस्तावेज़ करें और हैंडओवर के लिए QR कोड प्राप्त करें',
       takePhoto: '📷 फोटो अपलोड करें',
@@ -846,8 +868,8 @@ const translations = {
       noHandovers: 'अभी तक कोई हैंडओवर नहीं'
     },
     recyclerEarnings: {
-      title: '💰 कमाई',
-      subtitle: 'अपने राजस्व और भुगतान ट्रैक करें',
+      title: '💸 खर्च',
+      subtitle: 'ई-कचरा खरीद पर अपना खर्च ट्रैक करें',
       totalRevenue: 'कुल खर्च',
       totalPurchases: 'कुल खरीद',
       spentOnMaterial: 'सामग्री पर खर्च',
@@ -941,6 +963,12 @@ const translations = {
     app: { name: 'री-सर्कल', tagline: 'कबाडीवाला कनेक्ट' },
 
     auction: {
+      timeLeft: 'लिलाव संपण्यास',
+      ended: 'लिलाव संपला',
+      closed: 'लिलाव बंद',
+      closeNow: 'आता लिलाव बंद करा',
+      closeConfirm: 'हा लिलाव बंद करा आणि सर्वोच्च बोली स्वीकार करा?',
+
       scanNow: 'लॉट QR स्कॅन करा',
       scanNotYours: 'हा लॉट तुम्हाला दिलेला नाही',
       scanNotFound: 'लॉट सापडला नाही',
@@ -975,6 +1003,7 @@ const translations = {
       lotNotFound: 'या QR साठी कोणतेही प्रलंबित हँडओव्हर आढळले नाही'
     },
     nav: {
+      spending: 'खर्च',
       dashboard: 'डॅशबोर्ड',
       createLot: 'लॉट तयार करा',
       prices: 'किंमती',
@@ -1022,6 +1051,10 @@ const translations = {
       earnings: 'कमाई'
     },
     createLot: {
+      useAiSuggestion: 'हे वापरा',
+      aiOffline: 'फोटो AI ला इंटरनेट हवे — श्रेणी स्वतः निवडा',
+      aiError: 'प्रतिमा विश्लेषण करता आले नाही — श्रेणी स्वतः निवडा',
+
       title: 'डिजिटल लॉट तयार करा',
       subtitle: 'तुमच्या ई-कचऱ्याची नोंद करा आणि हँडओव्हरसाठी QR कोड मिळवा',
       takePhoto: '📷 फोटो अपलोड करा',
@@ -1315,8 +1348,8 @@ const translations = {
       noHandovers: 'अद्याप कोणतेही हँडओव्हर नाही'
     },
     recyclerEarnings: {
-      title: '💰 कमाई',
-      subtitle: 'तुमचा महसूल आणि पैसे ट्रॅक करा',
+      title: '💸 खर्च',
+      subtitle: 'ई-कचरा खरेदीवरील तुमचा खर्च ट्रॅक करा',
       totalRevenue: 'एकूण खर्च',
       totalPurchases: 'एकूण खरेदी',
       spentOnMaterial: 'सामग्रीवर खर्च',
@@ -1410,6 +1443,12 @@ const translations = {
     app: { name: 'ரீ-சர்க்கிள்', tagline: 'கபாடிவாலா கனெக்ட்' },
 
     auction: {
+      timeLeft: 'ஏலம் முடிவடைய',
+      ended: 'ஏலம் முடிந்தது',
+      closed: 'ஏலம் மூடப்பட்டது',
+      closeNow: 'இப்போது ஏலத்தை மூடு',
+      closeConfirm: 'இந்த ஏலத்தை மூடி அதிகபட்ச ஏலத்தை ஏற்கவா?',
+
       scanNow: 'லாட் QR ஸ்கேன் செய்',
       scanNotYours: 'இந்த லாட் உங்களுக்கு ஒதுக்கப்படவில்லை',
       scanNotFound: 'லாட் கிடைக்கவில்லை',
@@ -1444,6 +1483,7 @@ const translations = {
       lotNotFound: 'இந்த QR க்கு நிலுவையில் உள்ள ஒப்படைப்பு இல்லை'
     },
     nav: {
+      spending: 'செலவு',
       dashboard: 'டாஷ்போர்டு',
       createLot: 'லாட் உருவாக்கு',
       prices: 'விலைகள்',
@@ -1491,6 +1531,10 @@ const translations = {
       earnings: 'வருவாய்'
     },
     createLot: {
+      useAiSuggestion: 'இதைப் பயன்படுத்து',
+      aiOffline: 'புகைப்பட AI க்கு இணையம் தேவை — வகையை கைமுறையாக தேர்வு செய்',
+      aiError: 'படத்தை பகுப்பாய்வு செய்ய முடியவில்லை — வகையை கைமுறையாக தேர்வு செய்',
+
       title: 'டிஜிட்டல் லாட் உருவாக்கு',
       subtitle: 'உங்கள் மின்-கழிவை பதிவு செய்யுங்கள், ஒப்படைப்புக்கு QR குறியீட்டைப் பெறுங்கள்',
       takePhoto: '📷 புகைப்படம் பதிவேற்று',
@@ -1784,8 +1828,8 @@ const translations = {
       noHandovers: 'இன்னும் ஒப்படைப்புகள் இல்லை'
     },
     recyclerEarnings: {
-      title: '💰 வருவாய்',
-      subtitle: 'உங்கள் வருவாய் மற்றும் பணம் செலுத்துதல்களை கண்காணியுங்கள்',
+      title: '💸 செலவு',
+      subtitle: 'மின்-கழிவு கொள்முதல் மீதான செலவை கண்காணியுங்கள்',
       totalRevenue: 'மொத்த செலவு',
       totalPurchases: 'மொத்த கொள்முதல்',
       spentOnMaterial: 'பொருட்களுக்கு செலவு',
@@ -1863,6 +1907,12 @@ const translations = {
     app: { name: 'రీ-సర్కిల్', tagline: 'కబాడీవాలా కనెక్ట్' },
 
     auction: {
+      timeLeft: 'వేలం ముగియడానికి',
+      ended: 'వేలం ముగిసింది',
+      closed: 'వేలం మూసివేయబడింది',
+      closeNow: 'ఇప్పుడే వేలం మూసివేయండి',
+      closeConfirm: 'ఈ వేలం మూసి అత్యధిక బిడ్‌ను అంగీకరించాలా?',
+
       scanNow: 'లాట్ QR స్కాన్ చేయండి',
       scanNotYours: 'ఈ లాట్ మీకు కేటాయించబడలేదు',
       scanNotFound: 'లాట్ కనుగొనబడలేదు',
@@ -1897,6 +1947,7 @@ const translations = {
       lotNotFound: 'ఈ QR కు పెండింగ్ అప్పగింత కనుగొనబడలేదు'
     },
     nav: {
+      spending: 'ఖర్చు',
       dashboard: 'డాష్‌బోర్డ్',
       createLot: 'లాట్ సృష్టించు',
       prices: 'ధరలు',
@@ -1944,6 +1995,10 @@ const translations = {
       earnings: 'ఆదాయం'
     },
     createLot: {
+      useAiSuggestion: 'ఇది ఉపయోగించండి',
+      aiOffline: 'ఫోటో AI కి ఇంటర్నెట్ అవసరం — వర్గాన్ని మాన్యువల్‌గా ఎంచుకోండి',
+      aiError: 'చిత్రాన్ని విశ్లేషించలేకపోయింది — వర్గాన్ని మాన్యువల్‌గా ఎంచుకోండి',
+
       title: 'డిజిటల్ లాట్ సృష్టించు',
       subtitle: 'మీ ఇ-వ్యర్థాలను నమోదు చేయండి మరియు అప్పగింత కోసం QR కోడ్ పొందండి',
       takePhoto: '📷 ఫోటో అప్‌లోడ్ చేయండి',
@@ -2237,8 +2292,8 @@ const translations = {
       noHandovers: 'ఇంకా అప్పగింతలు లేవు'
     },
     recyclerEarnings: {
-      title: '💰 ఆదాయం',
-      subtitle: 'మీ ఆదాయం మరియు చెల్లింపులను ట్రాక్ చేయండి',
+      title: '💸 ఖర్చు',
+      subtitle: 'ఇ-వ్యర్థ కొనుగోళ్లపై మీ ఖర్చును ట్రాక్ చేయండి',
       totalRevenue: 'మొత్తం ఖర్చు',
       totalPurchases: 'మొత్తం కొనుగోళ్లు',
       spentOnMaterial: 'పదార్థంపై ఖర్చు',
@@ -2316,6 +2371,12 @@ const translations = {
     app: { name: 'ರೀ-ಸರ್ಕಲ್', tagline: 'ಕಬಾಡಿವಾಲಾ ಕನೆಕ್ಟ್' },
 
     auction: {
+      timeLeft: 'ಹರಾಜು ಮುಗಿಯಲು',
+      ended: 'ಹರಾಜು ಮುಗಿದಿದೆ',
+      closed: 'ಹರಾಜು ಮುಚ್ಚಲಾಗಿದೆ',
+      closeNow: 'ಈಗ ಹರಾಜು ಮುಚ್ಚಿ',
+      closeConfirm: 'ಈ ಹರಾಜನ್ನು ಮುಚ್ಚಿ ಅತ್ಯಧಿಕ ಬಿಡ್ ಸ್ವೀಕರಿಸಬೇಕೆ?',
+
       scanNow: 'ಲಾಟ್ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
       scanNotYours: 'ಈ ಲಾಟ್ ನಿಮಗೆ ನಿಗದಿಪಡಿಸಲಾಗಿಲ್ಲ',
       scanNotFound: 'ಲಾಟ್ ಕಂಡುಬಂದಿಲ್ಲ',
@@ -2350,6 +2411,7 @@ const translations = {
       lotNotFound: 'ಈ QR ಗೆ ಯಾವುದೇ ಬಾಕಿ ಹಸ್ತಾಂತರ ಕಂಡುಬಂದಿಲ್ಲ'
     },
     nav: {
+      spending: 'ಖರ್ಚು',
       dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
       createLot: 'ಲಾಟ್ ರಚಿಸಿ',
       prices: 'ಬೆಲೆಗಳು',
@@ -2397,6 +2459,10 @@ const translations = {
       earnings: 'ಗಳಿಕೆ'
     },
     createLot: {
+      useAiSuggestion: 'ಇದನ್ನು ಬಳಸಿ',
+      aiOffline: 'ಫೋಟೋ AI ಗೆ ಇಂಟರ್ನೆಟ್ ಬೇಕು — ವರ್ಗವನ್ನು ಹಸ್ತಚಾಲಿತವಾಗಿ ಆಯ್ಕೆಮಾಡಿ',
+      aiError: 'ಚಿತ್ರವನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗಲಿಲ್ಲ — ವರ್ಗವನ್ನು ಹಸ್ತಚಾಲಿತವಾಗಿ ಆಯ್ಕೆಮಾಡಿ',
+
       title: 'ಡಿಜಿಟಲ್ ಲಾಟ್ ರಚಿಸಿ',
       subtitle: 'ನಿಮ್ಮ ಇ-ತ್ಯಾಜ್ಯವನ್ನು ದಾಖಲಿಸಿ ಮತ್ತು ಹಸ್ತಾಂತರಕ್ಕಾಗಿ QR ಕೋಡ್ ಪಡೆಯಿರಿ',
       takePhoto: '📷 ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ',
@@ -2690,8 +2756,8 @@ const translations = {
       noHandovers: 'ಇನ್ನೂ ಯಾವುದೇ ಹಸ್ತಾಂತರಗಳಿಲ್ಲ'
     },
     recyclerEarnings: {
-      title: '💰 ಗಳಿಕೆ',
-      subtitle: 'ನಿಮ್ಮ ಆದಾಯ ಮತ್ತು ಪಾವತಿಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ',
+      title: '💸 ಖರ್ಚು',
+      subtitle: 'ಇ-ತ್ಯಾಜ್ಯ ಖರೀದಿಯಲ್ಲಿ ನಿಮ್ಮ ಖರ್ಚನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ',
       totalRevenue: 'ಒಟ್ಟು ಖರ್ಚು',
       totalPurchases: 'ಒಟ್ಟು ಖರೀದಿಗಳು',
       spentOnMaterial: 'ವಸ್ತುವಿನ ಮೇಲೆ ಖರ್ಚು',
@@ -2769,6 +2835,12 @@ const translations = {
     app: { name: 'റീ-സർക്കിൾ', tagline: 'കബാടിവാല കണക്ട്' },
 
     auction: {
+      timeLeft: 'ലേലം അവസാനിക്കാൻ',
+      ended: 'ലേലം അവസാനിച്ചു',
+      closed: 'ലേലം അടച്ചു',
+      closeNow: 'ഇപ്പോൾ ലേലം അടയ്ക്കുക',
+      closeConfirm: 'ഈ ലേലം അടച്ച് ഏറ്റവും ഉയർന്ന ബിഡ് സ്വീകരിക്കണോ?',
+
       scanNow: 'ലോട്ട് QR സ്കാൻ ചെയ്യുക',
       scanNotYours: 'ഈ ലോട്ട് നിങ്ങൾക്ക് നൽകിയിട്ടില്ല',
       scanNotFound: 'ലോട്ട് കണ്ടെത്തിയില്ല',
@@ -2803,6 +2875,7 @@ const translations = {
       lotNotFound: 'ഈ QR ന് തീർപ്പാക്കാത്ത കൈമാറ്റം കണ്ടെത്തിയില്ല'
     },
     nav: {
+      spending: 'ചെലവ്',
       dashboard: 'ഡാഷ്ബോർഡ്',
       createLot: 'ലോട്ട് സൃഷ്ടിക്കുക',
       prices: 'വിലകൾ',
@@ -2850,6 +2923,10 @@ const translations = {
       earnings: 'വരുമാനം'
     },
     createLot: {
+      useAiSuggestion: 'ഇത് ഉപയോഗിക്കുക',
+      aiOffline: 'ഫോട്ടോ AI-ന് ഇന്റർനെറ്റ് ആവശ്യമാണ് — വിഭാഗം സ്വമേധയാ തിരഞ്ഞെടുക്കുക',
+      aiError: 'ചിത്രം വിശകലനം ചെയ്യാനായില്ല — വിഭാഗം സ്വമേധയാ തിരഞ്ഞെടുക്കുക',
+
       title: 'ഡിജിറ്റൽ ലോട്ട് സൃഷ്ടിക്കുക',
       subtitle: 'നിങ്ങളുടെ ഇ-മാലിന്യം രേഖപ്പെടുത്തുക, കൈമാറ്റത്തിന് QR കോഡ് നേടുക',
       takePhoto: '📷 ഫോട്ടോ അപ്‌ലോഡ് ചെയ്യുക',
@@ -3143,8 +3220,8 @@ const translations = {
       noHandovers: 'ഇതുവരെ കൈമാറ്റങ്ങൾ ഇല്ല'
     },
     recyclerEarnings: {
-      title: '💰 വരുമാനം',
-      subtitle: 'നിങ്ങളുടെ വരുമാനവും പേയ്‌മെന്റുകളും ട്രാക്ക് ചെയ്യുക',
+      title: '💸 ചെലവ്',
+      subtitle: 'ഇ-മാലിന്യ വാങ്ങലിലെ നിങ്ങളുടെ ചെലവ് ട്രാക്ക് ചെയ്യുക',
       totalRevenue: 'ആകെ ചെലവ്',
       totalPurchases: 'ആകെ വാങ്ങലുകൾ',
       spentOnMaterial: 'വസ്തുവിനായി ചെലവ്',

@@ -24,13 +24,40 @@ public class AdminController {
 
     @GetMapping("/stats")
     public ResponseEntity<?> getStats() {
+        List<com.recircle.entity.User> allUsers = userRepository.findAll();
+        long collectors = allUsers.stream()
+            .filter(u -> u.getRole() != null
+                && u.getRole().name().equals("COLLECTOR"))
+            .count();
+
+        List<com.recircle.entity.Recycler> allRecyclers = recyclerRepository.findAll();
+        long pendingVerifications = allRecyclers.stream()
+            .filter(r -> !r.isAuthorized())
+            .count();
+
+        List<com.recircle.entity.MaterialLot> allLots = lotRepository.findAll();
+        long totalLots = allLots.size();
+
+        long completed = allLots.stream()
+            .filter(l -> l.getStatus() != null
+                && (l.getStatus().name().equals("PAID")
+                    || l.getStatus().name().equals("COMPLETED")))
+            .count();
+
+        double totalEarnings = allLots.stream()
+            .filter(l -> l.getStatus() != null
+                && (l.getStatus().name().equals("PAID")
+                    || l.getStatus().name().equals("COMPLETED")))
+            .mapToDouble(l -> l.getNetEarnings() != null ? l.getNetEarnings() : 0.0)
+            .sum();
+
         Map<String, Object> stats = new LinkedHashMap<>();
-        stats.put("totalCollectors", userRepository.count());
-        stats.put("totalRecyclers", recyclerRepository.count());
-        stats.put("totalLots", lotRepository.count());
-        stats.put("totalEarnings", 0);
-        stats.put("totalTransactions", 0);
-        stats.put("pendingVerifications", 0);
+        stats.put("totalCollectors", collectors);
+        stats.put("totalRecyclers", allRecyclers.size());
+        stats.put("totalLots", totalLots);
+        stats.put("totalEarnings", Math.round(totalEarnings));
+        stats.put("totalTransactions", completed);
+        stats.put("pendingVerifications", pendingVerifications);
         return ResponseEntity.ok(stats);
     }
 
@@ -74,39 +101,45 @@ public class AdminController {
     @GetMapping("/activity/recent")
     public ResponseEntity<?> getRecentActivity() {
         List<Map<String, Object>> activities = new ArrayList<>();
-        
-        // Sample activity data
-        Map<String, Object> a1 = new LinkedHashMap<>();
-        a1.put("icon", "📝");
-        a1.put("message", "New lot created by Ramesh Kumar (Collector)");
-        a1.put("time", "5 min ago");
-        activities.add(a1);
-        
-        Map<String, Object> a2 = new LinkedHashMap<>();
-        a2.put("icon", "✅");
-        a2.put("message", "Recycler GreenCycle Solutions verified");
-        a2.put("time", "1 hour ago");
-        activities.add(a2);
-        
-        Map<String, Object> a3 = new LinkedHashMap<>();
-        a3.put("icon", "💰");
-        a3.put("message", "Payment confirmed for lot RC-2024-0005");
-        a3.put("time", "3 hours ago");
-        activities.add(a3);
-        
-        Map<String, Object> a4 = new LinkedHashMap<>();
-        a4.put("icon", "👤");
-        a4.put("message", "New collector registered: Priya Singh");
-        a4.put("time", "5 hours ago");
-        activities.add(a4);
-        
-        Map<String, Object> a5 = new LinkedHashMap<>();
-        a5.put("icon", "🏭");
-        a5.put("message", "Recycler TechRecycle Solutions applied for verification");
-        a5.put("time", "8 hours ago");
-        activities.add(a5);
-        
+
+        List<com.recircle.entity.MaterialLot> recentLots = lotRepository.findAll();
+        recentLots.sort((a, b) -> {
+            if (a.getCreatedAt() == null) return 1;
+            if (b.getCreatedAt() == null) return -1;
+            return b.getCreatedAt().compareTo(a.getCreatedAt());
+        });
+
+        int limit = Math.min(5, recentLots.size());
+        for (int i = 0; i < limit; i++) {
+            com.recircle.entity.MaterialLot lot = recentLots.get(i);
+            Map<String, Object> a = new LinkedHashMap<>();
+            String collectorName = (lot.getCollector() != null)
+                ? lot.getCollector().getFullName()
+                : "Unknown";
+            String material = (lot.getMaterialCategory() != null)
+                ? lot.getMaterialCategory().getName()
+                : "—";
+            double kg = lot.getWeightKg() != null ? lot.getWeightKg() : 0;
+            a.put("icon", "📝");
+            a.put("message",
+                "Lot " + lot.getLotId() + " created by " + collectorName
+                + " (" + material + ", " + (int) kg + "kg) — " + lot.getStatus());
+            a.put("time", relativeTime(lot.getCreatedAt()));
+            activities.add(a);
+        }
+
         return ResponseEntity.ok(activities);
+    }
+
+    private String relativeTime(java.time.LocalDateTime time) {
+        if (time == null) return "—";
+        long minutes = java.time.Duration.between(time, java.time.LocalDateTime.now()).toMinutes();
+        if (minutes < 1) return "just now";
+        if (minutes < 60) return minutes + " min ago";
+        long hours = minutes / 60;
+        if (hours < 24) return hours + " hr ago";
+        long days = hours / 24;
+        return days + " day" + (days == 1 ? "" : "s") + " ago";
     }
 
     @PostMapping("/recyclers")

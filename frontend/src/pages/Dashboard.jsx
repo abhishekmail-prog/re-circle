@@ -7,7 +7,6 @@ import api from '../api/axios'
 import {
   FaCamera,
   FaMoneyBillWave,
-  FaRecycle,
   FaWallet,
   FaShieldAlt,
   FaUser,
@@ -58,7 +57,6 @@ const Dashboard = () => {
   const quickActions = [
     { path: '/create-lot', icon: FaCamera, label: t('dashboard.createLot'), color: '#4caf50' },
     { path: '/prices', icon: FaMoneyBillWave, label: t('dashboard.todayPrices'), color: '#ff9800' },
-    { path: '/recyclers', icon: FaRecycle, label: t('dashboard.findRecycler'), color: '#2196f3' },
     { path: '/earnings', icon: FaWallet, label: t('dashboard.myEarnings'), color: '#9c27b0' },
     { path: '/safety', icon: FaShieldAlt, label: t('dashboard.safety'), color: '#f44336' },
     { path: '/profile', icon: FaUser, label: t('dashboard.profile'), color: '#607d8b' }

@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo } from 'react'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { useAuth } from './AuthContext'
-import toast from 'react-hot-toast'
 
 const WebSocketContext = createContext()
 
@@ -12,191 +11,90 @@ export const WebSocketProvider = ({ children }) => {
   const { isAuthenticated } = useAuth()
   const [connected, setConnected] = useState(false)
   const [notifications, setNotifications] = useState([])
-  const [realtimeData, setRealtimeData] = useState({
-    lots: [],
-    recyclers: [],
-    handovers: [],
-    earnings: null,
-    stats: null
-  })
-  const stompClient = useRef(null)
+  const stompClientRef = useRef(null)
+  // Force a state change so consumers get the new client after connect
+  const [clientVersion, setClientVersion] = useState(0)
 
   useEffect(() => {
     if (!isAuthenticated) return
 
-    const connect = () => {
-      try {
-        const socket = new SockJS('http://localhost:8080/ws')
-        
-        stompClient.current = new Client({
-          webSocketFactory: () => socket,
-          reconnectDelay: 5000,
-          debug: (str) => {
-            if (str.includes('Opening Web Socket')) {
-              console.log('🔌 WebSocket: Connecting...')
-            } else if (str.includes('Connected')) {
-              console.log('✅ WebSocket: Connected!')
-            } else if (str.includes('closed')) {
-              console.log('❌ WebSocket: Disconnected')
+    const socket = new SockJS('http://localhost:8080/ws')
+
+    const client = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000,
+      debug: () => {
+        // Quiet — noisy in dev
+      },
+      onConnect: () => {
+        setConnected(true)
+        console.log('✅ WebSocket connected')
+        setClientVersion((v) => v + 1)
+
+        // Global topics that feed notifications (not the main feed)
+        const notifyTopic = (topic, label) => {
+          client.subscribe(topic, (message) => {
+            try {
+              const data = JSON.parse(message.body)
+              console.log(`${label}:`, data)
+              setNotifications((prev) => {
+                const item = { ...data, id: Date.now() + Math.random(), read: false }
+                return [item, ...prev].slice(0, 50)
+              })
+            } catch (e) {
+              console.warn(`Failed to parse ${topic} message`, e)
             }
-          },
-          onConnect: () => {
-            setConnected(true)
-            console.log('✅ WebSocket connected!')
-            toast.success('🔌 Real-time connection established!')
-            
-            // Subscribe to ALL topics
-            stompClient.current.subscribe('/topic/lots', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('📦 Lot update:', data)
-                handleNotification(data)
-                setRealtimeData(prev => ({
-                  ...prev,
-                  lots: [data.data, ...prev.lots].slice(0, 50)
-                }))
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
+          })
+        }
 
-            stompClient.current.subscribe('/topic/recyclers', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('🏭 Recycler update:', data)
-                handleNotification(data)
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
-
-            stompClient.current.subscribe('/topic/handovers', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('📦 Handover update:', data)
-                handleNotification(data)
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
-
-            stompClient.current.subscribe('/topic/earnings', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('💰 Earnings update:', data)
-                handleNotification(data)
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
-
-            stompClient.current.subscribe('/topic/stats', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('📊 Stats update:', data)
-                setRealtimeData(prev => ({
-                  ...prev,
-                  stats: data.data
-                }))
-                handleNotification(data)
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
-
-            stompClient.current.subscribe('/topic/payments', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('💰 Payment update:', data)
-                handleNotification(data)
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
-
-            stompClient.current.subscribe('/topic/admin', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('👑 Admin update:', data)
-                handleNotification(data)
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
-
-            stompClient.current.subscribe('/topic/collector', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('👤 Collector update:', data)
-                handleNotification(data)
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
-
-            stompClient.current.subscribe('/topic/recycler', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('🏭 Recycler update:', data)
-                handleNotification(data)
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
-
-            stompClient.current.subscribe('/topic/pong', (message) => {
-              try {
-                const data = JSON.parse(message.body)
-                console.log('🏓 Pong:', data)
-              } catch (e) {
-                console.error('Failed to parse message:', e)
-              }
-            })
-          },
-          onDisconnect: () => {
-            setConnected(false)
-            console.log('❌ WebSocket disconnected')
-          },
-          onStompError: (frame) => {
-            console.error('STOMP error:', frame)
-            setConnected(false)
-          }
-        })
-
-        stompClient.current.activate()
-      } catch (error) {
-        console.warn('WebSocket connection failed:', error)
+        notifyTopic('/topic/recyclers', '🏭 Recycler')
+        notifyTopic('/topic/handovers', '📦 Handover')
+        notifyTopic('/topic/earnings', '💰 Earnings')
+        notifyTopic('/topic/payments', '💵 Payment')
+        notifyTopic('/topic/admin', '👑 Admin')
+        notifyTopic('/topic/collector', '👤 Collector')
+        notifyTopic('/topic/recycler', '🏭 Recycler')
+      },
+      onDisconnect: () => {
+        setConnected(false)
+        console.log('❌ WebSocket disconnected')
+      },
+      onStompError: (frame) => {
+        console.error('STOMP error', frame)
+        setConnected(false)
       }
-    }
+    })
 
-    connect()
+    client.activate()
+    stompClientRef.current = client
 
     return () => {
-      if (stompClient.current) {
-        try {
-          stompClient.current.deactivate()
-        } catch (e) {
-          console.warn('Error deactivating WebSocket:', e)
-        }
+      setConnected(false)
+      try {
+        client.deactivate()
+      } catch (e) {
+        // ignore
       }
+      stompClientRef.current = null
     }
   }, [isAuthenticated])
 
-  const handleNotification = (data) => {
-    const notification = {
-      ...data,
-      id: Date.now(),
-      read: false
-    }
-    setNotifications(prev => [notification, ...prev].slice(0, 50))
-  }
+  // Memoize the value so consumers don't re-render on every notification
+  // Minimal stub — some pages read realtimeData.stats. Not wired to anything
+  // live anymore; each page fetches its own data.
+  const realtimeDataStub = useMemo(() => ({ stats: null }), [])
 
-  const value = {
-    connected,
-    notifications,
-    realtimeData,
-    isWebSocketAvailable: true
-  }
+  const value = useMemo(
+    () => ({
+      client: stompClientRef.current,
+      connected,
+      notifications,
+      realtimeData: realtimeDataStub,
+      isWebSocketAvailable: true,
+      clientVersion
+    }),
+    [connected, notifications, clientVersion, realtimeDataStub]
+  )
 
   return (
     <WebSocketContext.Provider value={value}>

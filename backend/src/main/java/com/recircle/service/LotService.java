@@ -12,6 +12,7 @@ import com.recircle.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,9 @@ public class LotService {
     @Autowired
     private RecyclerRepository recyclerRepository;
 
+    @Autowired(required = false)
+    private SimpMessagingTemplate messagingTemplate;
+
     public MaterialLot createLot(String userEmail, CreateLotRequest request) {
         User collector = userRepository.findByEmail(userEmail)
             .orElseThrow(() -> new RuntimeException("User not found"));
@@ -55,11 +59,17 @@ public class LotService {
         lot.setCollectionLongitude(request.getCollectionLongitude());
         lot.setCollectionAddress(request.getCollectionAddress());
 
-        if (category.getDefaultPricePerKg() != null && request.getWeightKg() != null) {
-            lot.setEstimatedValue(category.getDefaultPricePerKg() * request.getWeightKg());
+        if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+            lot.setImageUrl(request.getImageUrl());
         }
 
-        return lotRepository.save(lot);
+        // Every lot becomes an auction with a 24h window
+        lot.setAuctionEndsAt(java.time.LocalDateTime.now().plusHours(24));
+        lot.setStatus(MaterialLot.LotStatus.BIDDING);
+
+        MaterialLot saved = lotRepository.save(lot);
+        broadcastLotEvent("LOT_CREATED", saved);
+        return saved;
     }
 
     public List<MaterialLot> getLotsByCollector(String userEmail) {
@@ -143,6 +153,7 @@ public class LotService {
         Object vw = body.get("verifiedWeight");
         Object fp = body.get("finalPrice");
         String paymentStatus = (String) body.getOrDefault("paymentStatus", "PAID");
+        String paymentMethod = (String) body.getOrDefault("paymentMethod", "CASH");
 
         if (vw != null) {
             lot.setVerifiedWeightKg(Double.parseDouble(vw.toString()));
@@ -168,9 +179,23 @@ public class LotService {
         } else {
             lot.setStatus(MaterialLot.LotStatus.PAYMENT_PENDING);
         }
+        lot.setPaymentMethod(paymentMethod);
         lot.setHandoverAt(java.time.LocalDateTime.now());
 
         logger.info("Handover confirmed for {} by recycler {}", lotId, email);
         return lotRepository.save(lot);
+    }
+
+    private void broadcastLotEvent(String event, MaterialLot lot) {
+        if (messagingTemplate == null) return;
+        try {
+            messagingTemplate.convertAndSend("/topic/lots", java.util.Map.of(
+                "event", event,
+                "lotId", lot.getLotId(),
+                "status", lot.getStatus() != null ? lot.getStatus().toString() : ""
+            ));
+        } catch (Exception e) {
+            logger.warn("Lot broadcast failed for {}: {}", lot.getLotId(), e.getMessage());
+        }
     }
 }

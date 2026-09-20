@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FaCamera, FaTrash, FaRobot, FaCheck, FaSpinner } from 'react-icons/fa'
 import { lotApi } from '../api/lots'
+import aiApi from '../api/ai'
 import { useOffline } from '../context/OfflineContext'
 import { useTranslation } from '../hooks/useTranslation'
 import './CreateLot.css'
@@ -9,7 +11,16 @@ const CreateLot = () => {
   const navigate = useNavigate()
   const { isOnline, addPendingAction } = useOffline()
   const { t } = useTranslation()
+  const fileInputRef = useRef(null)
+
   const [loading, setLoading] = useState(false)
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+  const [imageUrl, setImageUrl] = useState(null)
+  const [classifying, setClassifying] = useState(false)
+  const [aiSuggestion, setAiSuggestion] = useState(null) // {category, confidence}
+  const [aiError, setAiError] = useState(null)
+
   const [formData, setFormData] = useState({
     materialCategoryName: 'PCB',
     description: '',
@@ -19,17 +30,22 @@ const CreateLot = () => {
     collectionAddress: 'Mumbai, Maharashtra'
   })
 
+  const DEFAULT_PRICE_PER_KG = {
+    'CRT': 120, 'LCD Panel': 150, 'PCB': 500, 'Cable': 350,
+    'Battery': 100, 'Motor': 250, 'Magnet-bearing assembly': 200,
+    'Mixed plastic': 50, 'Mobile phone': 800, 'Laptop': 900,
+    'Other e-waste': 100
+  }
+
+  const indicativeValue =
+    formData.weightKg && parseFloat(formData.weightKg) > 0
+      ? (DEFAULT_PRICE_PER_KG[formData.materialCategoryName] || 100) *
+        parseFloat(formData.weightKg)
+      : 0
+
   const categories = [
-    'CRT',
-    'LCD Panel',
-    'PCB',
-    'Cable',
-    'Battery',
-    'Motor',
-    'Mixed plastic',
-    'Mobile phone',
-    'Laptop',
-    'Other e-waste'
+    'CRT','LCD Panel','PCB','Cable','Battery','Motor',
+    'Magnet-bearing assembly','Mixed plastic','Mobile phone','Laptop','Other e-waste'
   ]
   const conditions = [
     { value: 'GOOD', label: t('createLot.conditions.good') },
@@ -47,11 +63,67 @@ const CreateLot = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  // ── Photo upload + AI classification ────────────────────────
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImageFile(file)
+    setAiSuggestion(null)
+    setAiError(null)
+
+    // Preview immediately
+    const reader = new FileReader()
+    reader.onload = (ev) => setImagePreview(ev.target.result)
+    reader.readAsDataURL(file)
+
+    if (!isOnline) {
+      setAiError(t('createLot.aiOffline'))
+      return
+    }
+
+    // Classify via AI
+    setClassifying(true)
+    try {
+      const result = await aiApi.classify(file)
+      console.log('🤖 AI classify result:', result)
+      setImageUrl(result.imageUrl)
+      setAiSuggestion({
+        category: result.suggestedCategory,
+        confidence: result.confidence
+      })
+    } catch (err) {
+      console.error('AI classify failed:', err)
+      setAiError(t('createLot.aiError'))
+    } finally {
+      setClassifying(false)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setImageFile(null)
+    setImagePreview(null)
+    setImageUrl(null)
+    setAiSuggestion(null)
+    setAiError(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleUseSuggestion = () => {
+    if (!aiSuggestion) return
+    setFormData({ ...formData, materialCategoryName: aiSuggestion.category })
+    setAiSuggestion(null)
+  }
+
+  // ── Submit ──────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!formData.weightKg || parseFloat(formData.weightKg) <= 0) {
-      console.error(t('createLot.weightError'))
       alert(t('createLot.weightError'))
       return
     }
@@ -66,27 +138,17 @@ const CreateLot = () => {
       sourceType: formData.sourceType,
       collectionAddress: formData.collectionAddress || 'Mumbai, Maharashtra',
       collectionLatitude: 19.076,
-      collectionLongitude: 72.8777
+      collectionLongitude: 72.8777,
+      imageUrl: imageUrl || null
     }
 
     try {
-      if (!isOnline) {
-        // offline queue (your OfflineContext handles this)
-        addPendingAction({ type: 'CREATE_LOT', payload: lotData })
-        console.log(t('createLot.offlineSuccess'))
-        alert(t('createLot.offlineSuccess'))
-        navigate('/dashboard')
-        return
-      }
-
       const response = await lotApi.create(lotData)
       console.log('Lot created:', response.data)
       console.log(t('createLot.success'))
       navigate(`/lot/${response.data.lotId}`)
     } catch (error) {
       console.error('Create lot error:', error)
-
-      // Offline or network failure → queue it for later
       const isNetworkError =
         !navigator.onLine ||
         error?.code === 'ERR_NETWORK' ||
@@ -100,7 +162,6 @@ const CreateLot = () => {
         navigate('/dashboard')
         return
       }
-
       alert(t('createLot.error', { error: error.message || 'Unknown' }))
     } finally {
       setLoading(false)
@@ -113,6 +174,124 @@ const CreateLot = () => {
       <p className="page-subtitle text-muted">{t('createLot.subtitle')}</p>
 
       <form onSubmit={handleSubmit} className="lot-form">
+
+        {/* ─── Photo capture ──────────────────────────────── */}
+        <div className="form-group">
+          <label>{t('createLot.takePhoto')}</label>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+          />
+
+          {!imagePreview ? (
+            <div
+              className="image-upload-area"
+              onClick={handlePhotoClick}
+              style={{
+                border: '2px dashed #bdbdbd',
+                borderRadius: '10px',
+                padding: '32px 16px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                background: '#fafafa'
+              }}
+            >
+              <FaCamera style={{ fontSize: '2.2rem', color: '#2e7d32' }} />
+              <p style={{ marginTop: '10px', fontWeight: 500 }}>
+                {t('createLot.clickToUpload')}
+              </p>
+              <p className="text-muted" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
+                {t('createLot.aiHint')}
+              </p>
+            </div>
+          ) : (
+            <div className="image-preview-wrapper" style={{ position: 'relative' }}>
+              <img
+                src={imagePreview}
+                alt="lot"
+                style={{
+                  width: '100%',
+                  maxHeight: '260px',
+                  objectFit: 'cover',
+                  borderRadius: '10px',
+                  display: 'block'
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: 'rgba(0,0,0,0.55)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                title={t('createLot.removeImage')}
+              >
+                <FaTrash />
+              </button>
+            </div>
+          )}
+
+          {classifying && (
+            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', color: '#2e7d32' }}>
+              <FaSpinner className="spin" /> {t('createLot.analyzing')}
+            </div>
+          )}
+
+          {aiSuggestion && (
+            <div
+              style={{
+                marginTop: '10px',
+                padding: '12px 16px',
+                background: '#e8f5e9',
+                border: '1px solid #a5d6a7',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap'
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FaRobot /> {t('createLot.aiSuggestion', {
+                  category: aiSuggestion.category,
+                  confidence: aiSuggestion.confidence
+                })}
+              </span>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleUseSuggestion}
+              >
+                <FaCheck /> {t('createLot.useAiSuggestion')}
+              </button>
+            </div>
+          )}
+
+          {aiError && (
+            <div style={{ marginTop: '10px', color: '#b71c1c', fontSize: '0.9rem' }}>
+              ⚠️ {aiError}
+            </div>
+          )}
+        </div>
+
+        {/* ─── Rest of the form ───────────────────────────── */}
         <div className="form-group">
           <label>{t('createLot.materialCategory')}</label>
           <select
@@ -123,9 +302,7 @@ const CreateLot = () => {
             required
           >
             {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
+              <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
         </div>
@@ -168,13 +345,30 @@ const CreateLot = () => {
               required
             >
               {conditions.map((cond) => (
-                <option key={cond.value} value={cond.value}>
-                  {cond.label}
-                </option>
+                <option key={cond.value} value={cond.value}>{cond.label}</option>
               ))}
             </select>
           </div>
         </div>
+
+        {indicativeValue > 0 && (
+          <div
+            style={{
+              background: '#e3f2fd',
+              border: '1px solid #90caf9',
+              color: '#0d47a1',
+              padding: '10px 16px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              fontSize: '0.92rem'
+            }}
+          >
+            💡 Indicative market value: <strong>₹{Math.round(indicativeValue).toLocaleString()}</strong>
+            <div style={{ fontSize: '0.78rem', marginTop: '4px', color: '#1565c0' }}>
+              (auction will determine the final price)
+            </div>
+          </div>
+        )}
 
         <div className="form-group">
           <label>{t('createLot.sourceType')}</label>
@@ -185,9 +379,7 @@ const CreateLot = () => {
             onChange={handleChange}
           >
             {sources.map((src) => (
-              <option key={src.value} value={src.value}>
-                {src.label}
-              </option>
+              <option key={src.value} value={src.value}>{src.label}</option>
             ))}
           </select>
         </div>

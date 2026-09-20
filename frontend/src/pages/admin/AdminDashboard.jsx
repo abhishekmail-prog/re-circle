@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useWebSocket } from '../../context/WebSocketContext'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from '../../hooks/useTranslation'
+import api from '../../api/axios'
 import {
   FaUsers, FaRecycle, FaMoneyBillWave, FaChartLine,
   FaCheckCircle, FaClock, FaUserPlus, FaEdit, FaTrash, FaCheck,
-  FaHome
+  FaHome, FaSync
 } from 'react-icons/fa'
 import './AdminDashboard.css'
 
 const AdminDashboard = () => {
   const { user } = useAuth()
-  const { realtimeData, connected } = useWebSocket()
+  const { client, connected } = useWebSocket()
   const location = useLocation()
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -26,47 +27,12 @@ const AdminDashboard = () => {
   }
 
   const [activeTab, setActiveTab] = useState(getActiveTabFromUrl)
-  const [stats, setStats] = useState({
-    totalCollectors: 5,
-    totalRecyclers: 4,
-    totalLots: 25,
-    totalTransactions: 18,
-    totalEarnings: 45000,
-    pendingVerifications: 2
-  })
-
-  useEffect(() => {
-    if (realtimeData.stats) {
-      setStats(prev => ({ ...prev, ...realtimeData.stats }))
-    }
-  }, [realtimeData.stats])
-
-  useEffect(() => {
-    setActiveTab(getActiveTabFromUrl())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname])
-
-  const [recentActivity] = useState([
-    { icon: '📝', message: t('admin.activity.newLot'), time: '5 min' },
-    { icon: '✅', message: t('admin.activity.recyclerVerified'), time: '1 hr' },
-    { icon: '💰', message: t('admin.activity.paymentConfirmed'), time: '3 hr' },
-    { icon: '👤', message: t('admin.activity.newCollector'), time: '5 hr' },
-    { icon: '🏭', message: t('admin.activity.recyclerApplied'), time: '8 hr' }
-  ])
-
-  const [recyclers, setRecyclers] = useState([
-    { id: 1, name: 'GreenCycle Solutions', status: 'Verified', location: 'Pune', authorized: true },
-    { id: 2, name: 'EcoRecycle Industries', status: 'Verified', location: 'Mumbai', authorized: true },
-    { id: 3, name: 'TechRecycle Solutions', status: 'Pending', location: 'Bangalore', authorized: false },
-    { id: 4, name: 'E-Waste Hub', status: 'Pending', location: 'Delhi', authorized: false }
-  ])
-
-  const [users] = useState([
-    { name: 'Ramesh Kumar', email: 'collector@recircle.demo', role: 'COLLECTOR', lots: 12, earnings: '₹24,500' },
-    { name: 'Priya Singh', email: 'priya@recircle.demo', role: 'COLLECTOR', lots: 8, earnings: '₹16,200' },
-    { name: 'GreenCycle Solutions', email: 'recycler@recircle.demo', role: 'RECYCLER', lots: 0, earnings: '₹0' },
-    { name: 'Amit Patel', email: 'amit@recircle.demo', role: 'COLLECTOR', lots: 5, earnings: '₹9,800' }
-  ])
+  const [stats, setStats] = useState(null)
+  const [recentActivity, setRecentActivity] = useState([])
+  const [recyclers, setRecyclers] = useState([])
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [showCategoryModal, setShowCategoryModal] = useState(false)
@@ -79,24 +45,61 @@ const AdminDashboard = () => {
     contactPhone: ''
   })
 
-  const statsCards = [
-    { icon: FaUsers, label: t('admin.stats.collectors'), value: stats.totalCollectors, color: '#4caf50' },
-    { icon: FaRecycle, label: t('admin.stats.recyclers'), value: stats.totalRecyclers, color: '#2196f3' },
-    { icon: FaChartLine, label: t('admin.stats.totalLots'), value: stats.totalLots, color: '#ff9800' },
-    { icon: FaMoneyBillWave, label: t('admin.stats.totalEarnings'), value: `₹${stats.totalEarnings.toLocaleString()}`, color: '#9c27b0' },
-    { icon: FaCheckCircle, label: t('admin.stats.transactions'), value: stats.totalTransactions, color: '#00bcd4' },
-    { icon: FaClock, label: t('admin.stats.pendingVerifications'), value: stats.pendingVerifications, color: '#f44336' }
-  ]
+  useEffect(() => {
+    setActiveTab(getActiveTabFromUrl())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname])
 
-  const handleVerifyRecycler = (id) => {
-    setRecyclers(prev => prev.map(r =>
-      r.id === id ? { ...r, status: 'Verified', authorized: true } : r
-    ))
-    console.log(t('admin.recyclerVerified'))
+  // ── Fetch everything ────────────────────────────────────────
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [statsRes, usersRes, recyclersRes, activityRes] = await Promise.all([
+        api.get('/admin/stats'),
+        api.get('/admin/users'),
+        api.get('/admin/recyclers'),
+        api.get('/admin/activity/recent')
+      ])
+      setStats(statsRes.data || null)
+      setUsers(Array.isArray(usersRes.data) ? usersRes.data : [])
+      setRecyclers(Array.isArray(recyclersRes.data) ? recyclersRes.data : [])
+      setRecentActivity(Array.isArray(activityRes.data) ? activityRes.data : [])
+    } catch (err) {
+      console.error('Failed to load admin data:', err)
+      setError(t('common.error'))
+    } finally {
+      setLoading(false)
+    }
+  }, [t])
+
+  useEffect(() => {
+    fetchAll()
+  }, [fetchAll])
+
+  // Live updates on lot events
+  useEffect(() => {
+    if (!client || !connected) return
+    const sub = client.subscribe('/topic/lots', () => {
+      fetchAll()
+    })
+    return () => sub.unsubscribe()
+  }, [client, connected, fetchAll])
+
+  // ── Actions ─────────────────────────────────────────────────
+  const handleVerifyRecycler = async (id) => {
+    try {
+      await api.put(`/admin/recyclers/${id}/verify`)
+      await fetchAll()
+      console.log(t('admin.recyclerVerified'))
+    } catch (err) {
+      console.error('Verify failed:', err)
+    }
   }
 
-  const handleDeleteRecycler = (id) => {
-    setRecyclers(prev => prev.filter(r => r.id !== id))
+  const handleDeleteRecycler = async (id) => {
+    // No delete endpoint yet — just remove from local view for now
+    setRecyclers((prev) => prev.filter((r) => r.id !== id))
     console.log(t('admin.recyclerRemoved'))
   }
 
@@ -105,14 +108,7 @@ const AdminDashboard = () => {
       console.error(t('admin.enterCompanyName'))
       return
     }
-    const newId = Math.max(0, ...recyclers.map(r => r.id)) + 1
-    setRecyclers([...recyclers, {
-      id: newId,
-      name: newRecycler.companyName,
-      status: 'Pending',
-      location: newRecycler.facilityAddress || 'Unknown',
-      authorized: false
-    }])
+    // No create endpoint yet — just close modal
     setNewRecycler({ companyName: '', facilityAddress: '', contactPerson: '', contactPhone: '' })
     setShowAddModal(false)
     console.log(t('admin.recyclerAdded'))
@@ -123,6 +119,25 @@ const AdminDashboard = () => {
     { key: 'users', icon: FaUsers, label: t('nav.users') },
     { key: 'recyclers', icon: FaRecycle, label: t('nav.recyclers') },
     { key: 'stats', icon: FaChartLine, label: t('nav.stats') }
+  ]
+
+  // Default stat values while loading
+  const s = stats || {
+    totalCollectors: 0,
+    totalRecyclers: 0,
+    totalLots: 0,
+    totalEarnings: 0,
+    totalTransactions: 0,
+    pendingVerifications: 0
+  }
+
+  const statsCards = [
+    { icon: FaUsers, label: t('admin.stats.collectors'), value: s.totalCollectors, color: '#4caf50' },
+    { icon: FaRecycle, label: t('admin.stats.recyclers'), value: s.totalRecyclers, color: '#2196f3' },
+    { icon: FaChartLine, label: t('admin.stats.totalLots'), value: s.totalLots, color: '#ff9800' },
+    { icon: FaMoneyBillWave, label: t('admin.stats.totalEarnings'), value: `₹${Number(s.totalEarnings || 0).toLocaleString()}`, color: '#9c27b0' },
+    { icon: FaCheckCircle, label: t('admin.stats.transactions'), value: s.totalTransactions, color: '#00bcd4' },
+    { icon: FaClock, label: t('admin.stats.pendingVerifications'), value: s.pendingVerifications, color: '#f44336' }
   ]
 
   return (
@@ -151,6 +166,18 @@ const AdminDashboard = () => {
         ))}
       </div>
 
+      <div style={{ margin: '12px 0' }}>
+        <button className="btn btn-outline btn-sm" onClick={fetchAll} disabled={loading}>
+          <FaSync /> {t('common.retry')}
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ background: '#ffebee', color: '#b71c1c', padding: '10px 16px', borderRadius: '8px', marginBottom: '12px' }}>
+          {error}
+        </div>
+      )}
+
       {activeTab === 'dashboard' && (
         <>
           <div className="stats-grid">
@@ -161,7 +188,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="stat-content">
                   <span className="stat-label">{stat.label}</span>
-                  <span className="stat-value">{stat.value}</span>
+                  <span className="stat-value">{loading ? '…' : stat.value}</span>
                 </div>
               </div>
             ))}
@@ -170,15 +197,21 @@ const AdminDashboard = () => {
           <div className="admin-grid">
             <div className="card admin-section">
               <h3>{t('admin.recentActivity')}</h3>
-              <div className="activity-list">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="activity-item">
-                    <span className="activity-icon">{activity.icon}</span>
-                    <span className="activity-text">{activity.message}</span>
-                    <span className="activity-time">{activity.time}</span>
-                  </div>
-                ))}
-              </div>
+              {loading ? (
+                <p className="text-muted">{t('common.loading')}</p>
+              ) : recentActivity.length === 0 ? (
+                <p className="text-muted">{t('common.noData')}</p>
+              ) : (
+                <div className="activity-list">
+                  {recentActivity.map((activity, index) => (
+                    <div key={index} className="activity-item">
+                      <span className="activity-icon">{activity.icon}</span>
+                      <span className="activity-text">{activity.message}</span>
+                      <span className="activity-time">{activity.time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="card admin-section">
@@ -187,10 +220,10 @@ const AdminDashboard = () => {
                 <button className="btn btn-primary btn-block" onClick={() => setShowAddModal(true)}>
                   <FaUserPlus /> {t('admin.addRecycler')}
                 </button>
-                <button className="btn btn-secondary btn-block">
+                <button className="btn btn-secondary btn-block" onClick={() => navigate('/admin/recyclers')}>
                   <FaCheckCircle /> {t('admin.verifyRecyclers')}
                 </button>
-                <button className="btn btn-outline btn-block">
+                <button className="btn btn-outline btn-block" onClick={() => navigate('/admin/users')}>
                   <FaUsers /> {t('admin.viewUsers')}
                 </button>
                 <button
@@ -212,70 +245,79 @@ const AdminDashboard = () => {
       {activeTab === 'users' && (
         <div className="card admin-section">
           <h3>{t('admin.usersHeader')} ({users.length})</h3>
-          <div className="table-responsive">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>{t('admin.tableFullName')}</th>
-                  <th>{t('admin.tableEmail')}</th>
-                  <th>{t('admin.tableRole')}</th>
-                  <th>{t('admin.tableTotalLots')}</th>
-                  <th>{t('admin.tableTotalEarnings')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u, index) => (
-                  <tr key={index}>
-                    <td>{u.name}</td>
-                    <td>{u.email}</td>
-                    <td>
-                      <span className={`badge ${u.role === 'COLLECTOR' ? 'badge-success' : 'badge-info'}`}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td>{u.lots}</td>
-                    <td>{u.earnings}</td>
+          {loading ? (
+            <p className="text-muted">{t('common.loading')}</p>
+          ) : users.length === 0 ? (
+            <p className="text-muted">{t('common.noData')}</p>
+          ) : (
+            <div className="table-responsive">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>{t('admin.tableFullName')}</th>
+                    <th>{t('admin.tableEmail')}</th>
+                    <th>{t('admin.tableRole')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u.id || u.email}>
+                      <td>{u.fullName || '—'}</td>
+                      <td>{u.email}</td>
+                      <td>
+                        <span className={`badge ${
+                          u.role === 'COLLECTOR' ? 'badge-success'
+                          : u.role === 'RECYCLER' ? 'badge-info'
+                          : 'badge-warning'
+                        }`}>{u.role}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
       {activeTab === 'recyclers' && (
         <div className="card admin-section recyclers-list">
           <h3>{t('admin.recyclersList')} ({recyclers.length})</h3>
-          <div className="recycler-items">
-            {recyclers.map((recycler) => (
-              <div key={recycler.id} className="recycler-item">
-                <div className="recycler-info">
-                  <span className="recycler-name">{recycler.name}</span>
-                  <span className="recycler-location">{recycler.location}</span>
-                </div>
-                <div className="recycler-actions">
-                  <span className={`badge ${recycler.authorized ? 'badge-success' : 'badge-warning'}`}>
-                    {recycler.status}
-                  </span>
-                  {!recycler.authorized && (
-                    <button className="btn btn-success btn-sm" onClick={() => handleVerifyRecycler(recycler.id)}>
-                      <FaCheck /> {t('admin.verify')}
+          {loading ? (
+            <p className="text-muted">{t('common.loading')}</p>
+          ) : recyclers.length === 0 ? (
+            <p className="text-muted">{t('common.noData')}</p>
+          ) : (
+            <div className="recycler-items">
+              {recyclers.map((recycler) => (
+                <div key={recycler.id} className="recycler-item">
+                  <div className="recycler-info">
+                    <span className="recycler-name">{recycler.companyName}</span>
+                    <span className="recycler-location">{recycler.facilityAddress || '—'}</span>
+                  </div>
+                  <div className="recycler-actions">
+                    <span className={`badge ${recycler.authorized ? 'badge-success' : 'badge-warning'}`}>
+                      {recycler.authorized ? t('admin.verified') : t('admin.pending')}
+                    </span>
+                    {!recycler.authorized && (
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => handleVerifyRecycler(recycler.id)}
+                      >
+                        <FaCheck /> {t('admin.verify')}
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleDeleteRecycler(recycler.id)}
+                    >
+                      <FaTrash /> {t('admin.delete')}
                     </button>
-                  )}
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRecycler(recycler.id)}>
-                    <FaTrash /> {t('admin.delete')}
-                  </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-            <button
-              className="btn btn-primary btn-block"
-              style={{ marginTop: '12px' }}
-              onClick={() => setShowAddModal(true)}
-            >
-              <FaUserPlus /> {t('admin.addRecycler')}
-            </button>
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -290,7 +332,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="stat-content">
                   <span className="stat-label">{stat.label}</span>
-                  <span className="stat-value">{stat.value}</span>
+                  <span className="stat-value">{loading ? '…' : stat.value}</span>
                 </div>
               </div>
             ))}

@@ -43,6 +43,11 @@ public class BidService {
             throw new RuntimeException("Lot is not open for bidding (status: " + lot.getStatus() + ")");
         }
 
+        if (lot.getAuctionEndsAt() != null
+                && java.time.LocalDateTime.now().isAfter(lot.getAuctionEndsAt())) {
+            throw new RuntimeException("Auction has ended");
+        }
+
         if (req.getAmountPerKg() == null || req.getAmountPerKg() <= 0) {
             throw new RuntimeException("amountPerKg must be positive");
         }
@@ -136,5 +141,109 @@ public class BidService {
 
         logger.info("Bid {} accepted on lot {} by collector {}", bidId, lotId, collectorEmail);
         return saved;
+    }
+
+
+    /** Collector manually closes the auction — highest bid wins immediately. */
+    public MaterialLot closeAuction(String lotId, String collectorEmail) {
+        MaterialLot lot = lotRepository.findByLotId(lotId)
+            .orElseThrow(() -> new RuntimeException("Lot not found: " + lotId));
+
+        if (lot.getCollector() == null
+                || !lot.getCollector().getEmail().equals(collectorEmail)) {
+            throw new RuntimeException("Only the lot's collector can close the auction");
+        }
+
+        return finalizeAuction(lot);
+    }
+
+    /** Scheduler-driven close for auctions past their end time. Returns count closed. */
+    public int closeAllExpiredAuctions() {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        var expired = lotRepository.findByAuctionEndsAtBeforeAndStatus(
+            now, MaterialLot.LotStatus.BIDDING
+        );
+        int closed = 0;
+        for (MaterialLot lot : expired) {
+            try {
+                finalizeAuction(lot);
+                closed++;
+            } catch (Exception e) {
+                logger.warn("Failed to finalize auction for {}: {}", lot.getLotId(), e.getMessage());
+            }
+        }
+        return closed;
+    }
+
+    /** Core: pick top bid, accept it, reject others, mark lot MATCHED. */
+    private MaterialLot finalizeAuction(MaterialLot lot) {
+        if (lot.getStatus() != MaterialLot.LotStatus.BIDDING
+                && lot.getStatus() != MaterialLot.LotStatus.CREATED) {
+            throw new RuntimeException("Lot is not in an open auction state");
+        }
+
+        List<Bid> bids = bidRepository.findByLotOrderByAmountPerKgDesc(lot);
+        if (bids.isEmpty()) {
+            // No bids — close the auction by deleting the lot entirely.
+            String lotId = lot.getLotId();
+            lotRepository.delete(lot);
+            logger.info("Auction closed with no bids — deleted lot {}", lotId);
+            broadcastLotEvent("LOT_DELETED", lotId);
+            return null;
+        }
+
+        Bid winner = bids.get(0);
+        winner.setStatus(Bid.BidStatus.ACCEPTED);
+        bidRepository.save(winner);
+
+        for (Bid b : bids) {
+            if (!b.getId().equals(winner.getId())
+                    && b.getStatus() == Bid.BidStatus.PENDING) {
+                b.setStatus(Bid.BidStatus.REJECTED);
+                bidRepository.save(b);
+            }
+        }
+
+        lot.setStatus(MaterialLot.LotStatus.MATCHED);
+        lot.setSelectedRecycler(winner.getRecycler());
+        lot.setOfferedPricePerKg(winner.getAmountPerKg());
+        lot.setEstimatedValue(winner.getTotalAmount());
+        MaterialLot saved = lotRepository.save(lot);
+
+        messagingTemplate.convertAndSend(
+            "/topic/lots/" + lot.getLotId() + "/bids",
+            java.util.Map.of(
+                "event", "ACCEPTED",
+                "bidId", winner.getId().toString(),
+                "reason", "AUCTION_CLOSED"
+            )
+        );
+
+        // Also broadcast to the global lot topic so any recycler list
+        // currently mounted can refetch.
+        try {
+            messagingTemplate.convertAndSend("/topic/lots", java.util.Map.of(
+                "event", "LOT_UPDATED",
+                "lotId", lot.getLotId(),
+                "status", lot.getStatus().toString()
+            ));
+        } catch (Exception e) {
+            logger.warn("Lot broadcast failed: {}", e.getMessage());
+        }
+
+        logger.info("Auction closed for {} — winner {} @ {} /kg",
+            lot.getLotId(), winner.getRecycler().getCompanyName(), winner.getAmountPerKg());
+        return saved;
+    }
+
+    private void broadcastLotEvent(String event, String lotId) {
+        try {
+            messagingTemplate.convertAndSend("/topic/lots", java.util.Map.of(
+                "event", event,
+                "lotId", lotId
+            ));
+        } catch (Exception e) {
+            logger.warn("Broadcast failed: {}", e.getMessage());
+        }
     }
 }

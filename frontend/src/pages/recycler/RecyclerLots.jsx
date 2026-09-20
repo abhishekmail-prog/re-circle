@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useWebSocket } from '../../context/WebSocketContext'
 import { useTranslation } from '../../hooks/useTranslation'
 import api from '../../api/axios'
 import bidApi from '../../api/bids'
@@ -9,6 +10,7 @@ import './RecyclerDashboard.css'
 const RecyclerLots = () => {
   const { user } = useAuth()
   const { t } = useTranslation()
+  const { client, connected } = useWebSocket()
   const [allLots, setAllLots] = useState([])
   const [myBids, setMyBids] = useState({}) // { [lotId]: { id, amountPerKg, status } }
   const [bidInputs, setBidInputs] = useState({})
@@ -37,6 +39,25 @@ const RecyclerLots = () => {
 
   useEffect(() => {
     fetchAll()
+  }, [fetchAll])
+
+  // Live updates — refetch when any lot is created or its status changes
+  useEffect(() => {
+    if (!client || !connected) return
+    const sub = client.subscribe('/topic/lots', (msg) => {
+      console.log('Lot event (recycler lots):', msg.body)
+      fetchAll()
+    })
+    return () => sub.unsubscribe()
+  }, [client, connected, fetchAll])
+
+  // Refetch when the tab comes back into focus
+  useEffect(() => {
+    const handler = () => {
+      if (document.visibilityState === 'visible') fetchAll()
+    }
+    document.addEventListener('visibilitychange', handler)
+    return () => document.removeEventListener('visibilitychange', handler)
   }, [fetchAll])
 
   const handlePlaceBid = async (lot) => {

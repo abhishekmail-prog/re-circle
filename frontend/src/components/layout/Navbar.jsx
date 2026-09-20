@@ -50,7 +50,6 @@ const Navbar = () => {
     { path: '/dashboard', icon: FaHome, label: t('nav.dashboard') },
     { path: '/create-lot', icon: FaCamera, label: t('nav.createLot') },
     { path: '/prices', icon: FaMoneyBillWave, label: t('nav.prices') },
-    { path: '/recyclers', icon: FaRecycle, label: t('nav.recyclers') },
     { path: '/earnings', icon: FaWallet, label: t('nav.earnings') },
     { path: '/safety', icon: FaShieldAlt, label: t('nav.safety') },
     { path: '/profile', icon: FaUser, label: t('nav.profile') },
@@ -60,7 +59,7 @@ const Navbar = () => {
     { path: '/recycler/dashboard', icon: FaHome, label: t('nav.dashboard') },
     { path: '/recycler/lots', icon: FaBox, label: t('nav.lots') },
     { path: '/recycler/handovers', icon: FaCheckCircle, label: t('nav.handovers') },
-    { path: '/recycler/earnings', icon: FaWallet, label: t('nav.earnings') },
+    { path: '/recycler/earnings', icon: FaWallet, label: t('nav.spending') },
     { path: '/profile', icon: FaUser, label: t('nav.profile') },
   ]
 

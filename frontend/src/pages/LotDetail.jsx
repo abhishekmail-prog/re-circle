@@ -1,32 +1,27 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useTranslation } from '../hooks/useTranslation'
+import { useAuth } from '../context/AuthContext'
 import QRCodeComponent from '../components/common/QRCode'
 import TraceabilityTimeline from '../components/common/TraceabilityTimeline'
 import CopyButton from '../components/common/CopyButton'
 import BidPanel from '../components/common/BidPanel'
+import AuctionTimer from '../components/common/AuctionTimer'
+import { FaCheck } from 'react-icons/fa'
 import './LotDetail.css'
 
 const LotDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { user } = useAuth()
   const [lot, setLot] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showQR, setShowQR] = useState(false)
 
-  useEffect(() => {
-    if (id) {
-      fetchLotDetails()
-    } else {
-      setLoading(false)
-      navigate('/dashboard')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
-
-  const fetchLotDetails = async () => {
+  const fetchLotDetails = useCallback(async () => {
+    if (!id) return
     setLoading(true)
     try {
       const response = await api.get(`/lots/${id}`)
@@ -46,7 +41,16 @@ const LotDetail = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
+
+  useEffect(() => {
+    if (id) {
+      fetchLotDetails()
+    } else {
+      setLoading(false)
+      navigate('/dashboard')
+    }
+  }, [id, fetchLotDetails, navigate])
 
   const getStatusBadge = (status) => {
     const statusMap = {
@@ -106,6 +110,26 @@ const LotDetail = () => {
           {lot.status || 'CREATED'}
         </span>
       </div>
+
+      {lot.imageUrl && (
+        <div className="card" style={{ marginBottom: '16px', padding: '12px' }}>
+          <img
+            src={
+              lot.imageUrl.startsWith('http')
+                ? lot.imageUrl
+                : `http://localhost:8080${lot.imageUrl}`
+            }
+            alt={lot.lotId}
+            style={{
+              width: '100%',
+              maxHeight: '360px',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              background: '#f5f5f5'
+            }}
+          />
+        </div>
+      )}
 
       <div className="lot-info-grid">
         <div className="card lot-info-card">
@@ -203,6 +227,40 @@ const LotDetail = () => {
           </div>
         )}
       </div>
+
+      {(lot.status === 'BIDDING' || lot.status === 'CREATED') && lot.auctionEndsAt && (
+        <AuctionTimer endsAt={lot.auctionEndsAt} status={lot.status} />
+      )}
+
+      {lot.status === 'BIDDING' && (
+        user?.userId === lot.collector?.id ||
+        user?.id === lot.collector?.id ||
+        user?.email === lot.collector?.email ||
+        user?.email === lot.collector?.username ||
+        user?.username === lot.collector?.email
+      ) && (
+        <div style={{ marginBottom: '12px', textAlign: 'right' }}>
+          <button
+            className="btn btn-primary"
+            onClick={async () => {
+              if (!window.confirm(t('auction.closeConfirm'))) return
+              try {
+                const res = await api.post(`/lots/${lot.lotId}/close-auction`)
+                if (res.data && res.data.deleted) {
+                  navigate('/dashboard')
+                  return
+                }
+                fetchLotDetails()
+              } catch (err) {
+                console.error('Close auction failed:', err)
+                alert(err && err.response && err.response.data && err.response.data.error ? err.response.data.error : 'Close failed')
+              }
+            }}
+          >
+            <FaCheck /> {t('auction.closeNow')}
+          </button>
+        </div>
+      )}
 
       {lot.status === 'CREATED' || lot.status === 'BIDDING' || lot.status === 'MATCHED' ? (
         <BidPanel lot={lot} onLotUpdated={fetchLotDetails} />

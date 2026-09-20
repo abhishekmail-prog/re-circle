@@ -1,0 +1,64 @@
+.auction-timer.compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #e3f2fd;
+  color: #1565c0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.auction-timer.compact.urgent {
+  background: #fff3e0;
+  color: #e65100;
+  animation: auction-pulse 1s ease-in-out infinite;
+}
+
+@keyframes auction-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+.auction-timer-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: #e3f2fd;
+  color: #0d47a1;
+  border: 1px solid #90caf9;
+  margin-bottom: 12px;
+}
+
+.auction-timer-banner.urgent {
+  background: #fff3e0;
+  color: #bf360c;
+  border-color: #ffb74d;
+}
+
+.auction-timer-banner.ended {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border-color: #a5d6a7;
+}
+
+.auction-timer-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.auction-timer-clock {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+}

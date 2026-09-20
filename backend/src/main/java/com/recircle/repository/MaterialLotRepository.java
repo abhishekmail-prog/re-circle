@@ -19,6 +19,8 @@ public interface MaterialLotRepository extends JpaRepository<MaterialLot, UUID> 
     List<MaterialLot> findByCollectorOrderByCreatedAtDesc(User collector);
     List<MaterialLot> findBySelectedRecyclerIdOrderByCreatedAtDesc(UUID recyclerId);
     List<MaterialLot> findByStatus(LotStatus status);
+    List<MaterialLot> findByAuctionEndsAtBeforeAndStatus(
+            LocalDateTime time, LotStatus status);
     List<MaterialLot> findByCollectorAndCreatedAtBetween(User collector, LocalDateTime start, LocalDateTime end);
     
     @Query("SELECT COUNT(l) FROM MaterialLot l WHERE l.collector = :collector")

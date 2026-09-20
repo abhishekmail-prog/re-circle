@@ -2,6 +2,7 @@ package com.recircle.controller;
 
 import com.recircle.dto.CreateLotRequest;
 import com.recircle.entity.MaterialLot;
+import com.recircle.service.BidService;
 import com.recircle.service.LotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,9 @@ public class LotController {
 
     @Autowired
     private LotService lotService;
+
+    @Autowired
+    private BidService bidService;
 
     @PostMapping
     public ResponseEntity<MaterialLot> createLot(@RequestBody CreateLotRequest request, Principal principal) {
@@ -42,6 +46,21 @@ public class LotController {
     @GetMapping("/lot/{lotId}")
     public ResponseEntity<MaterialLot> getLotByLotId(@PathVariable String lotId) {
         return ResponseEntity.ok(lotService.getLotByLotId(lotId));
+    }
+
+    @PostMapping("/{lotId}/close-auction")
+    public ResponseEntity<?> closeAuction(@PathVariable String lotId, Principal principal) {
+        try {
+            MaterialLot updated = bidService.closeAuction(lotId, principal.getName());
+            if (updated == null) {
+                return ResponseEntity.ok(
+                    Map.of("closed", true, "deleted", true, "lotId", lotId)
+                );
+            }
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PostMapping("/{lotId}/select-recycler")

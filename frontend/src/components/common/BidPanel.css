@@ -173,3 +173,14 @@
     width: 100%;
   }
 }
+
+.bid-distance {
+  display: inline-block;
+  font-size: 0.72rem;
+  color: #6d4c41;
+  background: #efebe9;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 4px;
+  font-weight: 500;
+}

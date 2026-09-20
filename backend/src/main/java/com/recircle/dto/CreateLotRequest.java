@@ -4,6 +4,8 @@ import lombok.Data;
 
 @Data
 public class CreateLotRequest {
+
+    private String imageUrl;
     private String materialCategoryName;
     private String description;
     private Double weightKg;

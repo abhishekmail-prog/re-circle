@@ -81,6 +81,9 @@ public class MaterialLot {
     private LotStatus status = LotStatus.CREATED;
 
     @Column
+    private String paymentMethod;
+
+    @Column
     private String qrCodeData;
 
     @Column(nullable = false)
@@ -88,6 +91,9 @@ public class MaterialLot {
 
     @Column
     private LocalDateTime updatedAt;
+
+    @Column
+    private LocalDateTime auctionEndsAt;
 
     @Column
     private LocalDateTime handoverAt;

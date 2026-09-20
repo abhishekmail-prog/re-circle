@@ -1,10 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { FaVolumeUp, FaVolumeMute } from 'react-icons/fa'
 import api from '../api/axios'
 import { useTranslation } from '../hooks/useTranslation'
 import './Prices.css'
 
+
+const SPEECH_LANG = {
+  en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', ta: 'ta-IN',
+  te: 'te-IN', kn: 'kn-IN', ml: 'ml-IN'
+}
+
+const SPEAK_LABELS = {
+  en: { price: 'Current price', up: 'trending up', down: 'trending down', per_kg: 'rupees per kilogram', category: 'Category', listen: 'Listen' },
+  hi: { price: 'आज का भाव', up: 'भाव बढ़ रहा है', down: 'भाव गिर रहा है', per_kg: 'रुपये प्रति किलो', category: 'श्रेणी', listen: 'सुनें' },
+  mr: { price: 'आजचा भाव', up: 'भाव वाढत आहे', down: 'भाव कमी होत आहे', per_kg: 'रुपये प्रति किलो', category: 'श्रेणी', listen: 'ऐका' },
+  ta: { price: 'இன்றைய விலை', up: 'விலை ஏறுகிறது', down: 'விலை குறைகிறது', per_kg: 'ரூபாய் ஒரு கிலோ', category: 'வகை', listen: 'கேட்க' },
+  te: { price: 'నేటి ధర', up: 'ధర పెరుగుతోంది', down: 'ధర తగ్గుతోంది', per_kg: 'రూపాయలు కిలోకు', category: 'వర్గం', listen: 'వినండి' },
+  kn: { price: 'ಇಂದಿನ ಬೆಲೆ', up: 'ಬೆಲೆ ಏರುತ್ತಿದೆ', down: 'ಬೆಲೆ ಇಳಿಯುತ್ತಿದೆ', per_kg: 'ರೂಪಾಯಿ ಪ್ರತಿ ಕಿಲೋ', category: 'ವರ್ಗ', listen: 'ಕೇಳಿ' },
+  ml: { price: 'ഇന്നത്തെ വില', up: 'വില കൂടുന്നു', down: 'വില കുറയുന്നു', per_kg: 'രൂപ ഒരു കിലോയ്ക്ക്', category: 'വിഭാഗം', listen: 'കേൾക്കുക' }
+}
+
 const Prices = () => {
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
+  const [speaking, setSpeaking] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('PCB')
   const [priceData, setPriceData] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -46,6 +64,38 @@ const Prices = () => {
         price: base + (Math.random() - 0.5) * 80,
         location: 'Mumbai'
       }))
+    }
+  }, [])
+
+  const speakPrice = useCallback(() => {
+    if (!priceData) return
+    if (typeof window === 'undefined' || !window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+
+    const lang = language || 'en'
+    const labels = SPEAK_LABELS[lang] || SPEAK_LABELS.en
+    const price = Math.round(priceData.currentPrice || 0)
+    const trend = (priceData.trend || 0) >= 0 ? labels.up : labels.down
+    const text = `${labels.category}: ${selectedCategory}. ${labels.price}: ${price} ${labels.per_kg}. ${trend}.`
+
+    const utt = new SpeechSynthesisUtterance(text)
+    utt.lang = SPEECH_LANG[lang] || 'en-IN'
+    utt.rate = 0.95
+    const voices = window.speechSynthesis.getVoices()
+    const v = voices.find((vv) => vv.lang && vv.lang.startsWith(utt.lang.split('-')[0]))
+    if (v) utt.voice = v
+
+    utt.onstart = () => setSpeaking(true)
+    utt.onend = () => setSpeaking(false)
+    utt.onerror = () => setSpeaking(false)
+    window.speechSynthesis.speak(utt)
+  }, [language, priceData, selectedCategory])
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel()
+      }
     }
   }, [])
 
@@ -120,6 +170,19 @@ const Prices = () => {
                 {(priceData.trend || 0) >= 0 ? '📈 +' : '📉 '}
                 {Math.abs(priceData.trend || 0).toFixed(1)}%
               </div>
+            </div>
+
+            <div className="card price-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={speakPrice}
+                disabled={speaking}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                {speaking ? <FaVolumeMute /> : <FaVolumeUp />}
+                {(SPEAK_LABELS[language] || SPEAK_LABELS.en).listen}
+              </button>
             </div>
           </div>
 
