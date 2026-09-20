@@ -228,8 +228,8 @@ const RecyclerLots = () => {
                     <input
                       type="number"
                       className="form-control"
-                      style={{ width: '120px' }}
-                      placeholder={t('auction.yourBid')}
+                      style={{ width: '110px' }}
+                      placeholder="₹/kg"
                       value={inputValue}
                       onChange={(e) =>
                         setBidInputs((prev) => ({
@@ -239,7 +239,24 @@ const RecyclerLots = () => {
                       }
                       step="1"
                       min="1"
+                      title="Bid amount per kilogram"
                     />
+                    {inputValue && parseFloat(inputValue) > 0 && (
+                      <span
+                        style={{
+                          fontSize: '0.82rem',
+                          color: '#0d47a1',
+                          background: '#e3f2fd',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        × {lot.weightKg} kg = <strong>₹
+                          {(parseFloat(inputValue) * (lot.weightKg || 0)).toLocaleString('en-IN')}
+                        </strong>
+                      </span>
+                    )}
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={() => handlePlaceBid(lot)}

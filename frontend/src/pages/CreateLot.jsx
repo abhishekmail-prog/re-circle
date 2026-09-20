@@ -31,9 +31,16 @@ const CreateLot = () => {
   })
 
   const DEFAULT_PRICE_PER_KG = {
-    'CRT': 120, 'LCD Panel': 150, 'PCB': 500, 'Cable': 350,
-    'Battery': 100, 'Motor': 250, 'Magnet-bearing assembly': 200,
-    'Mixed plastic': 50, 'Mobile phone': 800, 'Laptop': 900,
+    'CRT': 130,
+    'LCD Panel': 100,
+    'PCB': 425,
+    'Cable': 450,
+    'Battery': 120,
+    'Motor': 50,
+    'Magnet-bearing assembly': 60,
+    'Mixed plastic': 15,
+    'Mobile phone': 320,
+    'Laptop': 280,
     'Other e-waste': 100
   }
 

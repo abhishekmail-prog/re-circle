@@ -10,27 +10,6 @@ const Earnings = () => {
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const getDemoEarnings = () => ({
-    totalEarnings: 18450,
-    totalPaid: 15000,
-    totalPending: 3450,
-    completedTransactions: 12,
-    totalTransactions: 18,
-    todayEarnings: 1200,
-    weekEarnings: 5200,
-    monthEarnings: 18450
-  })
-
-  const getDemoTransactions = () => [
-    { lotId: 'RC-2024-000001', date: '2024-09-07', amount: 2650, status: 'PAID', material: 'PCB', weight: 5 },
-    { lotId: 'RC-2024-000002', date: '2024-09-06', amount: 1850, status: 'PAID', material: 'Battery', weight: 3 },
-    { lotId: 'RC-2024-000003', date: '2024-09-05', amount: 3400, status: 'PAYMENT_PENDING', material: 'LCD Panel', weight: 8 },
-    { lotId: 'RC-2024-000004', date: '2024-09-04', amount: 2100, status: 'PAID', material: 'Cable', weight: 12 },
-    { lotId: 'RC-2024-000005', date: '2024-09-03', amount: 2850, status: 'PENDING', material: 'PCB', weight: 5 },
-    { lotId: 'RC-2024-000006', date: '2024-09-02', amount: 1600, status: 'PAID', material: 'Motor', weight: 4 },
-    { lotId: 'RC-2024-000007', date: '2024-09-01', amount: 3200, status: 'PAID', material: 'Mobile phone', weight: 2 }
-  ]
-
   const fetchEarningsData = useCallback(async () => {
     setLoading(true)
     try {
@@ -41,8 +20,17 @@ const Earnings = () => {
       setTransactions(txResponse.data.transactions || [])
     } catch (error) {
       console.error('Failed to fetch earnings:', error)
-      setEarnings(getDemoEarnings())
-      setTransactions(getDemoTransactions())
+      setEarnings({
+        totalEarnings: 0,
+        totalPaid: 0,
+        totalPending: 0,
+        completedTransactions: 0,
+        totalTransactions: 0,
+        todayEarnings: 0,
+        weekEarnings: 0,
+        monthEarnings: 0
+      })
+      setTransactions([])
     } finally {
       setLoading(false)
     }
@@ -59,15 +47,20 @@ const Earnings = () => {
     { key: 'allTime', label: t('earnings.allTime') }
   ]
 
+  // Earnings only count money that has actually changed hands.
+  // MATCHED / BIDDING lots appear in the list but contribute ₹0.
+  const isPaidStatus = (status) =>
+    status === 'PAID' || status === 'COMPLETED'
+
   const getPeriodEarnings = () => {
-    if (!earnings) return 0
-    switch (filter) {
-      case 'today': return earnings.todayEarnings || 0
-      case 'thisWeek': return earnings.weekEarnings || 0
-      case 'thisMonth': return earnings.monthEarnings || 0
-      default: return earnings.totalEarnings || 0
-    }
+    return transactions
+      .filter((tx) => isPaidStatus(tx.status))
+      .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0)
   }
+
+  const pendingAmount = transactions
+    .filter((tx) => !isPaidStatus(tx.status))
+    .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0)
 
   const getPeriodLabel = () => {
     switch (filter) {
@@ -111,17 +104,16 @@ const Earnings = () => {
           <div className="stat-value primary">
             ₹{getPeriodEarnings().toLocaleString('en-IN', { maximumFractionDigits: 2 })}
           </div>
+          {pendingAmount > 0 && (
+            <div style={{ fontSize: '0.72rem', color: '#e65100', marginTop: '4px' }}>
+              + ₹{pendingAmount.toLocaleString('en-IN')} pending
+            </div>
+          )}
         </div>
         <div className="card stat-card">
           <div className="stat-label">{t('earnings.totalEarnings')}</div>
           <div className="stat-value primary">
             ₹{(earnings.totalEarnings || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
-          </div>
-        </div>
-        <div className="card stat-card">
-          <div className="stat-label">{t('earnings.paid')}</div>
-          <div className="stat-value success">
-            ₹{(earnings.totalPaid || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
           </div>
         </div>
         <div className="card stat-card">
@@ -165,7 +157,14 @@ const Earnings = () => {
                 </div>
                 <div className="tx-details">
                   <span className="tx-weight">{tx.weight || 0} kg</span>
-                  <span className="tx-amount">
+                  <span
+                    className="tx-amount"
+                    style={{
+                      opacity: isPaidStatus(tx.status) ? 1 : 0.45,
+                      textDecoration: isPaidStatus(tx.status) ? 'none' : 'line-through'
+                    }}
+                    title={isPaidStatus(tx.status) ? '' : 'Not yet paid'}
+                  >
                     ₹{(tx.amount || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                   </span>
                   <span
