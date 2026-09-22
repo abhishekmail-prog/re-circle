@@ -6,6 +6,7 @@ import App from './App.jsx'
 import './styles/index.css'
 import './styles/ui-upgrade.css'
 import './styles/theme.css'
+import './styles/mobile-fix.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

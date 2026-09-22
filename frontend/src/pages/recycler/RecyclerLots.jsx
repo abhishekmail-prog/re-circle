@@ -7,7 +7,7 @@ import { FaGavel, FaBox, FaSync, FaTrophy, FaExclamationTriangle } from 'react-i
 import LotPreviewModal from '../../components/common/LotPreviewModal'
 import './RecyclerDashboard.css'
 
-const IMG_BASE = 'http://localhost:8080'
+import { API_URL as IMG_BASE } from '../../config'
 
 const RecyclerLots = () => {
   const { user } = useAuth()

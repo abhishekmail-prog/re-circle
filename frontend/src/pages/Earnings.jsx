@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import api from '../api/axios'
 import { useTranslation } from '../hooks/useTranslation'
+import AutoFitNumber from '../components/common/AutoFitNumber'
 import './Earnings.css'
 
 const Earnings = () => {
@@ -102,7 +103,9 @@ const Earnings = () => {
             {t('earnings.periodEarnings', { period: getPeriodLabel() })}
           </div>
           <div className="stat-value primary">
-            ₹{getPeriodEarnings().toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            <AutoFitNumber maxSize={34} minSize={15}>
+              ₹{getPeriodEarnings().toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            </AutoFitNumber>
           </div>
           {pendingAmount > 0 && (
             <div style={{ fontSize: '0.72rem', color: '#e65100', marginTop: '4px' }}>
@@ -113,7 +116,9 @@ const Earnings = () => {
         <div className="card stat-card">
           <div className="stat-label">{t('earnings.totalEarnings')}</div>
           <div className="stat-value primary">
-            ₹{(earnings.totalEarnings || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            <AutoFitNumber maxSize={34} minSize={12}>
+              ₹{(earnings.totalEarnings || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            </AutoFitNumber>
           </div>
         </div>
         <div className="card stat-card">

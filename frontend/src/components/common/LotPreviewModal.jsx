@@ -10,7 +10,7 @@ import {
 import ImageGallery from './ImageGallery'
 import './LotPreviewModal.css'
 
-const IMG_BASE = 'http://localhost:8080'
+import { API_URL as IMG_BASE } from '../../config'
 
 const LotPreviewModal = ({ lot, onClose, onBidPlaced }) => {
   const { t } = useTranslation()

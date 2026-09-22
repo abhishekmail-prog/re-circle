@@ -1,0 +1,836 @@
+/* =====================================================================
+   RE-CIRCLE — Mobile layout fixes
+   Loaded LAST. Overrides any conflicting padding/height rules.
+   ===================================================================== */
+
+/* ── 1. Ensure the page can scroll on mobile ──────────────────────── */
+@media (max-width: 767px) {
+  html, body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
+  }
+
+  #root {
+    min-height: 100dvh !important;   /* dynamic vh — fixes iOS address bar */
+    height: auto !important;
+  }
+
+  .app {
+    min-height: 100dvh !important;
+    height: auto !important;
+  }
+
+  /* ── 2. Leave room for the fixed bottom navbar ─────────────────── */
+  /*   Navbar is ~95px tall + iOS home indicator (safe-area-inset-bottom) */
+  .main-content {
+    padding: 12px 12px calc(150px + env(safe-area-inset-bottom, 0px)) 12px !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* ── 3. Forms scroll naturally; submit buttons never hidden ────── */
+  .create-lot,
+  .lot-form,
+  .lot-form > * {
+    max-width: 100%;
+    overflow: visible !important;
+  }
+
+  .lot-form > button[type="submit"] {
+    margin-bottom: 16px;
+  }
+
+  /* ── 4. Navbar safe-area (iPhone home indicator) ──────────────── */
+  .navbar {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* ── 5. Bigger touch targets on mobile ─────────────────────────── */
+  .btn {
+    min-height: 48px;
+    font-size: 15px;
+  }
+  .btn-lg, .btn-block {
+    min-height: 54px;
+    font-size: 16px;
+  }
+  .btn-sm {
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  /* ── 6. Modals: fullscreen with internal scroll on mobile ─────── */
+  .modal-content,
+  .lpm-modal,
+  .qr-scanner-modal {
+    max-height: calc(100dvh - 24px) !important;
+    overflow-y: auto !important;
+    border-radius: 16px !important;
+    margin: 12px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  /* ── 7. Prevent horizontal overflow on any child ──────────────── */
+  .main-content * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Exception: allow images inside galleries to overflow hidden containers */
+  .ig-main img,
+  .ig-thumb img,
+  .rl-thumb img,
+  .photo-tile img {
+    max-width: none;
+  }
+
+  /* ── 8. Form rows: single column on mobile ────────────────────── */
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+
+  /* ── 9. Card padding tighter on mobile ────────────────────────── */
+  .card {
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+
+  /* ── 10. Page titles ──────────────────────────────────────────── */
+  .page-title {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* ── Extra-small phones (iPhone SE etc.) ──────────────────────────── */
+@media (max-width: 380px) {
+  .main-content {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  .page-title { font-size: 1.35rem !important; }
+}
+
+/* ── Compact navbar on mobile ─────────────────────────────────── */
+@media (max-width: 767px) {
+  .navbar-items {
+    padding: 6px 0 !important;
+  }
+  .nav-item {
+    padding: 4px 8px !important;
+  }
+  .nav-item .nav-icon {
+    font-size: 20px !important;
+  }
+  .nav-item .nav-label {
+    font-size: 10px !important;
+  }
+  .navbar-footer {
+    padding: 6px 12px 8px !important;
+  }
+  .language-toggle-btn {
+    padding: 4px 10px !important;
+    font-size: 12px !important;
+  }
+  .logout-btn .nav-icon {
+    font-size: 15px !important;
+  }
+  .logout-btn .nav-label {
+    font-size: 10px !important;
+  }
+}
+
+/* =====================================================================
+   MOBILE LAYOUT SPLIT — Top bar + bottom nav
+   Promotes the navbar-footer (online/bell/lang/logout) to a fixed TOP
+   bar on mobile. Keeps only nav icons at the bottom.
+   Desktop is unaffected.
+   ===================================================================== */
+
+@media (max-width: 767px) {
+
+  /* ── Top bar: fixed at the top, contains footer items ────────── */
+  .navbar .navbar-footer {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+
+    background: #ffffff !important;
+    border-top: none !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+
+    padding: 8px 14px !important;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+
+    z-index: 1001 !important;
+  }
+
+  /* ── Bottom navbar now holds only nav items ─────────────────── */
+  .navbar {
+    z-index: 1000 !important;
+  }
+  .navbar-items {
+    padding: 6px 0 !important;
+  }
+  .nav-item {
+    padding: 4px 10px !important;
+  }
+  .nav-item .nav-icon {
+    font-size: 22px !important;
+  }
+  .nav-item .nav-label {
+    font-size: 11px !important;
+  }
+
+  /* ── Main content: pad for top bar + bottom nav ─────────────── */
+  .main-content {
+    padding: calc(64px + env(safe-area-inset-top, 0px)) 12px calc(88px + env(safe-area-inset-bottom, 0px)) 12px !important;
+  }
+
+  /* ── Offline banner sits below top bar ──────────────────────── */
+  .offline-banner {
+    top: calc(48px + env(safe-area-inset-top, 0px)) !important;
+  }
+
+  /* ── Language menu now opens DOWNWARD from top bar ──────────── */
+  .language-menu {
+    top: calc(100% + 8px) !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: 0 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    animation: slideDownMenu 0.2s ease !important;
+  }
+  @keyframes slideDownMenu {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Notification dropdown opens downward too ───────────────── */
+  .notification-dropdown {
+    top: calc(100% + 8px) !important;
+    bottom: auto !important;
+    width: min(320px, calc(100vw - 24px)) !important;
+    right: 0 !important;
+    left: auto !important;
+  }
+
+  /* ── Compact ScanFAB and install banner (they were sitting above
+        the tall navbar; now the navbar is shorter) ────────────── */
+  .scan-fab {
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .install-banner {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* =====================================================================
+   PAGE-SPECIFIC MOBILE FIXES
+   Earnings (collector) · Lots (recycler) · Handovers (recycler)
+   ===================================================================== */
+
+@media (max-width: 767px) {
+
+  /* ═══ COLLECTOR — Earnings ═══════════════════════════════════ */
+
+  /* Stats: 2 columns on mobile, biggest one spans full width */
+  .earnings-page .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .earnings-page .stats-grid .stat-card:first-child {
+    grid-column: 1 / -1;
+  }
+  .earnings-page .stat-value {
+    font-size: 1.6rem !important;
+    line-height: 1.15 !important;
+    word-break: break-word;
+  }
+  .earnings-page .stat-label {
+    font-size: 0.8rem !important;
+  }
+
+  /* Filter buttons: horizontal scroll instead of wrapping */
+  .earnings-page .filter-buttons {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .earnings-page .filter-buttons::-webkit-scrollbar { display: none; }
+  .earnings-page .filter-btn {
+    flex: 0 0 auto;
+    min-height: 40px !important;
+    padding: 8px 16px !important;
+    font-size: 0.88rem !important;
+    white-space: nowrap;
+  }
+
+  /* Transaction rows: stack vertically */
+  .earnings-page .transaction-item {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 14px !important;
+  }
+  .earnings-page .tx-info {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    align-items: center;
+  }
+  .earnings-page .tx-lot {
+    width: 100%;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .earnings-page .tx-date,
+  .earnings-page .tx-material {
+    font-size: 0.82rem;
+  }
+  .earnings-page .tx-details {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+    padding-top: 8px;
+    border-top: 1px dashed #e0e0e0;
+  }
+  .earnings-page .tx-amount {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+  }
+
+  /* ═══ RECYCLER — Lots ════════════════════════════════════════ */
+
+  .recycler-dashboard .lots-list .lot-item {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    padding: 14px !important;
+  }
+
+  /* Row with thumbnail + info + right column */
+  .recycler-dashboard .rl-row {
+    align-items: flex-start !important;
+  }
+  .recycler-dashboard .rl-thumb {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+  }
+  .recycler-dashboard .rl-info {
+    flex: 1 1 100% !important;
+    min-width: 0;
+    order: 2;
+  }
+  .recycler-dashboard .rl-right {
+    order: 3;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100%;
+    gap: 8px !important;
+    margin-top: 4px;
+  }
+  .recycler-dashboard .rl-top-chip {
+    font-size: 0.85rem !important;
+    padding: 5px 12px !important;
+  }
+  .recycler-dashboard .rl-outbid-flag {
+    font-size: 0.75rem !important;
+  }
+
+  /* Lot ID / material / weight stack nicely */
+  .recycler-dashboard .lot-id {
+    font-size: 0.85rem !important;
+    font-weight: 700;
+    word-break: break-all;
+  }
+  .recycler-dashboard .lot-material,
+  .recycler-dashboard .lot-weight,
+  .recycler-dashboard .lot-collector {
+    font-size: 0.82rem !important;
+  }
+
+  /* The old inline bid input row (RecyclerLots inline bid form) */
+  .recycler-dashboard .lot-actions {
+    flex-wrap: wrap !important;
+    width: 100%;
+    gap: 8px !important;
+    justify-content: flex-end;
+  }
+  .recycler-dashboard .lot-actions input[type="number"] {
+    flex: 1 1 100px !important;
+    min-width: 100px;
+    max-width: 140px;
+  }
+  .recycler-dashboard .lot-actions .btn {
+    flex: 0 0 auto;
+  }
+
+  /* ═══ RECYCLER — Handovers ═══════════════════════════════════ */
+
+  /* Stats grid — 2x2 */
+  .recycler-dashboard .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .recycler-dashboard .stats-grid .stat-card {
+    min-height: 80px !important;
+    padding: 14px !important;
+  }
+  .recycler-dashboard .stat-value {
+    font-size: 1.5rem !important;
+    word-break: break-word;
+  }
+  .recycler-dashboard .stat-label {
+    font-size: 0.78rem !important;
+  }
+
+  /* Scan button full width */
+  .recycler-dashboard > div > .btn-primary {
+    width: 100% !important;
+    justify-content: center;
+  }
+
+  /* Handover list items: stack */
+  .recycler-dashboard .lots-list .lot-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 14px !important;
+  }
+  .recycler-dashboard .lots-list .lot-info {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    align-items: center;
+  }
+  .recycler-dashboard .lots-list .lot-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #e0e0e0;
+    width: 100%;
+  }
+  .recycler-dashboard .lots-list .lot-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 46px !important;
+  }
+  .recycler-dashboard .lots-list .lot-actions .badge {
+    align-self: flex-start;
+  }
+
+  /* Handover modal — full width, scroll inside */
+  .modal-overlay .modal-content {
+    margin: 12px !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    overflow-y: auto !important;
+  }
+  .modal-body .modal-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .modal-body .modal-actions .btn {
+    width: 100% !important;
+    min-height: 48px !important;
+  }
+  .modal-body .modal-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .modal-body .modal-label {
+    font-size: 0.85rem !important;
+    flex: 0 0 auto;
+  }
+  .modal-body .modal-value {
+    font-size: 0.9rem !important;
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  /* ── Global heading + button overrides for these pages ─────── */
+  .recycler-dashboard .dashboard-header h1,
+  .earnings-page .page-title {
+    font-size: 1.5rem !important;
+  }
+  .recycler-dashboard .dashboard-header p {
+    font-size: 0.88rem !important;
+  }
+
+  /* Preview modal (LotPreviewModal) — full screen scroll */
+  .lpm-modal .lpm-body {
+    padding: 16px !important;
+  }
+  .lpm-modal .lpm-header h3 {
+    font-size: 1.1rem !important;
+  }
+  .lpm-modal .lpm-meta {
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  .lpm-modal .lpm-bid-input input {
+    min-height: 52px !important;
+    font-size: 1.15rem !important;
+  }
+  .lpm-modal .lpm-place-btn {
+    min-height: 54px !important;
+    font-size: 1.05rem !important;
+  }
+}
+
+/* ── Extra small (≤ 380px) ─────────────────────────────────────── */
+@media (max-width: 380px) {
+  .earnings-page .stats-grid,
+  .recycler-dashboard .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .earnings-page .stats-grid .stat-card:first-child {
+    grid-column: auto;
+  }
+}
+
+/* =====================================================================
+   AMOUNT / NUMBER HANDLING ON MOBILE
+   Prevents long ₹ values from wrapping to multiple lines or
+   overflowing their container.
+   ===================================================================== */
+
+@media (max-width: 767px) {
+
+  /* ── Global number formatting ─────────────────────────────────── */
+  .stat-value,
+  .gpay-hero-value,
+  .gpay-hero-stat-num,
+  .gpay-list-amount,
+  .earnings-page .stat-value,
+  .recycler-dashboard .stat-value,
+  .tx-amount {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* ── Hero balance (Dashboard) — scale with viewport ──────────── */
+  .gpay-hero-value {
+    font-size: clamp(1.6rem, 8.5vw, 2.2rem) !important;
+    word-break: keep-all;
+  }
+
+  /* ── Stat card values — smaller on mobile, shrinks with length ─ */
+  .stat-value,
+  .earnings-page .stat-value,
+  .recycler-dashboard .stat-value {
+    font-size: clamp(1.15rem, 5.2vw, 1.55rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  /* ── Stat cards: allow 2 columns but prevent horizontal overflow ─ */
+  .earnings-page .stat-card,
+  .recycler-dashboard .stat-card {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .earnings-page .stat-content,
+  .recycler-dashboard .stat-content {
+    min-width: 0 !important;
+    overflow: hidden;
+  }
+
+  /* ── Transaction rows — amount fits on one line ─────────────── */
+  .earnings-page .tx-details {
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+  .earnings-page .tx-amount {
+    font-size: 1rem !important;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .earnings-page .tx-weight {
+    flex: 0 0 auto;
+    font-size: 0.85rem;
+  }
+  .earnings-page .tx-details .badge {
+    flex: 0 0 auto;
+  }
+
+  /* ── Lot list amounts (recycler dashboard) — right aligned ──── */
+  .recycler-dashboard .lot-weight,
+  .recycler-dashboard .gpay-list-amount {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Top bid chip — keep ₹ amount intact ─────────────────────── */
+  .recycler-dashboard .rl-top-chip,
+  .recycler-dashboard .bid-your-amount {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── Indicative value box (Create Lot) — allow wrapping ₹ ───── */
+  .indicative-box {
+    word-break: break-word;
+  }
+  .indicative-box strong {
+    font-size: 1.05rem;
+    white-space: nowrap;
+  }
+
+  /* ── Handover modal — amount on its own line if long ─────────── */
+  .modal-body .modal-value {
+    font-variant-numeric: tabular-nums;
+    word-break: keep-all;
+  }
+
+  /* ── Payment Received banner (LotDetail) — scale value ──────── */
+  .card h2,
+  .lpm-modal .lpm-top-amount,
+  .lpm-modal .lpm-bid-row span:last-child {
+    font-variant-numeric: tabular-nums;
+    word-break: keep-all;
+  }
+}
+
+/* ── Very small phones: single-column stats so numbers fit ─────── */
+@media (max-width: 420px) {
+  .earnings-page .stats-grid,
+  .recycler-dashboard .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .earnings-page .stats-grid .stat-value,
+  .recycler-dashboard .stats-grid .stat-value {
+    font-size: clamp(1.05rem, 4.8vw, 1.35rem) !important;
+  }
+}
+
+/* =====================================================================
+   HOTFIX: numbers were being ellipsized by previous rule.
+   Override: always show the full number. If it doesn't fit, wrap.
+   ===================================================================== */
+
+@media (max-width: 767px) {
+
+  .stat-value,
+  .gpay-hero-value,
+  .gpay-hero-stat-num,
+  .gpay-list-amount,
+  .earnings-page .stat-value,
+  .recycler-dashboard .stat-value,
+  .tx-amount,
+  .rl-top-chip,
+  .bid-your-amount,
+  .indicative-box strong,
+  .modal-body .modal-value {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Aggressive shrink so long ₹ values fit on one line without wrap */
+  .stat-value,
+  .earnings-page .stat-value,
+  .recycler-dashboard .stat-value {
+    font-size: clamp(0.95rem, 4.2vw, 1.4rem) !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.02em;
+  }
+
+  .gpay-hero-value {
+    font-size: clamp(1.5rem, 8vw, 2.2rem) !important;
+    letter-spacing: -0.02em;
+  }
+
+  /* Card must not clip content */
+  .stat-card,
+  .earnings-page .stat-card,
+  .recycler-dashboard .stat-card,
+  .earnings-page .stat-content,
+  .recycler-dashboard .stat-content {
+    overflow: visible !important;
+    min-width: 0;
+  }
+}
+
+/* Extra small (≤ 400px) — two-line wrap allowed */
+@media (max-width: 400px) {
+  .stat-value,
+  .earnings-page .stat-value,
+  .recycler-dashboard .stat-value {
+    font-size: clamp(0.85rem, 3.8vw, 1.15rem) !important;
+  }
+  .gpay-hero-value {
+    font-size: clamp(1.35rem, 7.5vw, 1.9rem) !important;
+  }
+}
+
+/* =====================================================================
+   HARD OVERRIDE — stat values must never ellipsize on mobile
+   ===================================================================== */
+@media (max-width: 767px) {
+  .earnings-page .stat-value,
+  .recycler-dashboard .stat-value,
+  .stat-value {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+  }
+  .earnings-page .stat-card,
+  .recycler-dashboard .stat-card,
+  .stat-card {
+    overflow: visible !important;
+  }
+}
+
+/* =====================================================================
+   EARNINGS GRID — amount cards get full width
+   ===================================================================== */
+@media (max-width: 767px) {
+
+  /* Layout: 
+     [This Month Earnings]     ← full width (nth 1)
+     [Total Earnings]          ← full width (nth 2)
+     [Pending] [Completed]     ← 2 cols (nth 3, 4)
+     [Total Lots]              ← full width (nth 5)
+  */
+  .earnings-page .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+  .earnings-page .stats-grid .stat-card:nth-child(1),
+  .earnings-page .stats-grid .stat-card:nth-child(2),
+  .earnings-page .stats-grid .stat-card:nth-child(5) {
+    grid-column: 1 / -1 !important;   /* full width */
+  }
+
+  /* Full-width cards get a slightly larger value font */
+  .earnings-page .stats-grid .stat-card:nth-child(1) .stat-value,
+  .earnings-page .stats-grid .stat-card:nth-child(2) .stat-value {
+    font-size: clamp(1.5rem, 7.5vw, 2.1rem) !important;
+  }
+}
+
+/* Recycler Earnings/Spending — same grid treatment */
+@media (max-width: 767px) {
+  .recycler-dashboard .stats-grid[style*="repeat(auto-fit"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .recycler-dashboard .stats-grid .stat-card:nth-child(1),
+  .recycler-dashboard .stats-grid .stat-card:nth-child(2) {
+    grid-column: 1 / -1 !important;
+  }
+  .recycler-dashboard .stats-grid .stat-card:nth-child(1) .stat-value,
+  .recycler-dashboard .stats-grid .stat-card:nth-child(2) .stat-value {
+    font-size: clamp(1.4rem, 7vw, 2rem) !important;
+  }
+}
+
+/* =====================================================================
+   RECYCLER LOTS — enforce small thumbnail, tap to enlarge
+   ===================================================================== */
+
+/* Hard-limit thumbnails everywhere, not just mobile */
+.lot-item .rl-thumb {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  max-width: 56px !important;
+  min-height: 56px !important;
+  max-height: 56px !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  position: relative;
+  cursor: pointer;
+}
+
+.lot-item .rl-thumb img {
+  width: 56px !important;
+  height: 56px !important;
+  object-fit: cover !important;
+  display: block !important;
+  border-radius: 12px !important;
+  max-width: none;
+}
+
+/* Mobile: shrink slightly, still clickable */
+@media (max-width: 767px) {
+  .lot-item .rl-thumb,
+  .lot-item .rl-thumb img {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+  }
+
+  /* Row layout: thumb + info + right column stack neatly */
+  .recycler-dashboard .lots-list .lot-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+
+  /* Info column takes remaining width */
+  .recycler-dashboard .lots-list .rl-info {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    order: unset !important;
+  }
+
+  /* Right column wraps to its own line below info */
+  .recycler-dashboard .lots-list .rl-right {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px dashed #e8eaed;
+  }
+
+  /* Make it obvious the row is tappable */
+  .recycler-dashboard .lots-list .lot-item {
+    transition: background 0.12s ease;
+  }
+  .recycler-dashboard .lots-list .lot-item:active {
+    background: #f1f3f4 !important;
+  }
+}

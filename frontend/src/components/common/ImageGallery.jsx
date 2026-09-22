@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { FaChevronLeft, FaChevronRight, FaBox } from 'react-icons/fa'
 import './ImageGallery.css'
 
-const IMG_BASE = 'http://localhost:8080'
+import { API_URL as IMG_BASE } from '../../config'
 
 const resolveUrl = (u) => {
   if (!u) return null

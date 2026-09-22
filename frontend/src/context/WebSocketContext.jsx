@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useRef, useMemo 
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { useAuth } from './AuthContext'
+import { WS_URL } from '../config'
 
 const WebSocketContext = createContext()
 
@@ -18,7 +19,7 @@ export const WebSocketProvider = ({ children }) => {
   useEffect(() => {
     if (!isAuthenticated) return
 
-    const socket = new SockJS('http://localhost:8080/ws')
+    const socket = new SockJS(`${WS_URL}/ws`)
 
     const client = new Client({
       webSocketFactory: () => socket,
