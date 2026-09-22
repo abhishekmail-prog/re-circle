@@ -1,5 +1,7 @@
 package com.recircle.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -8,15 +10,15 @@ import javax.sql.DataSource;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
 /**
- * Parses Render/Heroku-style DATABASE_URL (postgres://user:pass@host:port/db)
- * into a JDBC URL and provides a HikariCP DataSource.
+ * Provides a DataSource that works in two environments:
  *
- * If DATABASE_URL isn't set (local dev), the standard application.properties
- * values are used instead.
+ *  1. Local dev: reads SPRING_DATASOURCE_URL (or defaults to localhost:5432/recircle_db)
+ *  2. Render / Heroku: parses DATABASE_URL which uses the postgres:// scheme
+ *
+ * Render's DATABASE_URL looks like:
+ *   postgres://user:password@host:port/dbname
+ * which is not a valid JDBC URL, so we convert it here.
  */
 @Configuration
 public class DatabaseConfig {
@@ -26,8 +28,8 @@ public class DatabaseConfig {
     public DataSource dataSource() {
         String databaseUrl = System.getenv("DATABASE_URL");
 
-        // Fall back to properties-based config when not running on Render
         if (databaseUrl == null || databaseUrl.isBlank()) {
+            // Local / explicit JDBC URL path
             String jdbcUrl = System.getenv().getOrDefault(
                 "SPRING_DATASOURCE_URL",
                 "jdbc:postgresql://localhost:5432/recircle_db"
@@ -45,22 +47,27 @@ public class DatabaseConfig {
             cfg.setPassword(pass);
             cfg.setDriverClassName("org.postgresql.Driver");
             cfg.setMaximumPoolSize(10);
-            cfg.setPoolName("RecircleLocalPool");
+            cfg.setPoolName("RecirclePool");
             return new HikariDataSource(cfg);
         }
 
+        // Render / Heroku path — parse postgres://user:pass@host:port/db
         try {
-            // Render: postgres://user:pass@host:port/db
             URI uri = new URI(databaseUrl);
+
             String userInfo = uri.getUserInfo();
-            String[] userPass = userInfo != null ? userInfo.split(":", 2) : new String[]{"", ""};
-            String user = userPass[0];
+            String[] userPass = userInfo != null
+                ? userInfo.split(":", 2)
+                : new String[]{"", ""};
+            String user = userInfo != null ? userPass[0] : "";
             String pass = userPass.length > 1 ? userPass[1] : "";
 
             String host = uri.getHost();
             int port = uri.getPort() > 0 ? uri.getPort() : 5432;
             String path = uri.getPath();
-            String dbName = path != null && path.length() > 1 ? path.substring(1) : "";
+            String dbName = path != null && path.length() > 1
+                ? path.substring(1)
+                : "";
 
             String jdbcUrl = "jdbc:postgresql://" + host + ":" + port + "/" + dbName;
 
