@@ -9,6 +9,7 @@ import TraceabilityTimeline from '../components/common/TraceabilityTimeline'
 import CopyButton from '../components/common/CopyButton'
 import BidPanel from '../components/common/BidPanel'
 import AuctionTimer from '../components/common/AuctionTimer'
+import ImageGallery from '../components/common/ImageGallery'
 import { FaCheck } from 'react-icons/fa'
 import './LotDetail.css'
 
@@ -199,22 +200,14 @@ const LotDetail = () => {
         </span>
       </div>
 
-      {lot.imageUrl && (
-        <div className="card" style={{ marginBottom: '16px', padding: '12px' }}>
-          <img
-            src={
-              lot.imageUrl.startsWith('http')
-                ? lot.imageUrl
-                : `http://localhost:8080${lot.imageUrl}`
-            }
+      {(lot.imageUrl || lot.imageUrls) && (
+        <div className="card" style={{ marginBottom: '16px', padding: 0, overflow: 'hidden' }}>
+          <ImageGallery
+            imageUrl={lot.imageUrl}
+            imageUrls={lot.imageUrls}
             alt={lot.lotId}
-            style={{
-              width: '100%',
-              maxHeight: '360px',
-              objectFit: 'contain',
-              borderRadius: '8px',
-              background: '#f5f5f5'
-            }}
+            height={380}
+            thumbnails={true}
           />
         </div>
       )}

@@ -6,6 +6,7 @@ import lombok.Data;
 public class CreateLotRequest {
 
     private String imageUrl;
+    private java.util.List<String> imageUrls;
     private String materialCategoryName;
     private String description;
     private Double weightKg;

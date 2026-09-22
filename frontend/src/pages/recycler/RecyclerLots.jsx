@@ -110,10 +110,18 @@ const RecyclerLots = () => {
     COMPLETED: 'badge-success'
   }[status] || 'badge-info')
 
-  const getThumb = (lot) =>
-    lot.imageUrl
-      ? (lot.imageUrl.startsWith('http') ? lot.imageUrl : IMG_BASE + lot.imageUrl)
-      : null
+  const getThumb = (lot) => {
+    // Prefer the first URL from the multi-photo list
+    let first = lot.imageUrl
+    if (lot.imageUrls) {
+      const arr = typeof lot.imageUrls === 'string'
+        ? lot.imageUrls.split(',')
+        : lot.imageUrls
+      if (Array.isArray(arr) && arr.length > 0) first = arr[0].trim()
+    }
+    if (!first) return null
+    return first.startsWith('http') ? first : IMG_BASE + (first.startsWith('/') ? first : '/' + first)
+  }
 
   return (
     <div className="recycler-dashboard">

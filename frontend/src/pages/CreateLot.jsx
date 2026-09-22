@@ -1,11 +1,16 @@
 import React, { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaCamera, FaTrash, FaRobot, FaCheck, FaSpinner } from 'react-icons/fa'
+import { FaCamera, FaTrash, FaRobot, FaCheck, FaSpinner, FaPlus } from 'react-icons/fa'
 import { lotApi } from '../api/lots'
 import aiApi from '../api/ai'
 import { useOffline } from '../context/OfflineContext'
 import { useTranslation } from '../hooks/useTranslation'
 import './CreateLot.css'
+
+const MAX_PHOTOS = 10
+
+let _pid = 0
+const nextPid = () => ++_pid
 
 const CreateLot = () => {
   const navigate = useNavigate()
@@ -14,11 +19,9 @@ const CreateLot = () => {
   const fileInputRef = useRef(null)
 
   const [loading, setLoading] = useState(false)
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
-  const [imageUrl, setImageUrl] = useState(null)
-  const [classifying, setClassifying] = useState(false)
-  const [aiSuggestion, setAiSuggestion] = useState(null) // {category, confidence}
+  const [photos, setPhotos] = useState([])
+  const [aiSuggestion, setAiSuggestion] = useState(null)
+  const [aiStatus, setAiStatus] = useState('')
   const [aiError, setAiError] = useState(null)
 
   const [formData, setFormData] = useState({
@@ -31,25 +34,13 @@ const CreateLot = () => {
   })
 
   const DEFAULT_PRICE_PER_KG = {
-    'CRT': 130,
-    'LCD Panel': 100,
-    'PCB': 425,
-    'Cable': 450,
-    'Battery': 120,
-    'Motor': 50,
-    'Magnet-bearing assembly': 60,
-    'Mixed plastic': 15,
-    'Mobile phone': 320,
-    'Laptop': 280,
+    'CRT': 130, 'LCD Panel': 100, 'PCB': 425, 'Cable': 450,
+    'Battery': 120, 'Motor': 50, 'Magnet-bearing assembly': 60,
+    'Mixed plastic': 15, 'Mobile phone': 320, 'Laptop': 280,
     'Other e-waste': 100
   }
 
-  // Condition affects value: a broken LCD is worth far less than a working one
-  const CONDITION_MULTIPLIER = {
-    GOOD: 1.0,
-    MIXED: 0.7,
-    DAMAGED: 0.4
-  }
+  const CONDITION_MULTIPLIER = { GOOD: 1.0, MIXED: 0.7, DAMAGED: 0.4 }
 
   const indicativeValue =
     formData.weightKg && parseFloat(formData.weightKg) > 0
@@ -59,8 +50,9 @@ const CreateLot = () => {
       : 0
 
   const categories = [
-    'CRT','LCD Panel','PCB','Cable','Battery','Motor',
-    'Magnet-bearing assembly','Mixed plastic','Mobile phone','Laptop','Other e-waste'
+    'CRT', 'LCD Panel', 'PCB', 'Cable', 'Battery', 'Motor',
+    'Magnet-bearing assembly', 'Mixed plastic', 'Mobile phone',
+    'Laptop', 'Other e-waste'
   ]
   const conditions = [
     { value: 'GOOD', label: t('createLot.conditions.good') },
@@ -78,63 +70,84 @@ const CreateLot = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  // ── Photo upload + AI classification ────────────────────────
-  const handlePhotoClick = () => {
-    fileInputRef.current?.click()
-  }
+  const handlePhotoClick = () => fileInputRef.current?.click()
 
-  const handleFileSelect = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleFilesSelect = async (e) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
 
-    setImageFile(file)
-    setAiSuggestion(null)
-    setAiError(null)
-
-    // Preview immediately
-    const reader = new FileReader()
-    reader.onload = (ev) => setImagePreview(ev.target.result)
-    reader.readAsDataURL(file)
-
-    if (!isOnline) {
-      setAiError(t('createLot.aiOffline'))
+    const room = MAX_PHOTOS - photos.length
+    if (room <= 0) {
+      alert(`Maximum ${MAX_PHOTOS} photos`)
       return
     }
+    const toAdd = files.slice(0, room)
 
-    // Classify via AI
-    setClassifying(true)
-    try {
-      const result = await aiApi.classify(file)
-      console.log('🤖 AI classify result:', result)
-      setImageUrl(result.imageUrl)
-      setAiSuggestion({
-        category: result.suggestedCategory,
-        confidence: result.confidence
+    const newPhotos = toAdd.map((f) => ({
+      id: nextPid(),
+      file: f,
+      preview: URL.createObjectURL(f),
+      imageUrl: null,
+      status: 'uploading',
+      error: null
+    }))
+    setPhotos((prev) => [...prev, ...newPhotos])
+    if (fileInputRef.current) fileInputRef.current.value = ''
+
+    setAiStatus(t('createLot.analyzing'))
+    setAiError(null)
+
+    // Upload each photo in parallel
+    const results = await Promise.all(
+      newPhotos.map(async (p) => {
+        try {
+          const res = await aiApi.classify(p.file)
+          setPhotos((prev) =>
+            prev.map((x) =>
+              x.id === p.id ? { ...x, imageUrl: res.imageUrl, status: 'done' } : x
+            )
+          )
+          return { id: p.id, category: res.suggestedCategory, confidence: res.confidence }
+        } catch (err) {
+          console.error('Upload failed:', err)
+          setPhotos((prev) =>
+            prev.map((x) =>
+              x.id === p.id ? { ...x, status: 'error', error: 'Upload failed' } : x
+            )
+          )
+          return null
+        }
       })
-    } catch (err) {
-      console.error('AI classify failed:', err)
+    )
+
+    setAiStatus('')
+
+    // Take highest-confidence suggestion
+    const best = results
+      .filter((r) => r && r.category)
+      .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))[0]
+
+    if (best) {
+      setAiSuggestion({
+        category: best.category,
+        confidence: best.confidence,
+        source: 'filename'
+      })
+    } else {
       setAiError(t('createLot.aiError'))
-    } finally {
-      setClassifying(false)
     }
   }
 
-  const handleRemoveImage = () => {
-    setImageFile(null)
-    setImagePreview(null)
-    setImageUrl(null)
-    setAiSuggestion(null)
-    setAiError(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
+  const handleRemovePhoto = (id) => {
+    setPhotos((prev) => prev.filter((p) => p.id !== id))
   }
 
   const handleUseSuggestion = () => {
     if (!aiSuggestion) return
-    setFormData({ ...formData, materialCategoryName: aiSuggestion.category })
+    setFormData((fd) => ({ ...fd, materialCategoryName: aiSuggestion.category }))
     setAiSuggestion(null)
   }
 
-  // ── Submit ──────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -143,8 +156,15 @@ const CreateLot = () => {
       return
     }
 
+    const donePhotos = photos.filter((p) => p.status === 'done' && p.imageUrl)
+    if (donePhotos.length === 0) {
+      alert('Please add at least one photo')
+      return
+    }
+
     setLoading(true)
 
+    const imageUrls = donePhotos.map((p) => p.imageUrl)
     const lotData = {
       materialCategoryName: formData.materialCategoryName,
       description: formData.description || '',
@@ -154,13 +174,13 @@ const CreateLot = () => {
       collectionAddress: formData.collectionAddress || 'Mumbai, Maharashtra',
       collectionLatitude: 19.076,
       collectionLongitude: 72.8777,
-      imageUrl: imageUrl || null
+      imageUrl: imageUrls[0],
+      imageUrls
     }
 
     try {
       const response = await lotApi.create(lotData)
       console.log('Lot created:', response.data)
-      console.log(t('createLot.success'))
       navigate(`/lot/${response.data.lotId}`)
     } catch (error) {
       console.error('Create lot error:', error)
@@ -172,7 +192,6 @@ const CreateLot = () => {
 
       if (isNetworkError) {
         await addPendingAction({ type: 'CREATE_LOT', data: lotData })
-        console.log(t('createLot.offlineSuccess'))
         alert(t('createLot.offlineSuccess'))
         navigate('/dashboard')
         return
@@ -183,6 +202,10 @@ const CreateLot = () => {
     }
   }
 
+  const uploadingCount = photos.filter((p) => p.status === 'uploading').length
+  const doneCount = photos.filter((p) => p.status === 'done').length
+  const canAddMore = photos.length < MAX_PHOTOS
+
   return (
     <div className="create-lot">
       <h1 className="page-title">📸 {t('createLot.title')}</h1>
@@ -190,100 +213,95 @@ const CreateLot = () => {
 
       <form onSubmit={handleSubmit} className="lot-form">
 
-        {/* ─── Photo capture ──────────────────────────────── */}
+        {/* Photo upload */}
         <div className="form-group">
-          <label>{t('createLot.takePhoto')}</label>
+          <label>
+            {t('createLot.takePhoto')}
+            <span className="photo-counter">
+              {photos.length}/{MAX_PHOTOS}
+            </span>
+          </label>
 
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             capture="environment"
+            multiple
             style={{ display: 'none' }}
-            onChange={handleFileSelect}
+            onChange={handleFilesSelect}
           />
 
-          {!imagePreview ? (
-            <div
-              className="image-upload-area"
-              onClick={handlePhotoClick}
-              style={{
-                border: '2px dashed #bdbdbd',
-                borderRadius: '10px',
-                padding: '32px 16px',
-                textAlign: 'center',
-                cursor: 'pointer',
-                background: '#fafafa'
-              }}
-            >
+          {photos.length === 0 ? (
+            <div className="image-upload-area" onClick={handlePhotoClick}>
               <FaCamera style={{ fontSize: '2.2rem', color: '#2e7d32' }} />
               <p style={{ marginTop: '10px', fontWeight: 500 }}>
                 {t('createLot.clickToUpload')}
               </p>
               <p className="text-muted" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
-                {t('createLot.aiHint')}
+                {t('createLot.aiHint')} — up to {MAX_PHOTOS} photos
               </p>
             </div>
           ) : (
-            <div className="image-preview-wrapper" style={{ position: 'relative' }}>
-              <img
-                src={imagePreview}
-                alt="lot"
-                style={{
-                  width: '100%',
-                  maxHeight: '260px',
-                  objectFit: 'cover',
-                  borderRadius: '10px',
-                  display: 'block'
-                }}
-              />
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  background: 'rgba(0,0,0,0.55)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                title={t('createLot.removeImage')}
-              >
-                <FaTrash />
-              </button>
+            <div className="photo-grid">
+              {photos.map((p) => (
+                <div key={p.id} className="photo-tile">
+                  <img src={p.preview} alt="" />
+                  {p.status === 'uploading' && (
+                    <div className="photo-overlay">
+                      <FaSpinner className="spin" />
+                    </div>
+                  )}
+                  {p.status === 'error' && (
+                    <div className="photo-overlay error">
+                      <span>⚠️</span>
+                    </div>
+                  )}
+                  {p.status === 'done' && (
+                    <div className="photo-overlay done">
+                      <FaCheck />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className="photo-remove"
+                    onClick={() => handleRemovePhoto(p.id)}
+                    title={t('createLot.removeImage')}
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              ))}
+
+              {canAddMore && (
+                <button
+                  type="button"
+                  className="photo-tile photo-add"
+                  onClick={handlePhotoClick}
+                  title="Add more photos"
+                >
+                  <FaPlus />
+                  <span>Add</span>
+                </button>
+              )}
             </div>
           )}
 
-          {classifying && (
-            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', color: '#2e7d32' }}>
-              <FaSpinner className="spin" /> {t('createLot.analyzing')}
+          {uploadingCount > 0 && (
+            <div className="ai-status-row">
+              <FaSpinner className="spin" /> {aiStatus || t('createLot.analyzing')}
+            </div>
+          )}
+
+          {doneCount > 0 && !aiSuggestion && !uploadingCount && (
+            <div className="ai-status-row done">
+              <FaCheck /> {doneCount} photo{doneCount > 1 ? 's' : ''} uploaded
             </div>
           )}
 
           {aiSuggestion && (
-            <div
-              style={{
-                marginTop: '10px',
-                padding: '12px 16px',
-                background: '#e8f5e9',
-                border: '1px solid #a5d6a7',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px',
-                flexWrap: 'wrap'
-              }}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="ai-suggest">
+              <span>
                 <FaRobot /> {t('createLot.aiSuggestion', {
                   category: aiSuggestion.category,
                   confidence: aiSuggestion.confidence
@@ -299,14 +317,9 @@ const CreateLot = () => {
             </div>
           )}
 
-          {aiError && (
-            <div style={{ marginTop: '10px', color: '#b71c1c', fontSize: '0.9rem' }}>
-              ⚠️ {aiError}
-            </div>
-          )}
+          {aiError && <div className="ai-error">⚠️ {aiError}</div>}
         </div>
 
-        {/* ─── Rest of the form ───────────────────────────── */}
         <div className="form-group">
           <label>{t('createLot.materialCategory')}</label>
           <select
@@ -367,24 +380,14 @@ const CreateLot = () => {
         </div>
 
         {indicativeValue > 0 && (
-          <div
-            style={{
-              background: '#e3f2fd',
-              border: '1px solid #90caf9',
-              color: '#0d47a1',
-              padding: '10px 16px',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              fontSize: '0.92rem'
-            }}
-          >
-            💡 Indicative market value: <strong>₹{Math.round(indicativeValue).toLocaleString()}</strong>
-            <div style={{ fontSize: '0.78rem', marginTop: '4px', color: '#1565c0' }}>
+          <div className="indicative-box">
+            💡 Indicative market value:{' '}
+            <strong>₹{Math.round(indicativeValue).toLocaleString()}</strong>
+            <div className="indicative-note">
               {formData.condition !== 'GOOD' && (
                 <span>
                   {formData.condition === 'MIXED' ? 'Mixed' : 'Damaged'} condition
-                  → {formData.condition === 'MIXED' ? '70%' : '40%'} of full value.
-                  {' '}
+                  → {formData.condition === 'MIXED' ? '70%' : '40%'} of full value.{' '}
                 </span>
               )}
               (auction will determine the final price)
@@ -421,7 +424,7 @@ const CreateLot = () => {
         <button
           type="submit"
           className="btn btn-primary btn-block btn-lg"
-          disabled={loading}
+          disabled={loading || doneCount === 0}
         >
           {loading ? t('createLot.creating') : t('createLot.create')}
         </button>

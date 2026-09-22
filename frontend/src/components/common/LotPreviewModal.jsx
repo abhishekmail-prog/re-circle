@@ -7,6 +7,7 @@ import {
   FaTimes, FaTrophy, FaBox, FaWeightHanging, FaUser,
   FaMapMarkerAlt, FaGavel, FaCheck
 } from 'react-icons/fa'
+import ImageGallery from './ImageGallery'
 import './LotPreviewModal.css'
 
 const IMG_BASE = 'http://localhost:8080'
@@ -82,13 +83,13 @@ const LotPreviewModal = ({ lot, onClose, onBidPlaced }) => {
           <FaTimes />
         </button>
 
-        {imgSrc ? (
-          <img src={imgSrc} alt={lot.lotId} className="lpm-image" />
-        ) : (
-          <div className="lpm-image lpm-image-empty">
-            <FaBox />
-          </div>
-        )}
+        <ImageGallery
+          imageUrl={lot.imageUrl}
+          imageUrls={lot.imageUrls}
+          alt={lot.lotId}
+          height={280}
+          thumbnails={true}
+        />
 
         <div className="lpm-body">
           <div className="lpm-header">

@@ -59,8 +59,20 @@ public class LotService {
         lot.setCollectionLongitude(request.getCollectionLongitude());
         lot.setCollectionAddress(request.getCollectionAddress());
 
-        if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+        // Save all image URLs (up to 10) and set the first as the primary
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            java.util.List<String> urls = request.getImageUrls().stream()
+                .filter(u -> u != null && !u.isBlank())
+                .limit(10)
+                .collect(java.util.stream.Collectors.toList());
+            if (!urls.isEmpty()) {
+                lot.setImageUrls(String.join(",", urls));
+                lot.setImageUrl(urls.get(0));
+            }
+        } else if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+            // backward compat: single image URL
             lot.setImageUrl(request.getImageUrl());
+            lot.setImageUrls(request.getImageUrl());
         }
 
         // Every lot becomes an auction with a 24h window

@@ -34,6 +34,9 @@ public class MaterialLot {
     @Column
     private String imageUrl;
 
+    @Column(columnDefinition = "TEXT")
+    private String imageUrls;   // comma-separated URLs for up to 10 photos
+
     @Column
     private String description;
 
