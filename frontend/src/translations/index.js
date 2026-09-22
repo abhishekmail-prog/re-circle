@@ -1,6 +1,13 @@
 const translations = {
   en: {
-    app: { name: 'RE-CIRCLE', tagline: 'Kabadiwala Connect' },
+    app: {
+    install: {
+      title: 'Install RE-CIRCLE',
+      subtitle: 'Add to home screen for the full app',
+      iosHint: 'Tap Share, then Add to Home Screen',
+      install: 'Install'
+    },
+ name: 'RE-CIRCLE', tagline: 'Kabadiwala Connect' },
 
     auction: {
       currentHighest: 'Current highest bid',
@@ -486,7 +493,14 @@ const translations = {
     }
   },
   hi: {
-    app: { name: 'री-सर्कल', tagline: 'कबाड़ीवाला कनेक्ट' },
+    app: {
+    install: {
+      title: 'RE-CIRCLE इंस्टॉल करें',
+      subtitle: 'पूर्ण ऐप के लिए होम स्क्रीन पर जोड़ें',
+      iosHint: 'शेयर पर टैप करें, फिर होम स्क्रीन पर जोड़ें',
+      install: 'इंस्टॉल करें'
+    },
+ name: 'री-सर्कल', tagline: 'कबाड़ीवाला कनेक्ट' },
 
     auction: {
       currentHighest: 'वर्तमान उच्चतम बोली',
@@ -972,7 +986,14 @@ const translations = {
     }
   },
   mr: {
-    app: { name: 'री-सर्कल', tagline: 'कबाडीवाला कनेक्ट' },
+    app: {
+    install: {
+      title: 'RE-CIRCLE इंस्टॉल करा',
+      subtitle: 'पूर्ण अ‍ॅपसाठी होम स्क्रीनवर जोडा',
+      iosHint: 'शेअरवर टॅप करा, नंतर होम स्क्रीनवर जोडा',
+      install: 'इंस्टॉल करा'
+    },
+ name: 'री-सर्कल', tagline: 'कबाडीवाला कनेक्ट' },
 
     auction: {
       currentHighest: 'सध्याची सर्वोच्च बोली',
@@ -1458,7 +1479,14 @@ const translations = {
     }
   },
   ta: {
-    app: { name: 'ரீ-சர்க்கிள்', tagline: 'கபாடிவாலா கனெக்ட்' },
+    app: {
+    install: {
+      title: 'RE-CIRCLE நிறுவு',
+      subtitle: 'முழு ஆப்க்கு ஹோம் திரையில் சேர்',
+      iosHint: 'பங்கிடு என்பதைத் தட்டி, ஹோம் திரையில் சேர்',
+      install: 'நிறுவு'
+    },
+ name: 'ரீ-சர்க்கிள்', tagline: 'கபாடிவாலா கனெக்ட்' },
 
     auction: {
       currentHighest: 'தற்போதைய அதிகபட்ச ஏலம்',
@@ -1928,7 +1956,14 @@ const translations = {
     }
   },
   te: {
-    app: { name: 'రీ-సర్కిల్', tagline: 'కబాడీవాలా కనెక్ట్' },
+    app: {
+    install: {
+      title: 'RE-CIRCLE ఇన్‌స్టాల్ చేయండి',
+      subtitle: 'పూర్తి యాప్ కోసం హోమ్ స్క్రీన్‌కు జోడించండి',
+      iosHint: 'షేర్ నొక్కి, హోమ్ స్క్రీన్‌కు జోడించండి',
+      install: 'ఇన్‌స్టాల్'
+    },
+ name: 'రీ-సర్కిల్', tagline: 'కబాడీవాలా కనెక్ట్' },
 
     auction: {
       currentHighest: 'ప్రస్తుత అత్యధిక బిడ్',
@@ -2398,7 +2433,14 @@ const translations = {
     }
   },
   kn: {
-    app: { name: 'ರೀ-ಸರ್ಕಲ್', tagline: 'ಕಬಾಡಿವಾಲಾ ಕನೆಕ್ಟ್' },
+    app: {
+    install: {
+      title: 'RE-CIRCLE ಸ್ಥಾಪಿಸಿ',
+      subtitle: 'ಪೂರ್ಣ ಅಪ್‌ಗಾಗಿ ಹೋಮ್ ಸ್ಕ್ರೀನ್‌ಗೆ ಸೇರಿಸಿ',
+      iosHint: 'ಶೇರ್ ಒತ್ತಿ, ನಂತರ ಹೋಮ್ ಸ್ಕ್ರೀನ್‌ಗೆ ಸೇರಿಸಿ',
+      install: 'ಸ್ಥಾಪಿಸಿ'
+    },
+ name: 'ರೀ-ಸರ್ಕಲ್', tagline: 'ಕಬಾಡಿವಾಲಾ ಕನೆಕ್ಟ್' },
 
     auction: {
       currentHighest: 'ಪ್ರಸ್ತುತ ಅತ್ಯಧಿಕ ಬಿಡ್',
@@ -2868,7 +2910,14 @@ const translations = {
     }
   },
   ml: {
-    app: { name: 'റീ-സർക്കിൾ', tagline: 'കബാടിവാല കണക്ട്' },
+    app: {
+    install: {
+      title: 'RE-CIRCLE ഇൻസ്റ്റാൾ ചെയ്യുക',
+      subtitle: 'പൂർണ്ണ ആപ്പിനായി ഹോം സ്ക്രീനിൽ ചേർക്കുക',
+      iosHint: 'ഷെയർ ടാപ്പ് ചെയ്ത്, ഹോം സ്ക്രീനിൽ ചേർക്കുക',
+      install: 'ഇൻസ്റ്റാൾ'
+    },
+ name: 'റീ-സർക്കിൾ', tagline: 'കബാടിവാല കണക്ട്' },
 
     auction: {
       currentHighest: 'നിലവിലെ ഏറ്റവും ഉയർന്ന ബിഡ്',

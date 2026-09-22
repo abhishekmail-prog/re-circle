@@ -1,0 +1,33 @@
+{
+  "name": "RE-CIRCLE — Kabadiwala Connect",
+  "short_name": "RE-CIRCLE",
+  "description": "Vernacular, offline-tolerant platform connecting informal e-waste collectors with CPCB-authorized recyclers.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f9fa",
+  "theme_color": "#34a853",
+  "lang": "en-IN",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
