@@ -48,6 +48,41 @@ public class LotController {
         return ResponseEntity.ok(lotService.getLotByLotId(lotId));
     }
 
+    @PostMapping("/bids-summary")
+    public ResponseEntity<?> bidsSummary(@RequestBody Map<String, Object> body) {
+        try {
+            Object ids = body.get("lotIds");
+            if (!(ids instanceof java.util.List)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "lotIds required"));
+            }
+            @SuppressWarnings("unchecked")
+            java.util.List<String> lotIds = (java.util.List<String>) ids;
+
+            java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
+            for (String lotId : lotIds) {
+                try {
+                    java.util.List<com.recircle.entity.Bid> bids = bidService.getBids(lotId);
+                    if (bids.isEmpty()) {
+                        out.put(lotId, Map.of("count", 0));
+                    } else {
+                        com.recircle.entity.Bid top = bids.get(0);
+                        out.put(lotId, Map.of(
+                            "count", bids.size(),
+                            "highestAmountPerKg", top.getAmountPerKg(),
+                            "highestBidderEmail", top.getRecycler().getUser().getEmail(),
+                            "highestBidderCompany", top.getRecycler().getCompanyName()
+                        ));
+                    }
+                } catch (Exception ignored) {
+                    out.put(lotId, Map.of("count", 0));
+                }
+            }
+            return ResponseEntity.ok(out);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping("/{lotId}/close-auction")
     public ResponseEntity<?> closeAuction(@PathVariable String lotId, Principal principal) {
         try {

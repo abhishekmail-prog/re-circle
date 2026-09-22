@@ -282,6 +282,7 @@ const RecyclerHandovers = () => {
         <button
           className="btn btn-primary"
           onClick={() => setShowScanner(true)}
+          disabled={handovers.filter((h) => h.status === 'MATCHED' || h.status === 'HANDED_OVER' || h.status === 'PAYMENT_PENDING').length === 0}
           style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
         >
           <FaQrcode /> {t('scanner.scanButton')}
@@ -361,7 +362,16 @@ const RecyclerHandovers = () => {
                   <span className={`badge ${getStatusBadge(h.status)}`}>
                     {h.status}
                   </span>
-                  {(h.status === 'MATCHED' || h.status === 'HANDED_OVER') && (
+                  {h.status === 'MATCHED' && (
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => handleConfirmHandover(h)}
+                    >
+                      <FaWeightHanging />{' '}
+                      {t('recyclerHandovers.completeHandover')}
+                    </button>
+                  )}
+                  {h.status === 'HANDED_OVER' && (
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={() => handleConfirmHandover(h)}

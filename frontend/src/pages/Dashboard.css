@@ -1,110 +1,267 @@
-.dashboard {
-  padding: 16px 0;
+/* RE-CIRCLE — GPay-style Dashboard (soft palette) */
+
+.dashboard-gpay {
+  padding: 4px 0 32px;
+  max-width: 780px;
+  margin: 0 auto;
 }
 
-.dashboard-header {
-  margin-bottom: 24px;
-}
-
-.dashboard-header h1 {
-  font-size: 24px;
+/* --- Greeting ------------------------------------------------------- */
+.gpay-greeting { padding: 4px 4px 18px; }
+.gpay-hello {
+  display: block;
+  font-size: 1.35rem;
   font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.gpay-tagline {
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+}
+
+/* --- Hero (soft, tinted, light) ------------------------------------- */
+.gpay-hero {
+  background: #ffffff;
+  border: 1px solid #e6f4ea;
+  border-radius: 24px;
+  padding: 20px 22px 20px;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.08), 0 1px 2px rgba(60, 64, 67, 0.06);
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.gpay-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #34a853 0%, #4285f4 100%);
+}
+.gpay-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 4px;
 }
-
-.section-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
+.gpay-hero-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1e8e3e;
+}
+.gpay-hero-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #e6f4ea;
+  color: #1e8e3e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+.gpay-hero-value {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #202124;
+  line-height: 1.1;
+  margin: 6px 0 18px;
+}
+.gpay-hero-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f3f4;
+}
+.gpay-hero-stat { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.gpay-hero-stat-num {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #202124;
+}
+.gpay-hero-stat-lbl {
+  font-size: 0.78rem;
+  color: #5f6368;
+  font-weight: 500;
+}
+.gpay-hero-divider {
+  width: 1px;
+  height: 34px;
+  background: #e8eaed;
 }
 
-.actions-grid {
+/* --- Section titles ------------------------------------------------- */
+.gpay-section-title {
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5f6368 !important;
+  margin: 8px 4px 12px !important;
+}
+.gpay-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 4px 10px;
+}
+
+/* --- Quick action tiles (uniform 3-col grid) ------------------------ */
+.gpay-tiles {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
+  margin-bottom: 12px;
 }
-
-.action-card {
+.gpay-tile {
+  background: #ffffff;
+  border: 1px solid #e8eaed;
+  border-radius: 20px;
+  padding: 20px 12px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 8px;
-  background: var(--surface);
-  border-radius: var(--radius);
+  gap: 12px;
   text-decoration: none;
   color: var(--text);
-  box-shadow: var(--shadow);
-  transition: all 0.2s;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  min-height: 130px;
 }
-
-.action-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+.gpay-tile:hover {
+  box-shadow: 0 2px 8px rgba(60, 64, 67, 0.1);
+  border-color: #dadce0;
+  transform: translateY(-1px);
 }
-
-.action-icon {
-  width: 48px;
-  height: 48px;
+.gpay-tile:active { transform: scale(0.98); }
+.gpay-tile-icon {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  margin-bottom: 8px;
+  font-size: 1.45rem;
+  flex-shrink: 0;
 }
-
-.action-label {
-  font-size: 12px;
-  font-weight: 500;
+.gpay-tile-label {
+  font-size: 0.9rem;
+  font-weight: 600;
   text-align: center;
+  line-height: 1.25;
+  color: #202124;
 }
 
-.dashboard-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* --- Recent lots list ---------------------------------------------- */
+.gpay-section { margin-top: 8px; }
+.gpay-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #5f6368;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+.gpay-icon-btn:hover { background: #f1f3f4; }
+.gpay-icon-btn:disabled { opacity: 0.5; cursor: default; }
+
+.gpay-list {
+  background: #fff;
+  border: 1px solid #e8eaed;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.gpay-list-row {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  margin-top: 24px;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--text);
+  border-bottom: 1px solid #f1f3f4;
+  transition: background 0.12s ease;
 }
+.gpay-list-row:last-child { border-bottom: none; }
+.gpay-list-row:hover { background: #f8f9fa; }
 
-.stat-card {
-  background: var(--surface);
-  padding: 16px;
-  border-radius: var(--radius);
-  text-align: center;
-  box-shadow: var(--shadow);
+.gpay-list-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f1f3f4;
+  color: #5f6368;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
-
-.stat-label {
-  display: block;
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
+.gpay-list-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
-
-.stat-value {
-  display: block;
-  font-size: 20px;
+.gpay-list-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gpay-list-sub {
+  font-size: 0.76rem;
+  color: #5f6368;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.gpay-list-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.gpay-list-amount {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #202124;
+}
+.gpay-list-status {
+  font-size: 0.64rem;
   font-weight: 700;
-  color: var(--primary);
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+.status-created         { background: #e8f0fe; color: #1967d2; }
+.status-bidding         { background: #fef7e0; color: #b26a00; }
+.status-matched         { background: #fff4e5; color: #c85300; }
+.status-handed_over     { background: #e6f4ea; color: #1e8e3e; }
+.status-payment_pending { background: #fef7e0; color: #b26a00; }
+.status-paid            { background: #e6f4ea; color: #1e8e3e; }
+.status-completed       { background: #e6f4ea; color: #1e8e3e; }
+
+/* --- Mobile --------------------------------------------------------- */
+@media (max-width: 640px) {
+  .gpay-tiles { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .gpay-tile { padding: 16px 8px 14px; min-height: 115px; }
+  .gpay-tile-icon { width: 48px; height: 48px; font-size: 1.25rem; }
+  .gpay-tile-label { font-size: 0.82rem; }
+  .gpay-hero-value { font-size: 2.2rem; }
 }
 
-@media (max-width: 480px) {
-  .actions-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-  
-  .action-card {
-    padding: 12px 4px;
-  }
-  
-  .action-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
-  }
-  
-  .action-label {
-    font-size: 10px;
-  }
+@media (max-width: 400px) {
+  .gpay-tiles { grid-template-columns: repeat(2, 1fr); }
 }

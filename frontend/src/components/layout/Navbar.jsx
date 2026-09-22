@@ -49,7 +49,6 @@ const Navbar = () => {
   const collectorNavItems = [
     { path: '/dashboard', icon: FaHome, label: t('nav.dashboard') },
     { path: '/create-lot', icon: FaCamera, label: t('nav.createLot') },
-    { path: '/prices', icon: FaMoneyBillWave, label: t('nav.prices') },
     { path: '/earnings', icon: FaWallet, label: t('nav.earnings') },
     { path: '/safety', icon: FaShieldAlt, label: t('nav.safety') },
     { path: '/profile', icon: FaUser, label: t('nav.profile') },

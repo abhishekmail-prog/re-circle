@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useTranslation } from '../hooks/useTranslation'
 import { useAuth } from '../context/AuthContext'
+import { useWebSocket } from '../context/WebSocketContext'
 import QRCodeComponent from '../components/common/QRCode'
 import TraceabilityTimeline from '../components/common/TraceabilityTimeline'
 import CopyButton from '../components/common/CopyButton'
@@ -19,6 +20,22 @@ const LotDetail = () => {
   const [lot, setLot] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showQR, setShowQR] = useState(false)
+  const { client, connected } = useWebSocket()
+
+  // Live updates — refetch when this lot changes (auction closed, handover confirmed)
+  useEffect(() => {
+    if (!client || !connected || !id) return
+    const sub = client.subscribe('/topic/lots', (msg) => {
+      try {
+        const data = JSON.parse(msg.body)
+        if (data.lotId === id || data.lotId === lot?.lotId) {
+          fetchLotDetails()
+        }
+      } catch {}
+    })
+    return () => sub.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client, connected, id, lot?.lotId])
 
   const fetchLotDetails = useCallback(async () => {
     if (!id) return
@@ -68,16 +85,87 @@ const LotDetail = () => {
     return statusMap[status] || 'badge-info'
   }
 
-  const timelineEvents = lot?.events || [
-    {
-      status: lot?.status || 'CREATED',
-      timestamp: lot?.createdAt
+  // Build a real audit trail from the lot's actual lifecycle fields.
+  // Each event attributes to the correct actor:
+  //   CREATED → collector
+  //   MATCHED → winning recycler
+  //   HANDED_OVER → winning recycler
+  //   PAID → winning recycler
+  const buildTimelineEvents = () => {
+    if (!lot) return []
+    const events = []
+
+    events.push({
+      status: 'CREATED',
+      timestamp: lot.createdAt
         ? new Date(lot.createdAt).toLocaleString()
-        : new Date().toLocaleString(),
-      actor: lot?.collector?.fullName || 'Collector',
-      icon: '📝'
+        : '—',
+      actor: lot.collector?.fullName || 'Collector',
+      icon: '📝',
+      message: `Lot created — ${lot.weightKg || 0} kg ${
+        lot.materialCategory?.name || 'e-waste'
+      }`
+    })
+
+    const statusOrder = [
+      'CREATED', 'BIDDING', 'MATCHED', 'HANDED_OVER',
+      'PAYMENT_PENDING', 'PAID', 'COMPLETED'
+    ]
+    const reached = (target) =>
+      statusOrder.indexOf(lot.status || 'CREATED') >= statusOrder.indexOf(target)
+
+    if (reached('MATCHED') && lot.selectedRecycler) {
+      events.push({
+        status: 'MATCHED',
+        timestamp: lot.updatedAt
+          ? new Date(lot.updatedAt).toLocaleString()
+          : '—',
+        actor: lot.selectedRecycler.companyName || 'Recycler',
+        icon: '🤝',
+        message: lot.offeredPricePerKg
+          ? `Won auction at ₹${lot.offeredPricePerKg}/kg`
+          : 'Auction closed — recycler selected'
+      })
     }
-  ]
+
+    if (lot.handoverAt) {
+      events.push({
+        status: 'HANDED_OVER',
+        timestamp: new Date(lot.handoverAt).toLocaleString(),
+        actor: lot.selectedRecycler?.companyName || 'Recycler',
+        icon: '📦',
+        message: lot.verifiedWeightKg
+          ? `Material received — ${lot.verifiedWeightKg} kg verified`
+          : 'Material received'
+      })
+    }
+
+    if (lot.status === 'PAID' || lot.status === 'COMPLETED' || lot.completedAt) {
+      const methodLabel =
+        lot.paymentMethod === 'UPI'
+          ? 'UPI'
+          : lot.paymentMethod === 'BANK_TRANSFER'
+          ? 'Bank Transfer'
+          : 'Cash'
+      events.push({
+        status: 'PAID',
+        timestamp: lot.completedAt
+          ? new Date(lot.completedAt).toLocaleString()
+          : lot.handoverAt
+          ? new Date(lot.handoverAt).toLocaleString()
+          : '—',
+        actor: lot.selectedRecycler?.companyName || 'Recycler',
+        icon: '💰',
+        message: `₹${Number(
+          lot.finalValue || lot.estimatedValue || 0
+        ).toLocaleString('en-IN')} paid via ${methodLabel}`
+      })
+    }
+
+    return events
+  }
+
+  const timelineEvents = lot?.events || buildTimelineEvents()
 
   // Pre-composed share text for WhatsApp / SMS / anywhere.
   const buildShareText = () => {
@@ -195,6 +283,56 @@ const LotDetail = () => {
         </div>
       </div>
 
+      {(lot.status === 'PAID' || lot.status === 'COMPLETED') && (
+        <div
+          className="card"
+          style={{
+            marginTop: '16px',
+            background: 'linear-gradient(135deg, #34a853 0%, #0f9d58 100%)',
+            color: '#fff',
+            textAlign: 'center',
+            padding: '28px 20px',
+            border: 'none'
+          }}
+        >
+          <div style={{ fontSize: '3rem', lineHeight: 1, marginBottom: '8px' }}>✅</div>
+          <h2 style={{ margin: '4px 0 8px', color: '#fff', fontSize: '1.4rem', fontWeight: 800 }}>
+            Payment Received
+          </h2>
+          <p style={{ margin: 0, opacity: 0.95, fontSize: '1rem' }}>
+            {lot.selectedRecycler?.companyName || 'Recycler'} paid{' '}
+            <strong>₹{Number(lot.finalValue || lot.estimatedValue || 0).toLocaleString('en-IN')}</strong>
+          </p>
+          <div
+            style={{
+              marginTop: '14px',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '18px',
+              flexWrap: 'wrap',
+              fontSize: '0.9rem',
+              opacity: 0.95
+            }}
+          >
+            {lot.verifiedWeightKg && (
+              <span>⚖️ {lot.verifiedWeightKg} kg verified</span>
+            )}
+            {lot.paymentMethod && (
+              <span>
+                {lot.paymentMethod === 'CASH' ? '💵 Cash'
+                  : lot.paymentMethod === 'UPI' ? '📱 UPI'
+                  : lot.paymentMethod === 'BANK_TRANSFER' ? '🏦 Bank'
+                  : lot.paymentMethod}
+              </span>
+            )}
+            {lot.handoverAt && (
+              <span>🕒 {new Date(lot.handoverAt).toLocaleString()}</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {lot.status !== 'PAID' && lot.status !== 'COMPLETED' && (
       <div className="card qr-section" style={{ marginTop: '16px' }}>
         <div className="card-header">
           <span className="card-title">{t('lotDetail.qrCode')}</span>
@@ -227,6 +365,8 @@ const LotDetail = () => {
           </div>
         )}
       </div>
+
+      )}
 
       {(lot.status === 'BIDDING' || lot.status === 'CREATED') && lot.auctionEndsAt && (
         <AuctionTimer endsAt={lot.auctionEndsAt} status={lot.status} />

@@ -123,7 +123,7 @@ const QRScanner = ({ open, onClose, onScan }) => {
               className="form-control"
               value={manualValue}
               onChange={(e) => setManualValue(e.target.value)}
-              placeholder="RC-2024-000005"
+              placeholder="RC-2026-123456"
             />
             <div className="qr-scanner-manual-actions">
               <button

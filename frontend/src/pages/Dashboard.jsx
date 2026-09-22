@@ -5,11 +5,8 @@ import { useOffline } from '../context/OfflineContext'
 import { useTranslation } from '../hooks/useTranslation'
 import api from '../api/axios'
 import {
-  FaCamera,
-  FaMoneyBillWave,
-  FaWallet,
-  FaShieldAlt,
-  FaUser,
+  FaCamera, FaMoneyBillWave, FaWallet,
+  FaShieldAlt, FaUser, FaSync, FaBox
 } from 'react-icons/fa'
 import './Dashboard.css'
 
@@ -33,16 +30,12 @@ const Dashboard = () => {
     }
   }, [])
 
-  // Refetch when syncDone changes (offline queue just flushed) or on mount
   useEffect(() => {
     fetchMyLots()
   }, [fetchMyLots, syncDone])
 
-  // Refetch when we come back online
   useEffect(() => {
-    if (isOnline) {
-      fetchMyLots()
-    }
+    if (isOnline) fetchMyLots()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnline])
 
@@ -54,80 +47,104 @@ const Dashboard = () => {
     .filter((l) => l.status === 'PAID' || l.status === 'COMPLETED')
     .reduce((sum, l) => sum + (Number(l.netEarnings) || 0), 0)
 
-  const quickActions = [
-    { path: '/create-lot', icon: FaCamera, label: t('dashboard.createLot'), color: '#4caf50' },
-    { path: '/prices', icon: FaMoneyBillWave, label: t('dashboard.todayPrices'), color: '#ff9800' },
-    { path: '/earnings', icon: FaWallet, label: t('dashboard.myEarnings'), color: '#9c27b0' },
-    { path: '/safety', icon: FaShieldAlt, label: t('dashboard.safety'), color: '#f44336' },
-    { path: '/profile', icon: FaUser, label: t('dashboard.profile'), color: '#607d8b' }
+  const actions = [
+    { path: '/create-lot', icon: FaCamera,         label: t('dashboard.createLot'),    color: '#1e8e3e', bg: '#e6f4ea' },
+    { path: '/earnings',   icon: FaWallet,         label: t('dashboard.myEarnings'),   color: '#7b1fa2', bg: '#f3e8fd' },
+    { path: '/safety',     icon: FaShieldAlt,      label: t('dashboard.safety'),       color: '#c5221f', bg: '#fce8e6' },
+    { path: '/profile',    icon: FaUser,           label: t('dashboard.profile'),      color: '#1967d2', bg: '#e8f0fe' }
   ]
 
+  const firstName = (user?.fullName || 'Kabadiwala').split(' ')[0]
+
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>{t('dashboard.welcome', { name: user?.fullName || 'Kabadiwala' })}</h1>
-        <p className="text-muted">{t('dashboard.tagline')}</p>
+    <div className="dashboard-gpay">
+      <div className="gpay-greeting">
+        <span className="gpay-hello">
+          {t('dashboard.welcome', { name: firstName })}
+        </span>
+        <p className="gpay-tagline">{t('dashboard.tagline')}</p>
       </div>
 
-      <div className="quick-actions">
-        <h2 className="section-title">{t('dashboard.quickActions')}</h2>
-        <div className="actions-grid">
-          {quickActions.map((action) => (
-            <Link to={action.path} key={action.path} className="action-card">
-              <div
-                className="action-icon"
-                style={{
-                  background: `${action.color}20`,
-                  color: action.color
-                }}
-              >
-                <action.icon />
-              </div>
-              <span className="action-label">{action.label}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      <div className="dashboard-stats">
-        <div className="stat-card">
-          <span className="stat-label">{t('dashboard.totalLots')}</span>
-          <span className="stat-value">{loading ? '…' : lots.length}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">{t('dashboard.completed')}</span>
-          <span className="stat-value">{loading ? '…' : completed}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">{t('dashboard.earnings')}</span>
-          <span className="stat-value">
-            ₹{totalEarnings.toLocaleString()}
+      <div className="gpay-hero">
+        <div className="gpay-hero-top">
+          <span className="gpay-hero-label">{t('dashboard.earnings')}</span>
+          <span className="gpay-hero-icon">
+            <FaWallet />
           </span>
         </div>
+        <div className="gpay-hero-value">
+          ₹{totalEarnings.toLocaleString('en-IN')}
+        </div>
+        <div className="gpay-hero-row">
+          <div className="gpay-hero-stat">
+            <span className="gpay-hero-stat-num">{loading ? '…' : lots.length}</span>
+            <span className="gpay-hero-stat-lbl">{t('dashboard.totalLots')}</span>
+          </div>
+          <div className="gpay-hero-divider" />
+          <div className="gpay-hero-stat">
+            <span className="gpay-hero-stat-num">{loading ? '…' : completed}</span>
+            <span className="gpay-hero-stat-lbl">{t('dashboard.completed')}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Recent lots list */}
+      <h2 className="gpay-section-title">{t('dashboard.quickActions')}</h2>
+      <div className="gpay-tiles">
+        {actions.map((a) => (
+          <Link key={a.path} to={a.path} className="gpay-tile">
+            <span
+              className="gpay-tile-icon"
+              style={{ background: a.bg, color: a.color }}
+            >
+              <a.icon />
+            </span>
+            <span className="gpay-tile-label">{a.label}</span>
+          </Link>
+        ))}
+      </div>
+
       {lots.length > 0 && (
-        <div className="card" style={{ marginTop: '16px' }}>
-          <h3 style={{ margin: '0 0 12px 0' }}>
-            {t('nav.lots')} ({lots.length})
-          </h3>
-          <div className="lots-list">
+        <div className="gpay-section">
+          <div className="gpay-section-head">
+            <h2 className="gpay-section-title" style={{ margin: 0 }}>
+              {t('nav.lots')} ({lots.length})
+            </h2>
+            <button
+              className="gpay-icon-btn"
+              onClick={fetchMyLots}
+              disabled={loading}
+              aria-label={t('common.retry')}
+            >
+              <FaSync />
+            </button>
+          </div>
+
+          <div className="gpay-list">
             {lots.slice(0, 5).map((lot) => (
               <Link
                 key={lot.lotId}
                 to={`/lot/${lot.lotId}`}
-                className="lot-item"
-                style={{ textDecoration: 'none', color: 'inherit' }}
+                className="gpay-list-row"
               >
-                <div className="lot-info">
-                  <span className="lot-id">{lot.lotId}</span>
-                  <span className="lot-material">
+                <span className="gpay-list-icon">
+                  <FaBox />
+                </span>
+                <span className="gpay-list-body">
+                  <span className="gpay-list-title">
                     {lot.materialCategory?.name || '—'}
                   </span>
-                  <span className="lot-weight">{lot.weightKg} kg</span>
-                </div>
-                <span className="badge badge-info">{lot.status}</span>
+                  <span className="gpay-list-sub">{lot.lotId}</span>
+                </span>
+                <span className="gpay-list-right">
+                  <span className="gpay-list-amount">
+                    {lot.weightKg || 0} kg
+                  </span>
+                  <span
+                    className={`gpay-list-status status-${(lot.status || '').toLowerCase()}`}
+                  >
+                    {lot.status || '—'}
+                  </span>
+                </span>
               </Link>
             ))}
           </div>

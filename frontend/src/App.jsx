@@ -13,7 +13,6 @@ import Register from './pages/Register'
 // Collector Pages
 import Dashboard from './pages/Dashboard'
 import CreateLot from './pages/CreateLot'
-import Prices from './pages/Prices'
 import Earnings from './pages/Earnings'
 import Safety from './pages/Safety'
 import Profile from './pages/Profile'
@@ -63,7 +62,6 @@ function App() {
                 <Route index element={<RootRedirect />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="create-lot" element={<CreateLot />} />
-                <Route path="prices" element={<Prices />} />
                 <Route path="earnings" element={<Earnings />} />
                 <Route path="safety" element={<Safety />} />
                 <Route path="profile" element={<Profile />} />

@@ -3,20 +3,21 @@ import { useAuth } from '../../context/AuthContext'
 import { useWebSocket } from '../../context/WebSocketContext'
 import { useTranslation } from '../../hooks/useTranslation'
 import api from '../../api/axios'
-import bidApi from '../../api/bids'
-import { FaGavel, FaBox, FaSync, FaTrophy, FaCheck } from 'react-icons/fa'
+import { FaGavel, FaBox, FaSync, FaTrophy, FaExclamationTriangle } from 'react-icons/fa'
+import LotPreviewModal from '../../components/common/LotPreviewModal'
 import './RecyclerDashboard.css'
+
+const IMG_BASE = 'http://localhost:8080'
 
 const RecyclerLots = () => {
   const { user } = useAuth()
   const { t } = useTranslation()
   const { client, connected } = useWebSocket()
   const [allLots, setAllLots] = useState([])
-  const [myBids, setMyBids] = useState({}) // { [lotId]: { id, amountPerKg, status } }
-  const [bidInputs, setBidInputs] = useState({})
-  const [placing, setPlacing] = useState(null)
+  const [summaries, setSummaries] = useState({}) // { [lotId]: { count, highestAmountPerKg, highestBidderEmail, highestBidderCompany } }
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedLot, setSelectedLot] = useState(null)
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -25,110 +26,94 @@ const RecyclerLots = () => {
       const res = await api.get('/lots')
       const lots = Array.isArray(res.data) ? res.data : []
       setAllLots(lots)
-      // NOTE: we do NOT fan-out a /bids call per lot here.
-      // That caused 30+ parallel requests and races. Instead, we only
-      // remember "your bid" for lots you actually bid on in this session.
+
+      // Fetch bid summaries in ONE batch call
+      const open = lots.filter(l => l.status === 'CREATED' || l.status === 'BIDDING')
+      if (open.length > 0) {
+        try {
+          const sum = await api.post('/lots/bids-summary', {
+            lotIds: open.map(l => l.lotId)
+          })
+          setSummaries(sum.data || {})
+        } catch (e) {
+          console.warn('bids-summary failed', e)
+          setSummaries({})
+        }
+      } else {
+        setSummaries({})
+      }
     } catch (e) {
       console.error('Failed to load lots:', e)
       setError(t('common.error'))
       setAllLots([])
+      setSummaries({})
     } finally {
       setLoading(false)
     }
   }, [t])
 
-  useEffect(() => {
-    fetchAll()
-  }, [fetchAll])
+  useEffect(() => { fetchAll() }, [fetchAll])
 
-  // Live updates — refetch when any lot is created or its status changes
+  // Live refresh on any lot event
   useEffect(() => {
     if (!client || !connected) return
-    const sub = client.subscribe('/topic/lots', (msg) => {
-      console.log('Lot event (recycler lots):', msg.body)
-      fetchAll()
-    })
+    const sub = client.subscribe('/topic/lots', () => fetchAll())
     return () => sub.unsubscribe()
   }, [client, connected, fetchAll])
 
-  // Refetch when the tab comes back into focus
+  // Refresh on tab focus
   useEffect(() => {
-    const handler = () => {
-      if (document.visibilityState === 'visible') fetchAll()
-    }
-    document.addEventListener('visibilitychange', handler)
-    return () => document.removeEventListener('visibilitychange', handler)
+    const h = () => { if (document.visibilityState === 'visible') fetchAll() }
+    document.addEventListener('visibilitychange', h)
+    return () => document.removeEventListener('visibilitychange', h)
   }, [fetchAll])
 
-  const handlePlaceBid = async (lot) => {
-    const amount = parseFloat(bidInputs[lot.lotId])
-    if (!amount || amount <= 0) {
-      console.error('Invalid bid amount')
-      return
-    }
-    setPlacing(lot.lotId)
-    try {
-      const res = await bidApi.place(lot.lotId, amount)
-      const bid = res.data
-
-      // Optimistically update: record my bid locally
-      setMyBids((prev) => ({
-        ...prev,
-        [lot.lotId]: {
-          id: bid.id,
-          amountPerKg: bid.amountPerKg,
-          status: bid.status
+  // Refresh on any bid on any lot (my session or someone else's)
+  useEffect(() => {
+    if (!client || !connected) return
+    // Subscribe to a broad topic? Simpler: re-fetch summaries when any lot updates
+    // The /topic/lots event already covers it, but bids trigger /topic/lots/{id}/bids
+    // We'll also poll summaries every 8s while page is visible
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        const open = allLots.filter(l => l.status === 'CREATED' || l.status === 'BIDDING')
+        if (open.length > 0) {
+          api.post('/lots/bids-summary', { lotIds: open.map(l => l.lotId) })
+            .then(r => setSummaries(r.data || {}))
+            .catch(() => {})
         }
-      }))
-
-      // Flip the lot's status to BIDDING locally (no refetch)
-      setAllLots((prev) =>
-        prev.map((l) =>
-          l.lotId === lot.lotId && l.status === 'CREATED'
-            ? { ...l, status: 'BIDDING' }
-            : l
-        )
-      )
-
-      setBidInputs((prev) => ({ ...prev, [lot.lotId]: '' }))
-      console.log(t('auction.bidPlaced'))
-    } catch (e) {
-      console.error(t('auction.bidError'), e?.response?.data || e.message)
-    } finally {
-      setPlacing(null)
-    }
-  }
-
-  const isMyBidPending = (lotId) => {
-    const b = myBids[lotId]
-    return b && b.status === 'PENDING'
-  }
+      }
+    }, 8000)
+    return () => clearInterval(id)
+  }, [client, connected, allLots])
 
   const openLots = allLots.filter(
-    (l) => l.status === 'CREATED' || l.status === 'BIDDING'
+    l => l.status === 'CREATED' || l.status === 'BIDDING'
   )
 
   const myAssignedLots = allLots.filter(
-    (l) =>
+    l =>
       l.selectedRecycler?.user?.email === user?.email &&
       (l.status === 'MATCHED' ||
         l.status === 'HANDED_OVER' ||
         l.status === 'PAYMENT_PENDING')
   )
 
-  const getStatusBadge = (status) => {
-    const map = {
-      CREATED: 'badge-info',
-      BIDDING: 'badge-warning',
-      MATCHED: 'badge-warning',
-      PICKUP_SCHEDULED: 'badge-info',
-      HANDED_OVER: 'badge-success',
-      PAYMENT_PENDING: 'badge-warning',
-      PAID: 'badge-success',
-      COMPLETED: 'badge-success'
-    }
-    return map[status] || 'badge-info'
-  }
+  const getStatusBadge = (status) => ({
+    CREATED: 'badge-info',
+    BIDDING: 'badge-warning',
+    MATCHED: 'badge-warning',
+    PICKUP_SCHEDULED: 'badge-info',
+    HANDED_OVER: 'badge-success',
+    PAYMENT_PENDING: 'badge-warning',
+    PAID: 'badge-success',
+    COMPLETED: 'badge-success'
+  }[status] || 'badge-info')
+
+  const getThumb = (lot) =>
+    lot.imageUrl
+      ? (lot.imageUrl.startsWith('http') ? lot.imageUrl : IMG_BASE + lot.imageUrl)
+      : null
 
   return (
     <div className="recycler-dashboard">
@@ -137,35 +122,28 @@ const RecyclerLots = () => {
         <p className="text-muted">{t('recyclerLots.subtitle')}</p>
       </div>
 
-      <div style={{ margin: '12px 0', display: 'flex', gap: '12px' }}>
+      <div style={{ margin: '12px 0' }}>
         <button className="btn btn-outline" onClick={fetchAll} disabled={loading}>
           <FaSync /> {t('common.retry')}
         </button>
       </div>
 
       {error && (
-        <div
-          style={{
-            background: '#ffebee',
-            color: '#b71c1c',
-            padding: '10px 16px',
-            borderRadius: '8px',
-            marginBottom: '12px'
-          }}
-        >
+        <div style={{
+          background: '#ffebee', color: '#b71c1c',
+          padding: '10px 16px', borderRadius: '8px', marginBottom: '12px'
+        }}>
           {error}
         </div>
       )}
 
-      {/* ─── OPEN LOTS FOR BIDDING ───────────────────────── */}
       <div className="card incoming-lots">
         <h3>
           <FaGavel /> {t('auction.openLots')} ({openLots.length})
         </h3>
+
         {loading ? (
-          <div className="empty-state">
-            <p>{t('common.loading')}</p>
-          </div>
+          <div className="empty-state"><p>{t('common.loading')}</p></div>
         ) : openLots.length === 0 ? (
           <div className="empty-state">
             <span style={{ fontSize: '48px' }}>🎉</span>
@@ -174,13 +152,28 @@ const RecyclerLots = () => {
         ) : (
           <div className="lots-list">
             {openLots.map((lot) => {
-              const myBid = myBids[lot.lotId]
-              const bidIsPending = isMyBidPending(lot.lotId)
-              const inputValue = bidInputs[lot.lotId] ?? ''
+              const s = summaries[lot.lotId] || {}
+              const thumb = getThumb(lot)
+              const isMine = s.highestBidderEmail && s.highestBidderEmail === user?.email
+              const outbid = s.count > 0 && !isMine
 
               return (
-                <div key={lot.lotId} className="lot-item">
-                  <div className="lot-info">
+                <div
+                  key={lot.lotId}
+                  className={`lot-item rl-row ${outbid ? 'rl-outbid' : ''}`}
+                  onClick={() => setSelectedLot(lot)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="rl-thumb">
+                    {thumb ? (
+                      <img src={thumb} alt="" />
+                    ) : (
+                      <FaBox />
+                    )}
+                  </div>
+
+                  <div className="lot-info rl-info">
                     <span className="lot-id">{lot.lotId}</span>
                     <span className="lot-material">
                       {lot.materialCategory?.name || '—'}
@@ -189,84 +182,26 @@ const RecyclerLots = () => {
                     <span className="lot-collector">
                       👤 {lot.collector?.fullName || '—'}
                     </span>
+                  </div>
+
+                  <div className="rl-right">
+                    {s.count > 0 ? (
+                      <span className={`rl-top-chip ${isMine ? 'mine' : ''}`}>
+                        <FaTrophy /> ₹{s.highestAmountPerKg}/kg
+                      </span>
+                    ) : (
+                      <span className="rl-top-chip empty">
+                        {t('auction.noBidsYet')}
+                      </span>
+                    )}
+                    {outbid && (
+                      <span className="rl-outbid-flag">
+                        <FaExclamationTriangle /> {t('auction.outbid')}
+                      </span>
+                    )}
                     <span className={`badge ${getStatusBadge(lot.status)}`}>
                       {lot.status}
                     </span>
-                  </div>
-
-                  <div
-                    className="lot-actions"
-                    style={{
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'center',
-                      flexWrap: 'wrap'
-                    }}
-                  >
-                    {myBid && (
-                      <span
-                        className="bid-your-amount"
-                        style={{
-                          fontSize: '0.85rem',
-                          color: bidIsPending ? '#1565c0' : '#666'
-                        }}
-                      >
-                        {bidIsPending ? (
-                          <>
-                            <FaTrophy /> {t('auction.you')}: ₹
-                            {myBid.amountPerKg}/kg
-                          </>
-                        ) : (
-                          <>
-                            <FaCheck /> {myBid.status}: ₹
-                            {myBid.amountPerKg}/kg
-                          </>
-                        )}
-                      </span>
-                    )}
-
-                    <input
-                      type="number"
-                      className="form-control"
-                      style={{ width: '110px' }}
-                      placeholder="₹/kg"
-                      value={inputValue}
-                      onChange={(e) =>
-                        setBidInputs((prev) => ({
-                          ...prev,
-                          [lot.lotId]: e.target.value
-                        }))
-                      }
-                      step="1"
-                      min="1"
-                      title="Bid amount per kilogram"
-                    />
-                    {inputValue && parseFloat(inputValue) > 0 && (
-                      <span
-                        style={{
-                          fontSize: '0.82rem',
-                          color: '#0d47a1',
-                          background: '#e3f2fd',
-                          padding: '4px 10px',
-                          borderRadius: '6px',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        × {lot.weightKg} kg = <strong>₹
-                          {(parseFloat(inputValue) * (lot.weightKg || 0)).toLocaleString('en-IN')}
-                        </strong>
-                      </span>
-                    )}
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => handlePlaceBid(lot)}
-                      disabled={placing === lot.lotId || !inputValue}
-                    >
-                      <FaGavel />{' '}
-                      {placing === lot.lotId
-                        ? t('common.loading')
-                        : t('auction.placeBid')}
-                    </button>
                   </div>
                 </div>
               )
@@ -275,7 +210,6 @@ const RecyclerLots = () => {
         )}
       </div>
 
-      {/* ─── MY MATCHED LOTS ──────────────────────────── */}
       <div className="card incoming-lots" style={{ marginTop: '16px' }}>
         <h3>
           <FaBox /> {t('recyclerLots.title')} ({myAssignedLots.length})
@@ -289,15 +223,15 @@ const RecyclerLots = () => {
           <div className="lots-list">
             {myAssignedLots.map((lot) => (
               <div key={lot.lotId} className="lot-item">
-                <div className="lot-info">
+                <div className="rl-thumb">
+                  {getThumb(lot) ? <img src={getThumb(lot)} alt="" /> : <FaBox />}
+                </div>
+                <div className="lot-info rl-info">
                   <span className="lot-id">{lot.lotId}</span>
                   <span className="lot-material">
                     {lot.materialCategory?.name || '—'}
                   </span>
                   <span className="lot-weight">{lot.weightKg} kg</span>
-                  <span className="lot-collector">
-                    👤 {lot.collector?.fullName || '—'}
-                  </span>
                 </div>
                 <div className="lot-actions">
                   <span className={`badge ${getStatusBadge(lot.status)}`}>
@@ -309,6 +243,14 @@ const RecyclerLots = () => {
           </div>
         )}
       </div>
+
+      {selectedLot && (
+        <LotPreviewModal
+          lot={selectedLot}
+          onClose={() => setSelectedLot(null)}
+          onBidPlaced={fetchAll}
+        />
+      )}
     </div>
   )
 }

@@ -52,6 +52,17 @@ public class BidService {
             throw new RuntimeException("amountPerKg must be positive");
         }
 
+        // Strictly increasing bids: new bid must beat the current highest
+        List<Bid> existing = bidRepository.findByLotOrderByAmountPerKgDesc(lot);
+        if (!existing.isEmpty()) {
+            double highest = existing.get(0).getAmountPerKg();
+            if (req.getAmountPerKg() <= highest) {
+                throw new RuntimeException(
+                    String.format("Minimum bid is ₹%.0f/kg — must be higher than the current top bid", highest + 1)
+                );
+            }
+        }
+
         User user = userRepository.findByEmail(recyclerEmail)
             .orElseThrow(() -> new RuntimeException("User not found"));
         Recycler recycler = recyclerRepository.findByUser(user)

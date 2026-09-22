@@ -44,10 +44,18 @@ const CreateLot = () => {
     'Other e-waste': 100
   }
 
+  // Condition affects value: a broken LCD is worth far less than a working one
+  const CONDITION_MULTIPLIER = {
+    GOOD: 1.0,
+    MIXED: 0.7,
+    DAMAGED: 0.4
+  }
+
   const indicativeValue =
     formData.weightKg && parseFloat(formData.weightKg) > 0
       ? (DEFAULT_PRICE_PER_KG[formData.materialCategoryName] || 100) *
-        parseFloat(formData.weightKg)
+        parseFloat(formData.weightKg) *
+        (CONDITION_MULTIPLIER[formData.condition] || 1.0)
       : 0
 
   const categories = [
@@ -372,6 +380,13 @@ const CreateLot = () => {
           >
             💡 Indicative market value: <strong>₹{Math.round(indicativeValue).toLocaleString()}</strong>
             <div style={{ fontSize: '0.78rem', marginTop: '4px', color: '#1565c0' }}>
+              {formData.condition !== 'GOOD' && (
+                <span>
+                  {formData.condition === 'MIXED' ? 'Mixed' : 'Damaged'} condition
+                  → {formData.condition === 'MIXED' ? '70%' : '40%'} of full value.
+                  {' '}
+                </span>
+              )}
               (auction will determine the final price)
             </div>
           </div>

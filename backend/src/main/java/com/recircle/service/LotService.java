@@ -183,7 +183,9 @@ public class LotService {
         lot.setHandoverAt(java.time.LocalDateTime.now());
 
         logger.info("Handover confirmed for {} by recycler {}", lotId, email);
-        return lotRepository.save(lot);
+        MaterialLot saved = lotRepository.save(lot);
+        broadcastLotEvent("LOT_UPDATED", saved);
+        return saved;
     }
 
     private void broadcastLotEvent(String event, MaterialLot lot) {
