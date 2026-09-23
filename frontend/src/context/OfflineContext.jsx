@@ -71,7 +71,35 @@ export const OfflineProvider = ({ children }) => {
           }
 
           if (action.type === 'CREATE_LOT') {
-            const response = await api.post('/lots', body)
+            // If the lot was queued offline with photos, upload them first
+            const offlinePhotos = Array.isArray(body.offlinePhotos)
+              ? body.offlinePhotos
+              : []
+            const cleanBody = { ...body }
+            delete cleanBody.offlinePhotos
+
+            if (offlinePhotos.length > 0) {
+              const urls = []
+              for (const b64 of offlinePhotos) {
+                try {
+                  const blob = await (await fetch(b64)).blob()
+                  const form = new FormData()
+                  form.append('image', blob, 'offline.jpg')
+                  const up = await api.post('/ai/classify', form, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                  })
+                  if (up.data?.imageUrl) urls.push(up.data.imageUrl)
+                } catch (upErr) {
+                  console.warn('Offline photo upload failed:', upErr?.message)
+                }
+              }
+              if (urls.length > 0) {
+                cleanBody.imageUrl = urls[0]
+                cleanBody.imageUrls = urls
+              }
+            }
+
+            const response = await api.post('/lots', cleanBody)
             console.log('✅ Synced lot:', response.data?.lotId || response.data)
           } else {
             console.warn('Unknown offline action type:', action.type, action)

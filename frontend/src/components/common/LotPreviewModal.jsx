@@ -55,6 +55,7 @@ const LotPreviewModal = ({ lot, onClose, onBidPlaced }) => {
   }, [client, connected, lot?.lotId, fetchBids])
 
   const lotClosed = lot.status !== 'CREATED' && lot.status !== 'BIDDING'
+  const highest = bids[0]
 
   const iAmWinning =
     highest && highest.recycler?.user?.email === user?.email
@@ -62,7 +63,6 @@ const LotPreviewModal = ({ lot, onClose, onBidPlaced }) => {
   const iWon = lotClosed && winnerEmail && winnerEmail === user?.email
   const iLost = lotClosed && winnerEmail && winnerEmail !== user?.email
   const auctionAbandoned = lotClosed && !winnerEmail
-  const highest = bids[0]
   const myBid = bids.find(b => b.recycler?.user?.email === user?.email)
   const isTop = !!highest && highest.recycler?.user?.email === user?.email
   const wasOutbid = !!myBid && !isTop

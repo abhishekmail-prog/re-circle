@@ -30,7 +30,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 // ─── Service worker registration (PWA) ──────────────────────
 // Only registers on secure contexts (https or localhost).
-if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+// Skip SW in dev — its cache-first strategy breaks Vite HMR
+const isDev = import.meta.env.DEV
+if (!isDev && 'serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')

@@ -9,6 +9,36 @@ import './CreateLot.css'
 
 const MAX_PHOTOS = 10
 
+// Compress an image file to a JPEG base64 string (~150-250 KB).
+// Used for offline lots — the base64 gets stored in the offline queue,
+// uploaded on reconnect, then the lot POSTs with the returned paths.
+const compressImage = (file, maxWidth = 800, quality = 0.7) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let w = img.width
+        let h = img.height
+        if (w > maxWidth) {
+          h = Math.round((maxWidth / w) * h)
+          w = maxWidth
+        }
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, w, h)
+        resolve(canvas.toDataURL('image/jpeg', quality))
+      }
+      img.onerror = () => reject(new Error('image load failed'))
+      img.src = e.target.result
+    }
+    reader.onerror = () => reject(new Error('file read failed'))
+    reader.readAsDataURL(file)
+  })
+}
+
 let _pid = 0
 const nextPid = () => ++_pid
 
@@ -17,6 +47,7 @@ const CreateLot = () => {
   const { isOnline, addPendingAction } = useOffline()
   const { t } = useTranslation()
   const fileInputRef = useRef(null)
+  const offlinePhotosRef = useRef([])   // { id, data }[] — survives render races
 
   const [loading, setLoading] = useState(false)
   const [photos, setPhotos] = useState([])
@@ -101,13 +132,27 @@ const CreateLot = () => {
     const results = await Promise.all(
       newPhotos.map(async (p) => {
         try {
-          // Offline: skip upload, mark as local (queued with lot)
+          // Offline: compress + store base64 for later upload
           if (!navigator.onLine) {
-            setPhotos((prev) =>
-              prev.map((x) =>
-                x.id === p.id ? { ...x, status: 'offline' } : x
+            try {
+              const base64 = await compressImage(p.file)
+              console.log('[OFFLINE] compressed photo', p.id, '→', base64.length, 'bytes')
+              offlinePhotosRef.current.push({ id: p.id, data: base64 })
+              setPhotos((prev) =>
+                prev.map((x) =>
+                  x.id === p.id
+                    ? { ...x, status: 'offline', offlineData: base64 }
+                    : x
+                )
               )
-            )
+            } catch (e) {
+              console.error('Offline compression failed:', e)
+              setPhotos((prev) =>
+                prev.map((x) =>
+                  x.id === p.id ? { ...x, status: 'error' } : x
+                )
+              )
+            }
             return { id: p.id, category: null, confidence: 0 }
           }
           const res = await aiApi.classify(p.file)
@@ -149,6 +194,7 @@ const CreateLot = () => {
 
   const handleRemovePhoto = (id) => {
     setPhotos((prev) => prev.filter((p) => p.id !== id))
+    offlinePhotosRef.current = offlinePhotosRef.current.filter((x) => x.id !== id)
   }
 
   const handleUseSuggestion = () => {
@@ -167,6 +213,11 @@ const CreateLot = () => {
 
     // Offline: skip the API call entirely, queue immediately
     if (!navigator.onLine) {
+      // Collect base64 photos from the offline photo tiles
+      const offlinePhotos = offlinePhotosRef.current.map((x) => x.data)
+      console.log('[SUBMIT] photos being queued:', offlinePhotos.length, 'sizes:',
+        offlinePhotos.map(x => (x || '').length))
+
       const queuedData = {
         materialCategoryName: formData.materialCategoryName,
         description: formData.description || '',
@@ -177,9 +228,11 @@ const CreateLot = () => {
         collectionLatitude: 19.076,
         collectionLongitude: 72.8777,
         imageUrl: null,
-        imageUrls: []
+        imageUrls: [],
+        offlinePhotos
       }
       await addPendingAction({ type: 'CREATE_LOT', data: queuedData })
+      offlinePhotosRef.current = []
       alert(t('createLot.offlineSuccess'))
       navigate('/dashboard')
       return
