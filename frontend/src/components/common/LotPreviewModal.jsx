@@ -42,9 +42,19 @@ const LotPreviewModal = ({ lot, onClose, onBidPlaced }) => {
   useEffect(() => {
     if (!client || !connected || !lot?.lotId) return
     const sub = client.subscribe(`/topic/lots/${lot.lotId}/bids`, () => fetchBids())
-    return () => sub.unsubscribe()
+    const globalSub = client.subscribe('/topic/lots', (msg) => {
+      try {
+        const data = JSON.parse(msg.body)
+        if (data.lotId === lot.lotId) fetchBids()
+      } catch {}
+    })
+    return () => {
+      sub.unsubscribe()
+      globalSub.unsubscribe()
+    }
   }, [client, connected, lot?.lotId, fetchBids])
 
+  const lotClosed = lot.status !== 'CREATED' && lot.status !== 'BIDDING'
   const highest = bids[0]
   const myBid = bids.find(b => b.recycler?.user?.email === user?.email)
   const isTop = !!highest && highest.recycler?.user?.email === user?.email
@@ -149,15 +159,34 @@ const LotPreviewModal = ({ lot, onClose, onBidPlaced }) => {
             </div>
           )}
 
+          {lotClosed && (
+            <div style={{
+              padding: '12px 16px',
+              background: '#fef7e0',
+              border: '1px solid #fde293',
+              borderRadius: 12,
+              color: '#b26a00',
+              fontWeight: 600,
+              fontSize: '0.92rem',
+              marginBottom: 12,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}>
+              ⚠️ Auction closed — this lot is now {lot.status}
+            </div>
+          )}
+
           <div className="lpm-bid-input">
             <label>{t('auction.yourBid')}</label>
             <input
               type="number"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={`≥ ${minBid}`}
+              placeholder={lotClosed ? '—' : `≥ ${minBid}`}
               min={minBid}
               step="1"
+              disabled={lotClosed}
             />
             {input && !inputValid && (
               <div className="lpm-hint-bad">

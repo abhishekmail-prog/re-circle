@@ -68,6 +68,22 @@ const RecyclerLots = () => {
     return () => document.removeEventListener('visibilitychange', h)
   }, [fetchAll])
 
+  // Sync selectedLot with allLots — if the lot's status changed
+  // (e.g., collector accepted a bid → MATCHED), the modal updates instantly.
+  // If the lot dropped off the open list, close the modal.
+  useEffect(() => {
+    if (!selectedLot) return
+    const fresh = allLots.find((l) => l.lotId === selectedLot.lotId)
+    if (fresh) {
+      if (fresh.status !== selectedLot.status) {
+        setSelectedLot(fresh)
+      }
+    } else {
+      // Lot is no longer in the open list (matched/paid/deleted)
+      setSelectedLot(null)
+    }
+  }, [allLots, selectedLot])
+
   // Refresh on any bid on any lot (my session or someone else's)
   useEffect(() => {
     if (!client || !connected) return
