@@ -68,6 +68,16 @@ const RecyclerLots = () => {
     return () => document.removeEventListener('visibilitychange', h)
   }, [fetchAll])
 
+  // Poll every 3s while visible — guaranteed updates even if WebSocket fails
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        fetchAll()
+      }
+    }, 3000)
+    return () => clearInterval(id)
+  }, [fetchAll])
+
   // Sync selectedLot with allLots — if the lot's status changed
   // (e.g., collector accepted a bid → MATCHED), the modal updates instantly.
   // If the lot dropped off the open list, close the modal.

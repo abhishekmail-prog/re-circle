@@ -55,6 +55,13 @@ const LotPreviewModal = ({ lot, onClose, onBidPlaced }) => {
   }, [client, connected, lot?.lotId, fetchBids])
 
   const lotClosed = lot.status !== 'CREATED' && lot.status !== 'BIDDING'
+
+  const iAmWinning =
+    highest && highest.recycler?.user?.email === user?.email
+  const winnerEmail = lot.selectedRecycler?.user?.email
+  const iWon = lotClosed && winnerEmail && winnerEmail === user?.email
+  const iLost = lotClosed && winnerEmail && winnerEmail !== user?.email
+  const auctionAbandoned = lotClosed && !winnerEmail
   const highest = bids[0]
   const myBid = bids.find(b => b.recycler?.user?.email === user?.email)
   const isTop = !!highest && highest.recycler?.user?.email === user?.email
@@ -102,6 +109,63 @@ const LotPreviewModal = ({ lot, onClose, onBidPlaced }) => {
         />
 
         <div className="lpm-body">
+
+          {iWon && (
+            <div style={{
+              background: 'linear-gradient(135deg, #34a853 0%, #0f9d58 100%)',
+              color: '#fff',
+              borderRadius: 16,
+              padding: '20px 18px',
+              marginBottom: 16,
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '2.6rem', lineHeight: 1 }}>🎉</div>
+              <div style={{ fontSize: '1.3rem', fontWeight: 800, marginTop: 6 }}>
+                Bid Accepted!
+              </div>
+              <div style={{ fontSize: '0.92rem', opacity: 0.95, marginTop: 4 }}>
+                You won this lot. Meet the collector to scan the QR and complete handover.
+              </div>
+            </div>
+          )}
+
+          {iLost && (
+            <div style={{
+              background: '#fce8e6',
+              border: '1px solid #f5c6cb',
+              color: '#a51e17',
+              borderRadius: 16,
+              padding: '20px 18px',
+              marginBottom: 16,
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '2.6rem', lineHeight: 1 }}>😞</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, marginTop: 6 }}>
+                Auction Closed
+              </div>
+              <div style={{ fontSize: '0.92rem', marginTop: 4 }}>
+                Another recycler won this lot. Try bidding on other open lots.
+              </div>
+            </div>
+          )}
+
+          {auctionAbandoned && (
+            <div style={{
+              background: '#f1f3f4',
+              color: '#5f6368',
+              borderRadius: 16,
+              padding: '16px 18px',
+              marginBottom: 16,
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>
+                Auction Closed
+              </div>
+              <div style={{ fontSize: '0.88rem', marginTop: 4 }}>
+                The collector closed this lot without selecting a winner.
+              </div>
+            </div>
+          )}
           <div className="lpm-header">
             <h3>{lot.materialCategory?.name || '—'}</h3>
             <span className="lpm-lot-id">{lot.lotId}</span>
