@@ -268,3 +268,9 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+.photo-overlay.offline {
+  background: rgba(63, 81, 181, 0.55);
+  color: #fff;
+  font-size: 1.3rem;
+}

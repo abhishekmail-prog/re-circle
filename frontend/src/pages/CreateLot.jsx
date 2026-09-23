@@ -101,6 +101,15 @@ const CreateLot = () => {
     const results = await Promise.all(
       newPhotos.map(async (p) => {
         try {
+          // Offline: skip upload, mark as local (queued with lot)
+          if (!navigator.onLine) {
+            setPhotos((prev) =>
+              prev.map((x) =>
+                x.id === p.id ? { ...x, status: 'offline' } : x
+              )
+            )
+            return { id: p.id, category: null, confidence: 0 }
+          }
           const res = await aiApi.classify(p.file)
           setPhotos((prev) =>
             prev.map((x) =>
@@ -153,6 +162,26 @@ const CreateLot = () => {
 
     if (!formData.weightKg || parseFloat(formData.weightKg) <= 0) {
       alert(t('createLot.weightError'))
+      return
+    }
+
+    // Offline: skip the API call entirely, queue immediately
+    if (!navigator.onLine) {
+      const queuedData = {
+        materialCategoryName: formData.materialCategoryName,
+        description: formData.description || '',
+        weightKg: parseFloat(formData.weightKg),
+        condition: formData.condition,
+        sourceType: formData.sourceType,
+        collectionAddress: formData.collectionAddress || 'Mumbai, Maharashtra',
+        collectionLatitude: 19.076,
+        collectionLongitude: 72.8777,
+        imageUrl: null,
+        imageUrls: []
+      }
+      await addPendingAction({ type: 'CREATE_LOT', data: queuedData })
+      alert(t('createLot.offlineSuccess'))
+      navigate('/dashboard')
       return
     }
 
@@ -260,6 +289,11 @@ const CreateLot = () => {
                   {p.status === 'done' && (
                     <div className="photo-overlay done">
                       <FaCheck />
+                    </div>
+                  )}
+                  {p.status === 'offline' && (
+                    <div className="photo-overlay offline">
+                      <span title="Saved locally — will sync">📵</span>
                     </div>
                   )}
                   <button
@@ -424,7 +458,7 @@ const CreateLot = () => {
         <button
           type="submit"
           className="btn btn-primary btn-block btn-lg"
-          disabled={loading || doneCount === 0}
+          disabled={loading || photos.length === 0}
         >
           {loading ? t('createLot.creating') : t('createLot.create')}
         </button>
