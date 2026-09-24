@@ -83,20 +83,30 @@ export const OfflineProvider = ({ children }) => {
               for (const b64 of offlinePhotos) {
                 try {
                   const blob = await (await fetch(b64)).blob()
+                  console.log('[SYNC] photo blob:', blob.size, 'bytes, type:', blob.type)
                   const form = new FormData()
                   form.append('image', blob, 'offline.jpg')
                   const up = await api.post('/ai/classify', form, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                   })
+                  console.log('[SYNC] classify response:', up.data)
                   if (up.data?.imageUrl) urls.push(up.data.imageUrl)
+                  else console.warn('[SYNC] no imageUrl in classify response')
                 } catch (upErr) {
-                  console.warn('Offline photo upload failed:', upErr?.message)
+                  console.error('[SYNC] photo upload FAILED')
+                  console.error('[SYNC] message:', upErr?.message)
+                  console.error('[SYNC] status:', upErr?.response?.status)
+                  console.error('[SYNC] response body:', upErr?.response?.data)
+                  console.error('[SYNC] full error:', upErr)
+                  // Re-throw so outer catch keeps the action queued for retry
+                  throw new Error('Photo upload failed: ' + (upErr?.message || 'unknown'))
                 }
               }
-              if (urls.length > 0) {
-                cleanBody.imageUrl = urls[0]
-                cleanBody.imageUrls = urls
+              if (urls.length === 0) {
+                throw new Error('Sync aborted: no photo URLs produced')
               }
+              cleanBody.imageUrl = urls[0]
+              cleanBody.imageUrls = urls
             }
 
             const response = await api.post('/lots', cleanBody)
