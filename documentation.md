@@ -1,724 +1,576 @@
 # RE-CIRCLE — Complete Technical Documentation
 
-A vernacular, offline-tolerant web platform connecting India's informal e-waste
+A vernacular, offline-tolerant platform connecting India's informal e-waste
 collectors (kabadiwalas) to CPCB-authorized recyclers via reverse-auction bidding,
-QR-verified handovers, and a 7-language UI.
+QR-verified handovers, and a 7-language UI. Deployed as a PWA + Android APK.
+
+**Last updated:** 2026-09-24
+**Status:** Deployed, live, demo-ready
+
+**Live URLs:**
+- Frontend PWA: https://re-circle-psi.vercel.app
+- Backend API: https://re-circle-api.onrender.com
+- Health check: https://re-circle-api.onrender.com/health
+- Database: Render Postgres (Singapore region)
+- Android APK: built via PWABuilder from the Vercel URL
 
 ---
 
 ## 1. Executive Overview
 
-RE-CIRCLE is a full-stack web application that bridges the informal e-waste
-collection sector and India's formal EPR recycling chain.
+RE-CIRCLE bridges the informal e-waste collection sector and India's formal EPR
+recycling chain. ~90% of India's e-waste is collected by informal kabadiwalas who
+have no fair-price visibility, no authorized-recycler directory, and no documented
+handover trail. Material ends up in backyard processing — open-air cable burning,
+acid leaching — poisoning workers and losing rare earths.
 
-**The problem:** ~90% of India's e-waste is collected by informal kabadiwalas.
-They have no access to fair prices, no visibility into which recyclers are
-CPCB-authorized, and no documented handover trail. Material ends up in backyard
-processing — open-air cable burning, acid leaching of PCBs — poisoning workers
-and losing valuable rare earths.
-
-**What RE-CIRCLE does:**
-- Lets collectors photograph, categorize, and list e-waste as digital "lots"
-- Runs a reverse auction — recyclers bid per-kg, highest bid wins
-- Enforces a 24-hour auction window with auto-close, or collector can close early
-- Generates a QR code the recycler scans at physical handover
-- Records verified weight, final price, payment method (Cash / UPI / Bank Transfer)
-- Maintains an earnings ledger per collector
-- Speaks Hindi, Marathi, Tamil, Telugu, Kannada, Malayalam, English
-- Works offline — collector can create lots with no internet; syncs on reconnect
-
-**Intended users:** informal scrap collectors, licensed recyclers, platform admins.
-
----
+What RE-CIRCLE does:
+- Digital "lots" from photo + category + weight
+- Reverse auction — recyclers bid per-kg, highest wins
+- 24h auction window with auto-close, or collector closes early
+- QR handover: recycler scans at physical meetup
+- Verified weight + final price + payment method (Cash / UPI / Bank Transfer)
+- Earnings ledger per collector
+- 7 languages: en, hi, mr, ta, te, kn, ml
+- Offline-first: create lots with no internet, sync on reconnect
+- Installable PWA + Android APK
 
 ## 2. Problem Statement
 
-Formal statement: Design a vernacular, low-literacy, offline-tolerant mobile
-platform that enables informal scrap collectors to:
-- Discover fair prices
-- Connect directly with authorized recyclers
-- Complete a documented, traceable handover
-- Receive payment
+Design a vernacular, low-literacy, offline-tolerant platform enabling informal
+scrap collectors to (a) discover fair prices, (b) connect directly with authorized
+recyclers, (c) complete a documented, traceable handover, (d) receive payment.
 
-**What this software actually implements:**
-- Reverse auction for price discovery
-- Recycler matching by bid amount (with distance chip as informational signal)
-- QR-verified handover with weight + timestamp + status chain
-- Vernacular UI in 7 languages
-- Offline queue with auto-sync
+Implemented: reverse auction for price discovery, distance chip as matching signal,
+QR-verified handover with status chain, 7-language UI, offline queue with auto-sync.
 
-**What remains outside scope:**
-- Legal EPR filing on behalf of producers
-- Actual payment processing (records method, does not move money)
-- Real-time GPS tracking during transit
-- AI-based price prediction
-
----
+Out of scope: legal EPR filing, actual money movement, real-time GPS tracking,
+AI-based price prediction.
 
 ## 3. Project Objectives
 
-### Primary (implemented)
-- Enable collector to recycler transactions via auction
-- Provide price discovery through competitive bidding
-- Generate verifiable handover receipts via QR
-- Support Hindi + Marathi (+5 more)
-- Offline-first lot creation
+Primary (done):
+- Collector→recycler transactions via auction
+- Price discovery through competitive bidding
+- Verifiable handover receipts via QR
+- 7 languages (PS asked minimum 2)
+- Offline-first lot creation with photo
 
-### Secondary (implemented)
-- Role-based dashboards (collector, recycler, admin)
+Secondary (done):
+- 3-role dashboards (collector, recycler, admin)
 - Admin verification of recyclers
-- Photo upload + AI category suggestion
+- Photo upload + AI category suggestion (filename-based, demo mode)
 - Spoken price readout (browser TTS)
+- PWA install + Android APK
 
-### Future (planned, not implemented)
-- Real ML image classification (MobileNet v2 in-browser)
-- PWA install / native Android app
+Future (not done):
+- Real ML image classification (MobileNet v2)
 - Distance-based backend ranking of recyclers
-- Unit economics + field research documentation
-
----
+- Field research + unit economics docs
+- Cloudinary/S3 image storage
 
 ## 4. Target Users and Roles
 
-| Role | Purpose | Permissions | Main Features |
-|---|---|---|---|
-| COLLECTOR (kabadiwala) | Sell e-waste | Create lots, view own lots, accept bids, view earnings, copy QR, share via WhatsApp | Dashboard, CreateLot, Prices, Earnings, Safety, Profile, LotDetail |
-| RECYCLER | Buy e-waste | View open lots, place bids, scan QR, confirm handover, set payment method | Dashboard, Lots, Handovers, Spending, Profile |
-| ADMIN | Platform ops | View all users, verify recyclers, see platform stats | AdminDashboard, Users, Recyclers, Stats |
+| Role | Purpose | Main Features |
+|---|---|---|
+| COLLECTOR (kabadiwala) | Sell e-waste | CreateLot, LotDetail, Earnings, Safety, Dashboard, Profile |
+| RECYCLER | Buy e-waste | Lots, Handovers, Spending, Dashboard, Profile |
+| ADMIN | Platform ops | Stats, Users, Recyclers, Activity |
 
-Roles stored as User.role enum: COLLECTOR, RECYCLER, ADMIN.
-Access enforced by ProtectedRoute.jsx (frontend) + Spring Security (backend).
+Enforced by ProtectedRoute.jsx (allowedRoles prop) + Spring Security.
 
 ---
 
 ## 5. System Features
 
 ### 5.1 Authentication (JWT)
-Purpose: Issue 24h JWT tokens for stateless auth across 3 roles.
-Flow: POST /auth/login, verify BCrypt hash, issue JWT with role and sub claims.
+
+Purpose: 24h JWT tokens for 3 roles.
+Flow: POST /auth/login → BCrypt verify → JWT with sub(email) + role claims.
 Files: AuthController.java, AuthService.java, JwtUtil.java, JwtRequestFilter.java,
 AuthContext.jsx.
-Security: Passwords hashed with BCrypt. JWT signed HS256. Password field annotated
-@JsonIgnore so it never leaves the API.
+Security: BCrypt passwords, HS256 JWT, @JsonIgnore on User.password.
 
-### 5.2 Create Lot with Photo + AI Suggest
-Purpose: Collector uploads photo, gets suggested category, submits lot.
-Flow: Collector picks image, POST /ai/classify saves file to uploads/ returns
-/uploads/<ts>_<name> and a filename-based category hint. Indicative value shown:
-DEFAULT_PRICE_PER_KG[category] * weightKg. On submit, POST /lots with imageUrl,
-weight, category, location. Lot enters status BIDDING with auctionEndsAt = now + 24h.
-Validation: weight > 0; category must exist.
-Files: CreateLot.jsx, AIController.java, LotService.createLot, WebConfig.java.
-Note: AI classification is currently a filename heuristic, not real image analysis.
+### 5.2 Create Lot with Multi-Photo + AI Suggest
+
+Purpose: Collector uploads up to 10 photos, gets category hint, submits lot.
+Flow: Collector picks images → POST /ai/classify returns { suggestedCategory,
+confidence, imageUrl } where imageUrl is a base64 data URL. Indicative value shown:
+DEFAULT_PRICE_PER_KG[category] * weightKg * conditionMultiplier. On submit,
+POST /lots with imageUrl + imageUrls (newline-separated), weight, category.
+Lot enters BIDDING with auctionEndsAt = now + 24h.
+Validation: weight > 0, category exists, at least one photo.
+Files: CreateLot.jsx, ImageGallery.jsx, AIController.java, LotService.createLot.
+
+Important — image storage is base64 data URLs in Postgres:
+- Survives Render redeploys (free tier wipes /uploads/ on restart)
+- MaterialLot.imageUrl and imageUrls are TEXT columns
+- imageUrls uses NEWLINE separator (base64 contains commas)
+- Frontend ImageGallery splits on '\n', falls back to comma-split for legacy rows
+
+AI classification is a filename heuristic + demo mode flag, not visual analysis.
 
 ### 5.3 Reverse Auction
-Purpose: Multiple recyclers compete for the collector's lot.
-Flow: Recyclers see open lots on /recycler/lots and type rupee-per-kg bid. Frontend
-shows live total: x weightKg = total. POST /lots/{lotId}/bids saves Bid, moves lot
-to BIDDING, broadcasts on /topic/lots/{lotId}/bids. Collector sees live bids in
-BidPanel on LotDetail. Collector clicks Close Auction Now, POST /lots/{lotId}/close-auction.
-BidService.finalizeAuction picks top bid, sets winner ACCEPTED, others REJECTED, lot
-status to MATCHED with selectedRecycler, offeredPricePerKg, estimatedValue set.
-Auto-close: AuctionScheduler runs every 60s, finds lots past auctionEndsAt, calls
-finalizeAuction.
-Empty auction: If no bids, finalizeAuction deletes the lot and broadcasts LOT_DELETED.
+
+Purpose: Multiple recyclers compete per-kg for a lot.
+Flow: Recyclers see open lots on /recycler/lots, type ₹/kg bid. Frontend shows
+live total: amount × weightKg. POST /lots/{lotId}/bids saves Bid, moves lot to
+BIDDING, broadcasts on /topic/lots/{lotId}/bids. Strict-increase rule: backend
+rejects bids ≤ current highest.
+Collector sees live bids in BidPanel + LotPreviewModal. Close Auction Now →
+POST /lots/{lotId}/close-auction. BidService.finalizeAuction picks top bid →
+winner ACCEPTED, others REJECTED, lot → MATCHED with selectedRecycler set.
+Auto-close: AuctionScheduler runs every 60s, closes lots past auctionEndsAt.
+Empty auction: lot is deleted and LOT_DELETED broadcast.
+Batch summaries: POST /lots/bids-summary returns highest bid + bidder for many lots.
 Files: BidController.java, BidService.java, AuctionScheduler.java, Bid.java,
-BidPanel.jsx, RecyclerLots.jsx, AuctionTimer.jsx.
+BidPanel.jsx, RecyclerLots.jsx, AuctionTimer.jsx, LotPreviewModal.jsx.
 
 ### 5.4 QR Handover + Scan
+
 Purpose: Physical proof-of-receipt at handover.
-Flow: Collector views lot, Show QR Code, QR contains the lotId string. Recycler
-navigates to Handovers, clicks Scan Lot QR. QRScanner opens camera via html5-qrcode,
-extracts RC-YYYY-NNNNNN from decoded text. On match, opens confirm modal, recycler
-enters verified weight, final price, payment method. POST /lots/{lotId}/handover,
-status to PAID (or PAYMENT_PENDING), timestamps handoverAt + completedAt set.
-Fallback: Manual lot ID entry inside scanner modal.
+Flow: Collector views lot → Show QR (lotId encoded). Recycler → Handovers →
+Scan Lot QR (html5-qrcode camera) or manual entry. On match, recycler enters
+verified weight, final price, payment method (Cash / UPI / Bank Transfer).
+POST /lots/{lotId}/handover → status PAID or PAYMENT_PENDING.
+Live "Payment Received" banner appears on collector's LotDetail.
 Files: QRScanner.jsx, useScanner.js, ScanFAB.jsx, RecyclerHandovers.jsx,
 LotService.confirmHandover.
 
 ### 5.5 Live Updates (WebSocket)
-Purpose: Bid updates, lot status changes, notifications without page refresh.
-Topics: /topic/lots (global), /topic/lots/{lotId}/bids (per-lot bid feed).
-Files: WebSocketConfig.java, WebSocketContext.jsx (exposes client, connected,
-clientVersion).
 
-### 5.6 Offline Queue
-Purpose: Allow lot creation without internet.
-Flow: CreateLot detects network error, calls addPendingAction({type:'CREATE_LOT',
-data:lotData}). OfflineDB (localStorage-backed) persists queue. On online event or
-every 20s, autoSync iterates queue, POSTs each action, removes on success. New lot
-appears on Dashboard after syncDone counter bumps.
+Purpose: Bid updates, lot status changes, notifications without refresh.
+Topics: /topic/lots (global), /topic/lots/{lotId}/bids (per-lot).
+Files: WebSocketConfig.java (reads CORS_ALLOWED_ORIGINS env var),
+WebSocketContext.jsx (exposes client, connected, clientVersion).
+
+### 5.6 Offline Queue (localStorage)
+
+Purpose: Lot creation without internet.
+Flow: CreateLot detects network error → addPendingAction({ type: 'CREATE_LOT',
+data }). OfflineDB in services/db.js persists queue in localStorage (including
+base64 photos as data URLs).
+On 'online' event + every 20s sweep + visibilitychange: autoSync iterates queue.
+For CREATE_LOT: photos are already base64 — no /ai/classify round-trip. POST /lots
+directly. On success, action deleted + syncDone++ (triggers refetch in Dashboard).
+On failure: action stays queued for retry. Backend 500 aborts sync — no partial
+lot without photo.
 Files: services/db.js, OfflineContext.jsx.
 
 ### 5.7 Spoken Prices
-Purpose: Low-literacy access to price info.
-Implementation: On Prices page, Listen button calls window.speechSynthesis.speak
-with language-matched voice. Utterance text composed from SPEAK_LABELS[language].
-Files: Prices.jsx.
-Limitation: Depends on OS-installed TTS voices. On Fedora/Firefox without Indian
-voices, falls back to default voice.
 
-### 5.8 Admin Panel
+Purpose: Low-literacy access to price info.
+Implementation: Prices page Listen button → window.speechSynthesis.speak with
+language-matched voice. SPEAK_LABELS[language].
+Limitation: Depends on OS-installed TTS voices. On Linux without Indian voices,
+falls back to default.
+Note: Prices.jsx was removed from main nav; auction replaced it. Spoken price
+still available.
+
+### 5.8 PWA + Android APK
+
+Manifest: frontend/public/manifest.webmanifest (name, icons 192/512/maskable,
+theme, display=standalone).
+Service worker: frontend/public/sw.js — cache-first for assets.
+InstallPrompt.jsx: banner prompting "Add to Home Screen".
+Registered in main.jsx on load.
+APK: built via PWABuilder.com from the Vercel URL. Installable on Android.
+
+### 5.9 Admin Panel
+
 Purpose: Platform ops.
 Features: Real stats (collector count, recycler count, lot count, paid total,
 pending verifications), user list, recycler list, recent activity (last 5 lots).
 Files: AdminController.java, AdminDashboard.jsx.
 
----
+### 5.10 Mobile Layout
 
-## 6. Complete System Workflow
-
-Collector logs in, receives JWT. Creates lot with photo. Lot enters BIDDING with
-24h timer. Recyclers see lot, place bids. WebSocket pushes bids live to collector.
-Collector closes auction manually or scheduler closes at expiry. Top bid wins, lot
-becomes MATCHED with winner assigned. Physical meetup happens. Recycler scans QR,
-submits verified weight + final price + payment method. Lot becomes PAID. Collector
-earnings update.
+Top bar: online/bell/language/logout.
+Bottom nav: 5 icons (Home, CreateLot, Earnings/Lots, Handovers, Profile).
+Responsive CSS in styles/mobile-fix.css. AutoFitNumber component for long ₹ values.
+Files: Navbar.jsx, Layout.jsx, mobile-fix.css, AutoFitNumber.jsx.
 
 ---
+
+## 6. Complete Workflow
+
+Collector logs in (JWT) → Create Lot with photo → BIDDING with 24h timer →
+Recyclers see lot (WS live), place bids → Collector sees bids live → Collector
+closes auction or scheduler auto-closes → Top bid wins → MATCHED with winner set
+→ Physical meetup → Recycler scans QR → submits verified weight + final price +
+payment method → PAID → Collector earnings update.
 
 ## 7. High-Level Architecture
 
-Three-tier: React SPA on localhost:5173, Spring Boot API on localhost:8080,
-PostgreSQL on localhost:5432. Browser talks to backend via REST + JWT for CRUD and
-STOMP over SockJS for WebSocket live updates. Backend writes uploaded images to
-backend/uploads/ and serves them at /uploads/**. No external services or cloud
-dependencies at runtime.
+Three-tier + CDN:
+- Frontend: React SPA on Vercel (global CDN)
+- Backend: Spring Boot REST/STOMP on Render (Docker, Singapore)
+- Database: PostgreSQL on Render
+- Images: base64 data URLs stored in Postgres (no filesystem dependency)
 
----
+Local dev mirrors this: Vite on :5173, Spring Boot on :8080, Postgres on :5432.
 
 ## 8. Technology Stack
 
-| Layer | Technology | Version | Purpose |
-|---|---|---|---|
-| Frontend | React | 18 | UI |
-| Build | Vite | 5.4 | Dev server + bundler |
-| Language | JavaScript | ES2022 | No TypeScript |
-| i18n | Custom hook | - | 7-language dictionary |
-| QR generate | qrcode.react | 3.1 | Canvas QR rendering |
-| QR scan | html5-qrcode | latest | Camera scan |
-| WS client | @stomp/stompjs + sockjs-client | - | Live updates |
-| Backend | Spring Boot | 3.2.0 | REST + WS server |
-| Language | Java | 21 Temurin | - |
-| Security | Spring Security + jjwt | 6.2 / 0.11.5 | JWT auth |
-| ORM | Spring Data JPA + Hibernate | 3.2 / 6.3.1 | Entity mapping |
-| DB | PostgreSQL | 16+ | Persistent storage |
-| Build | Maven | 3.9.11 | Backend build |
-| Auth | BCrypt + HS256 JWT | - | Password + token |
-
----
+| Layer | Tech | Version |
+|---|---|---|
+| Frontend | React | 18 |
+| Build | Vite | 5.4 |
+| Language | JavaScript | ES2022 |
+| i18n | Custom hook | - |
+| QR generate | qrcode.react | 3.1 |
+| QR scan | html5-qrcode | latest |
+| WS client | @stomp/stompjs + sockjs-client | - |
+| Backend | Spring Boot | 3.2.0 |
+| Language | Java | 21 Temurin |
+| Security | Spring Security + jjwt | 6.2 / 0.11.5 |
+| ORM | Spring Data JPA + Hibernate | 3.2 / 6.3.1 |
+| DB | PostgreSQL | 16 |
+| Build | Maven | 3.9.11 |
+| Container | Docker (multi-stage) | - |
+| Frontend host | Vercel | - |
+| Backend host | Render | - |
+| APK builder | PWABuilder.com | - |
 
 ## 9. Repository Structure
 
-~/projects/re-circle/
-- DATASETS.md
-- documentation.md
-- backend/
-  - pom.xml
-  - uploads/                      served at /uploads/**
-  - src/main/java/com/recircle/
-    - RecircleApplication.java    @EnableScheduling
-    - config/                     WebConfig, WebSocketConfig
-    - controller/                 13 controllers
-    - dto/                        AuthRequest, CreateLotRequest, BidRequest
-    - entity/                     User, MaterialLot, Recycler, Bid
-    - repository/                 8 repos
-    - scheduler/                  AuctionScheduler
-    - security/                   SecurityConfig, JwtRequestFilter, JwtUtil
-    - service/                    AuthService, BidService, LotService
-- frontend/
-  - src/
-    - api/                        axios, bids, lots, ai, prices, recyclers
-    - components/common/          BidPanel, QRScanner, ScanFAB, AuctionTimer, CopyButton
-    - components/layout/          Layout, Navbar
-    - context/                    Auth, Language, WebSocket, Offline
-    - hooks/                      useScanner, useTranslation
-    - pages/                      CreateLot, Dashboard, LotDetail, ...
-      - admin/AdminDashboard.jsx
-      - recycler/                 RecyclerDashboard, RecyclerLots, RecyclerHandovers
-    - services/db.js              offline queue
-    - translations/index.js       7 languages
+Two dev machines, same repo:
+- User's Mint laptop: ~/projects/re-circle
+- Friend's Fedora laptop: ~/re-circle
 
----
+Key directories:
+- backend/Dockerfile (multi-stage: maven → temurin-jre-alpine)
+- backend/src/main/java/com/recircle/
+  - config/ (WebConfig, WebSocketConfig, DatabaseConfig, DataSeeder)
+  - controller/ (13 controllers)
+  - dto/, entity/, repository/, scheduler/, security/, service/
+- frontend/public/ (manifest.webmanifest, sw.js, icons)
+- frontend/src/
+  - config.js (API_URL, WS_URL from VITE_* env vars)
+  - ai/, api/, components/common/, components/layout/, context/, hooks/,
+    pages/ (incl. admin/, recycler/), services/, styles/, translations/
 
 ## 10. Frontend Architecture
 
-Router: React Router v6, App.jsx defines routes + role guards.
-Auth context: AuthContext.jsx holds user, isAuthenticated, login, logout. JWT in
-localStorage.
-Language context: LanguageContext.jsx whitelists en, hi, mr, ta, te, kn, ml.
-WebSocket context: exposes client, connected, clientVersion. Value memoized so
-consumers do not re-render on every notification.
-Offline context: exposes isOnline, pendingSyncCount, syncDone, addPendingAction,
-syncNow.
-Protected route: <ProtectedRoute allowedRoles={['RECYCLER']}> redirects if role
-mismatches.
-API layer: axios.js adds JWT header on every request. bids.js, lots.js, ai.js
-wrap specific endpoints.
-
----
+- Router: React Router v6, guards in App.jsx
+- AuthContext: user, isAuthenticated, login, logout, JWT in localStorage
+- LanguageContext: whitelist en/hi/mr/ta/te/kn/ml
+- WebSocketContext: client, connected, clientVersion
+- OfflineContext: isOnline, pendingSyncCount, syncDone, addPendingAction, syncNow
+- ProtectedRoute: allowedRoles prop
+- axios.js: adds Authorization header, uses config.API_URL
+- config.js: reads VITE_API_URL / VITE_WS_URL (baked at build time)
 
 ## 11. Backend Architecture
 
 Request lifecycle:
-HTTP -> JwtRequestFilter -> SecurityConfig (authorize rules) -> Controller ->
-Service -> Repository (JPA) -> PostgreSQL -> DTO/entity -> JSON via Jackson ->
-response.
+HTTP → JwtRequestFilter → SecurityConfig → Controller → Service → Repository
+(JPA) → Postgres → DTO/entity → Jackson → JSON.
 
-All controllers under com.recircle.controller.
-Business logic in com.recircle.service.
-JPA repositories in com.recircle.repository.
-Scheduled task: AuctionScheduler.closeExpiredAuctions() every 60s.
-WebSocket broadcast via SimpMessagingTemplate to /topic/*.
-
----
+DatabaseConfig.java: parses Render's postgres:// URL into a JDBC URL.
+WebSocketConfig.java: reads origins from app.cors.allowed-origins (env var).
+AuctionScheduler: @Scheduled every 60s.
 
 ## 12. API Documentation
 
-### Auth
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | /auth/login | none | Issue JWT |
-| POST | /auth/register | none | Register user |
+Auth:
+- POST /auth/login — issue JWT
+- POST /auth/register
 
-### Lots
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | /lots | COLLECTOR | Create lot (enters BIDDING) |
-| GET | /lots | any | List all lots |
-| GET | /lots/my | COLLECTOR | Collector's own lots |
-| GET | /lots/{id} | any | Get by lotId |
-| GET | /lots/lot/{lotId} | any | Get by lotId alias |
-| GET | /lots/recycler/pending-handovers | RECYCLER | Assigned lots |
-| POST | /lots/{lotId}/close-auction | COLLECTOR | Early close |
-| POST | /lots/{lotId}/handover | RECYCLER | Confirm handover |
+Lots:
+- POST /lots — create
+- GET /lots — list
+- GET /lots/my — collector's own
+- GET /lots/{id} — by lotId
+- GET /lots/recycler/pending-handovers
+- POST /lots/{lotId}/close-auction
+- POST /lots/{lotId}/handover
+- POST /lots/bids-summary — batch summaries for open lots
 
-### Bids
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | /lots/{lotId}/bids | RECYCLER | Place bid |
-| GET | /lots/{lotId}/bids | any | List bids |
-| POST | /lots/{lotId}/bids/{bidId}/accept | COLLECTOR | Accept manually |
+Bids:
+- POST /lots/{lotId}/bids
+- GET /lots/{lotId}/bids
+- POST /lots/{lotId}/bids/{bidId}/accept
 
-### Admin
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| GET | /admin/stats | ADMIN | Platform stats |
-| GET | /admin/users | ADMIN | User list |
-| GET | /admin/recyclers | ADMIN | Recycler list |
-| GET | /admin/activity/recent | ADMIN | Recent 5 lots |
-| PUT | /admin/recyclers/{id}/verify | ADMIN | Mark authorized |
+Admin:
+- GET /admin/stats, /admin/users, /admin/recyclers, /admin/activity/recent
+- PUT /admin/recyclers/{id}/verify
 
-### AI and Files
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | /ai/classify | any | Upload image, get category hint |
-| GET | /uploads/** | public | Serve uploaded images |
+AI / files:
+- POST /ai/classify — returns base64 data URL + category hint
 
-### Earnings
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| GET | /earnings/summary | COLLECTOR | Aggregated stats |
-| GET | /earnings/transactions?period= | COLLECTOR | Filtered tx list |
+Earnings:
+- GET /earnings/summary
+- GET /earnings/transactions?period=
 
-### Misc
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| GET | /health | none | Liveness |
-| GET | /prices?category= | any | Price lookup |
+Misc:
+- GET /health
+- GET /prices?category=
 
 ---
 
 ## 13. Database Architecture
 
-Tables (from entities):
-- users: id, email, password (bcrypt), full_name, phone_number, role, enabled,
-  created_at
-- material_lots: id, lot_id, collector_id, material_category_id, recycler_id,
-  image_url, description, weight_kg, verified_weight_kg, condition, source_type,
-  collection_lat/lng/address, offered_price_per_kg, final_price_per_kg,
-  estimated_value, final_value, transport_cost, net_earnings, status,
-  payment_method, qr_code_data, auction_ends_at, created_at, updated_at,
-  handover_at, completed_at, is_synced
-- material_categories: id, name, description, default_price_per_kg, active,
-  safety_guidance
-- recyclers: id, user_id, company_name, facility_address, lat, lng,
-  authorization_number, authorized, contact_person, contact_phone,
-  pickup_available, service_area, service_radius_km, is_active, created_at,
-  updated_at
-- bids: id, lot_id, recycler_id, amount_per_kg, total_amount, status, created_at,
-  updated_at
-- recycler_offers: id, recycler_id, material_category_id, price_per_kg,
-  min_weight_kg, max_weight_kg, is_active
-- price_records: historical price snapshots
-- collector_profiles: additional collector data
+Tables: users, material_lots, material_categories, recyclers, bids,
+recycler_offers, price_records, collector_profiles.
 
-Relationships:
-- users 1:N material_lots (as collector)
-- recyclers 1:1 users
-- material_lots N:1 material_categories
-- material_lots N:1 recyclers (selected recycler)
-- material_lots 1:N bids
-- recyclers 1:N bids
-- recyclers 1:N recycler_offers
+Key columns on material_lots:
+- image_url TEXT (was VARCHAR(255) — base64 needs TEXT)
+- image_urls TEXT (newline-separated list of base64 data URLs)
+- status CHECK includes 10 values (see section 8 in handoff)
+- payment_method VARCHAR(20) (CASH / UPI / BANK_TRANSFER)
+- auction_ends_at TIMESTAMP
 
 Critical constraint:
 CHECK (status IN ('CREATED','BIDDING','MATCHED','PICKUP_SCHEDULED','IN_TRANSIT',
                   'HANDED_OVER','RECEIVED','PAYMENT_PENDING','PAID','COMPLETED'))
 
----
+## 14. Data Models (MaterialLot excerpt)
 
-## 14. Data Models
-
-### User
-| Field | Type | Required | Description |
-|---|---|---|---|
-| id | UUID | yes | PK |
-| email | String | yes | Unique login |
-| password | String | yes | BCrypt hash (@JsonIgnore) |
-| fullName | String | yes | Display |
-| phoneNumber | String | no | Contact |
-| role | enum | yes | COLLECTOR / RECYCLER / ADMIN |
-| enabled | boolean | yes | Account active |
-| createdAt | LocalDateTime | auto | - |
-
-### MaterialLot
-Full field list in section 13.
-
-### Bid
-| Field | Type | Required |
+| Field | Type | Notes |
 |---|---|---|
-| id | UUID | yes |
-| lot | FK | yes (@JsonIgnore serialization) |
-| recycler | FK | yes |
-| amountPerKg | Double | yes |
-| totalAmount | Double | yes |
-| status | PENDING / ACCEPTED / REJECTED | yes |
-| createdAt | LocalDateTime | auto |
+| id | UUID | PK |
+| lotId | String | RC-YYYY-NNNNNN format |
+| imageUrl | TEXT | base64 data URL or path |
+| imageUrls | TEXT | newline-separated base64 data URLs |
+| weightKg | Double | > 0 |
+| condition | enum | GOOD / MIXED / DAMAGED |
+| status | enum | 10-value state machine |
+| auctionEndsAt | LocalDateTime | now + 24h on create |
+| paymentMethod | String | Cash / UPI / Bank Transfer |
 
----
+Full field list in section 13 of source.
 
 ## 15. Authentication and Authorization
 
-Implemented:
 - BCrypt password hashing
-- JWT tokens, HS256 signed, 24h expiry, carry sub (email) + role
-- JwtRequestFilter reads Authorization: Bearer <token>, validates, sets
-  SecurityContextHolder
-- SecurityConfig rules: /auth/**, /ws/**, /health, /error, /uploads/** permitAll;
-  OPTIONS /** permitAll; everything else authenticated
-- Frontend: ProtectedRoute with allowedRoles prop, redirects to role home
-- Frontend: axios.js interceptor adds Authorization header
+- JWT HS256, 24h expiry
+- JwtRequestFilter reads Bearer token
+- SecurityConfig: /auth/**, /ws/**, /health, /error, /uploads/** permitAll;
+  OPTIONS /** permitAll; rest authenticated
+- ProtectedRoute + axios interceptor on frontend
 
-Limitations:
-- No refresh tokens (re-login after 24h)
-- No token revocation list (logout is client-side localStorage.clear())
-- No rate limiting on login
-- localStorage shared across tabs of same origin (demo issue)
-- CORS enabled for localhost origins only
-
----
+Limitations: no refresh tokens, no revocation, no rate limit on login,
+localStorage shared across tabs (demo constraint).
 
 ## 16. Security Architecture
 
-| Concern | Status | Notes |
-|---|---|---|
-| Password hashing | Implemented | BCrypt |
-| JWT auth | Implemented | HS256, 24h |
-| Password in JSON | Implemented | @JsonIgnore on User.password |
-| SQL injection | Prevented | JPA parameterized queries |
-| CORS | Implemented | Origin patterns whitelist |
-| CSRF | Disabled | Stateless JWT |
-| XSS | Partial | React escapes by default |
-| Input validation | Partial | Basic weight/amount checks |
-| Rate limiting | Not implemented | - |
-| Secrets management | Not implemented | JWT secret in application.properties |
-| File upload safety | Partial | MIME check only |
-| Role escalation | Partial | Register accepts role from client |
-
----
+| Concern | Status |
+|---|---|
+| Password hashing | BCrypt |
+| JWT auth | HS256, 24h |
+| Password in JSON | @JsonIgnore |
+| SQL injection | JPA parameterized |
+| CORS | Env-var allowlist (Vercel + localhost) |
+| CSRF | Disabled (stateless) |
+| XSS | React escaping |
+| Rate limiting | NOT IMPLEMENTED |
+| Secrets | Render env vars (JWT_SECRET, DATABASE_URL, CORS_ALLOWED_ORIGINS) |
+| File upload | MIME check + size cap 10MB |
 
 ## 17. Error Handling
 
-Frontend:
-- Axios interceptor logs responses and errors
-- Pages wrap fetches in try/catch, set error state
-- No React error boundary (recommended addition)
-
-Backend:
-- Controllers catch Exception and return ResponseEntity.badRequest with error map
-- JWT failures return 401 via Spring Security default
-- Role failures return 403
-- Constraint violations return 500
-- No global @ControllerAdvice
-
----
+Frontend: axios interceptor logs; pages wrap in try/catch.
+Backend: controllers return ResponseEntity; no global @ControllerAdvice.
+Known: Render free tier returns 503 during cold start (15 min idle → sleep).
+Fix in app: offline queue retries on next 20s sweep.
 
 ## 18. Validation
 
 | Field | Rule | Where |
 |---|---|---|
-| weightKg | > 0 | Frontend + backend |
-| amountPerKg (bid) | > 0 | BidService.placeBid |
-| materialCategoryName | must exist in material_categories | Backend |
-| paymentStatus | PAID / PAYMENT_PENDING | Backend default |
-| paymentMethod | CASH / UPI / BANK_TRANSFER | Backend default CASH |
+| weightKg | > 0 | Front + back |
+| amountPerKg (bid) | > current highest | BidService |
+| materialCategoryName | must exist | LotService |
 | verifiedWeight | > 0 | confirmHandover |
 | finalPrice | > 0 | confirmHandover |
-| auction open state | lot.status in {CREATED, BIDDING} | Backend |
+| auction open | status in {CREATED, BIDDING} | BidService |
 
----
+## 19. Configuration
 
-## 19. Configuration and Environment Variables
-
-application.properties (backend):
+Local application.properties (backend):
 - server.port=8080
 - spring.datasource.url=jdbc:postgresql://localhost:5432/recircle_db
-- spring.datasource.username=postgres
-- spring.datasource.password=<your-db-password>
+- jwt.secret=<local>
 - spring.jpa.hibernate.ddl-auto=update
-- jwt.secret=<your-jwt-secret>
-- jwt.expiration=86400000
-- spring.servlet.multipart.max-file-size=10MB
-- spring.servlet.multipart.max-request-size=10MB
 
-Frontend: axios.js hardcodes http://localhost:8080. No .env file used.
+Render env vars:
+- DATABASE_URL (parsed by DatabaseConfig.java)
+- JWT_SECRET
+- CORS_ALLOWED_ORIGINS=https://re-circle-psi.vercel.app,http://localhost:5173,...
+
+Vercel env vars:
+- VITE_API_URL=https://re-circle-api.onrender.com
+- VITE_WS_URL=https://re-circle-api.onrender.com
 
 ---
 
 ## 20. Local Development Setup
 
-1. Clone
-git clone https://github.com/abhishekmail-prog/re-circle.git
-cd re-circle
+Prereqs: Java 21, Maven 3.9+, Node 20+, PostgreSQL 16+.
 
-2. PostgreSQL
-sudo systemctl start postgresql
-sudo -i -u postgres psql
-  CREATE DATABASE recircle_db;
-  ALTER USER postgres WITH PASSWORD 'Recircle@2024';
-  \q
+Backend:
+  cd ~/re-circle/backend  (or ~/projects/re-circle/backend)
+  mvn clean install -DskipTests
+  mvn spring-boot:run
+  # Wait for: Started RecircleApplication in XX seconds
 
-3. Fix status constraint
-sudo -i -u postgres psql recircle_db -c "
-  ALTER TABLE material_lots DROP CONSTRAINT IF EXISTS material_lots_status_check;
-  ALTER TABLE material_lots ADD CONSTRAINT material_lots_status_check
-    CHECK (status IN ('CREATED','BIDDING','MATCHED','PICKUP_SCHEDULED','IN_TRANSIT',
-                      'HANDED_OVER','RECEIVED','PAYMENT_PENDING','PAID','COMPLETED'));
-"
+Frontend:
+  cd ~/re-circle/frontend
+  npm install
+  npm run dev
+  # http://localhost:5173
 
-4. Extra columns
-sudo -i -u postgres psql recircle_db -c "
-  ALTER TABLE material_lots ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20);
-  ALTER TABLE material_lots ADD COLUMN IF NOT EXISTS auction_ends_at TIMESTAMP;
-"
+Postgres: sudo systemctl start postgresql
 
-5. Backend
-cd backend
-mvn clean install -DskipTests
-mvn spring-boot:run
+Demo logins (all password listed):
+- admin@recircle.demo / Admin@123
+- collector@recircle.demo / Collector@123
+- recycler@recircle.demo / Recycler@123
+- 6 test recyclers + 6 test collectors / 12345678
 
-6. Frontend (new terminal)
-cd ../frontend
-npm install
-npm run dev
-
-7. Login at http://localhost:5173
-collector@recircle.demo / Collector@123
-recycler@recircle.demo  / Recycler@123
-admin@recircle.demo     / Admin@123
-
-Prerequisites: Java 21, Maven 3.9+, Node 20+, PostgreSQL 16+.
-
----
+Test accounts created by DataSeeder.seedTestAccounts() idempotently on every boot.
 
 ## 21. Deployment
 
-Current state: Not deployed. Runs on localhost only. Earlier attempts at Railway,
-Render, Koyeb, Fly.io failed (documented in session handoff).
+Frontend — Vercel:
+- Import GitHub repo, Root Directory: frontend, Framework: Vite
+- Build: npm run build
+- Env vars: VITE_API_URL + VITE_WS_URL (both = backend URL)
+- Auto-deploys on push to master
 
-Future: Backend to Render/Fly.io with managed Postgres. Frontend to Vercel/Netlify.
-Requires refactoring axios.js to use import.meta.env.VITE_API_BASE_URL.
+Backend — Render:
+- Web Service, Root Directory: backend, Runtime: Docker
+- Env vars: DATABASE_URL, JWT_SECRET, CORS_ALLOWED_ORIGINS
+- Auto-deploys on push to master
+- Free tier: sleeps after 15 min idle; cold start ~30-60s
 
----
+Database — Render Postgres:
+- Free tier, no backups
+- Connection: use External URL from Render dashboard
+- ALTER via psql on local machine (see section 24 troubleshooting)
+
+APK — PWABuilder:
+- Feed https://re-circle-psi.vercel.app → build → download APK
+- Rebuild after each frontend change (baked bundle)
 
 ## 22. Testing
 
-Current state: No automated tests exist.
-- No JUnit tests in backend
-- No Vitest/Jest tests in frontend
-- No integration suite
-- Manual testing only
-
-Known gap expected for hackathon project. Should be listed as technical debt.
-
----
+No automated tests. Manual verification only.
+Technical debt — should be listed for v2.
 
 ## 23. Performance Considerations
 
-Implemented:
-- WebSocket broadcast for real-time updates (no polling)
-- Repository queries use Spring Data derived queries
-- @JsonIgnore on bidirectional relationships prevents Jackson recursion
-- Frontend avoids fan-out API calls (RecyclerLots fixed from 32 calls to 1)
+Implemented: WebSocket broadcasts, batch /lots/bids-summary, silent background
+polls in RecyclerLots (no more blink), @JsonIgnore preventing recursion.
 
-Potential bottlenecks:
-- findAll() on lots in AdminController (no pagination)
-- No caching layer
-- Bid list not paginated
-- WebSocket broadcasts go to all subscribers
-
----
+Bottlenecks: findAll() on admin, no pagination, no caching, base64 images
+inflate payloads (acceptable for demo).
 
 ## 24. Scalability
 
-Current: Single-instance Spring Boot + single Postgres. Fine for demo, not scale.
+Current: single-instance Spring Boot + single Postgres. Fine for demo.
+Production would need: broker (RabbitMQ), object storage (S3/Cloudinary),
+CDN for uploads, read replicas, horizontal scaling (JWT already stateless).
 
-Would need for production:
-- Horizontal scaling: JWT already stateless
-- Message broker (RabbitMQ / Kafka) instead of in-memory STOMP
-- Redis for caching
-- Object storage (S3) instead of local uploads/
-- Read replicas for Postgres
-- CDN for frontend assets
+## 25. Reliability
 
----
-
-## 25. Reliability and Fault Tolerance
-
-- No retry on external calls (no external calls)
 - Offline queue provides resilience for lot creation
-- WebSocket reconnect with 5s delay
-- @Transactional on services rolls back on exception
-- No circuit breakers (no external deps)
-
----
+- WebSocket auto-reconnect ~5s
+- @Transactional on services rolls back on failure
+- Render cold start (503) → offline queue retries
 
 ## 26. Business Logic
 
-Collector creates lot, enters BIDDING, gets 24h timer.
-Collector receives bids via WebSocket.
-Collector closes auction (manual or auto), lot becomes MATCHED with winner set.
-Recycler meets collector physically.
-Recycler scans QR (proof of receipt).
-Recycler submits verified weight + final price + payment method.
-Lot becomes PAID (or PAYMENT_PENDING).
-Collector earnings ledger updates.
+Lot lifecycle: CREATED → BIDDING → MATCHED → HANDED_OVER → PAID (or
+PAYMENT_PENDING → PAID) → COMPLETED.
 
-Key rule: Earnings only count PAID/COMPLETED lots. MATCHED lots show as pending.
+Key rule: Earnings only count PAID/COMPLETED lots. MATCHED shows as pending.
 
 ---
 
 ## 27. EPR / Regulatory Context
 
-RE-CIRCLE is not an EPR compliance tool. It is a channel that could feed one.
-
-- The E-Waste (Management) Rules, 2022 require producers to fund formal recycling
-  via EPR certificates.
-- CPCB-authorized recyclers issue those certificates.
-- RE-CIRCLE provides the traceability chain (QR + timestamp + status) that could be
-  used to justify EPR credits. No formal EPR filing or certificate generation is
-  implemented.
-
----
+RE-CIRCLE is not an EPR compliance tool — it's a channel that could feed one.
+E-Waste (Management) Rules 2022 require producers to fund formal recycling via
+EPR certificates. CPCB-authorized recyclers issue certificates. RE-CIRCLE
+provides the traceability chain (QR + timestamp + status) that could justify
+EPR credits. No formal EPR filing is implemented.
 
 ## 28. User Journey
 
-Collector: Open app, login, Dashboard, Create Lot (photo + category + weight),
-LotDetail shows timer + live bids + QR section, Close Auction, lot becomes MATCHED,
-meet recycler, show QR, earnings updates after payment.
+Collector: Login → Dashboard → Create Lot (multi-photo) → LotDetail shows timer
++ live bids + QR → Close Auction → MATCHED → meet recycler → show QR → Earnings
+updates when PAID.
 
-Recycler: Login, Dashboard, Lots page shows open lots, type rupee-per-kg, live total
-shown, Place Bid. WebSocket pushes bid to collector. Auction closes, lot appears in
-My Matched Lots. Handovers page, Scan QR or manual entry, confirm weight/price/method.
-Spending page shows transaction.
+Recycler: Login → Dashboard → Lots page → bid ₹/kg → live total → auction closes
+→ My Matched Lots → Handovers → scan QR → confirm weight/price/method → Spending.
 
-Admin: Login, Admin Dashboard, Stats shows collector count, recycler count, lot count,
-total paid. Users tab lists all users. Recyclers tab verify/delete. Stats tab same as
-Dashboard.
+Admin: Login → Stats / Users / Recyclers.
 
----
+## 29. Sequence — Bid and Accept
 
-## 29. Sequence Diagram - Bid and Accept
+Recycler types bid → POST /lots/{lotId}/bids → BidService.placeBid saves Bid,
+updates lot to BIDDING, broadcasts /topic/lots/{lotId}/bids → frontend receives
+200 → WS pushes live bid to collector's BidPanel.
 
-Recycler types bid in frontend. Frontend POSTs to /lots/{lotId}/bids. BidController
-calls BidService.placeBid. Service saves Bid (PENDING), updates lot to BIDDING,
-broadcasts to /topic/lots/{lotId}/bids. Frontend receives 200. WebSocket pushes live
-bid to collector view.
+## 30. Lot State Machine
 
----
+CREATED → BIDDING (first bid or create)
+BIDDING → MATCHED (closeAuction with winner)
+BIDDING → deleted (closeAuction with no bids)
+MATCHED → HANDED_OVER → PAID (confirmHandover)
+MATCHED → PAYMENT_PENDING → PAID (deferred)
+PAID → COMPLETED (manual)
 
-## 30. State / Lifecycle Diagram (MaterialLot)
-
-CREATED (createLot before BIDDING)
-BIDDING (first bid OR create)
-MATCHED (closeAuction with winner)
-deleted (closeAuction with no bids)
-HANDED_OVER (implicit at handover)
-PAID (confirmHandover PAID)
-PAYMENT_PENDING (confirmHandover PENDING)
-PAID (later, from PAYMENT_PENDING)
-COMPLETED (manual)
-
-Only CREATED to BIDDING to MATCHED to PAID/PAYMENT_PENDING transitions are actually
-exercised by the current UI.
-
----
+Currently exercised: CREATED → BIDDING → MATCHED → PAID.
 
 ## 31. Business Rules
 
-| Rule | Where enforced |
+| Rule | Where |
 |---|---|
-| Weight must be > 0 | CreateLot.jsx, LotService |
-| Category must exist | LotService.createLot |
-| Only collector can close their own auction | BidService.closeAuction |
-| Only recycler can place a bid | SecurityConfig role check |
-| Bid after auctionEndsAt rejected | BidService.placeBid |
-| Only assigned recycler can confirm handover | LotService.confirmHandover |
-| Earnings count only PAID/COMPLETED | Earnings.jsx filter |
-| Auction auto-closes at auctionEndsAt | AuctionScheduler (60s) |
+| Weight > 0 | CreateLot.jsx + LotService |
+| Category must exist | LotService |
+| Bid > current highest | BidService.placeBid |
+| Only owning collector closes auction | BidService.closeAuction |
+| Only recycler bids | SecurityConfig |
+| Only assigned recycler confirms handover | LotService.confirmHandover |
+| Earnings count only PAID/COMPLETED | Earnings.jsx |
 | Empty auctions delete the lot | BidService.finalizeAuction |
-
----
 
 ## 32. Algorithms
 
-Haversine distance (frontend BidPanel.jsx):
-- Input: lot lat/lng, recycler lat/lng
-- Output: km (rounded int)
-- Used for distance chip on bid rows
+Haversine distance (BidPanel.jsx): lot lat/lng → recycler lat/lng → km (int).
+Used for distance chip on bid rows.
 
-Auction winner selection (BidService.finalizeAuction):
-- Query bids by lot, sorted by amountPerKg DESC
-- Take top, set ACCEPTED, others REJECTED
+Auction winner (BidService.finalizeAuction): top by amountPerKg DESC → ACCEPTED,
+others REJECTED.
 
----
+Image separator fix: imageUrls uses '\n' not ',' because base64 payloads contain
+commas. Frontend ImageGallery splits on '\n', falls back to ',' for legacy rows.
 
 ## 33. Third-Party Services
 
-Current: None. Everything runs on localhost.
-
-TensorFlow.js CDN was planned but not yet integrated.
-
----
+Runtime: none (all on Render/Vercel/PWABuilder).
+Dev: none.
+Planned: TF.js MobileNet v2 via CDN; Cloudinary for image storage.
 
 ## 34. Logging and Monitoring
 
-- Backend: SLF4J via Logback, default Spring Boot levels
-- Frontend: console.log / console.error for API + WebSocket events
-- No structured logs, no Sentry, no metrics endpoint beyond /health
-
----
+Backend: SLF4J/Logback default levels.
+Frontend: console.log/error for API + WS + sync events.
+No structured logs, no Sentry, only /health for liveness.
+Render logs viewable in dashboard.
 
 ## 35. Privacy and Data Handling
 
-| Data | Where stored | Notes |
-|---|---|---|
-| Email, name, phone | users table | PII |
-| Password | users table | BCrypt hash only |
-| Lot details | material_lots | Includes lat/lng of collection |
-| Images | backend/uploads/ | Local disk |
-| JWT | Browser localStorage | - |
+| Data | Where |
+|---|---|
+| Email, name, phone | users table |
+| Password | BCrypt hash only |
+| Lot details | material_lots |
+| Images | material_lots.image_url(s) as base64 TEXT |
+| JWT | Browser localStorage |
 
 Not collected: Aadhaar, PAN, bank details, device IDs.
 
@@ -727,110 +579,96 @@ Not collected: Aadhaar, PAN, bank details, device IDs.
 ## 36. Known Limitations
 
 - No automated tests
-- No CI/CD
-- No deployment
-- AI classification is filename-based, not visual
+- No CI/CD (Render + Vercel auto-deploy on push, but no test gate)
+- AI classification is filename heuristic
 - No rate limiting
-- No HTTPS (localhost only)
-- No pagination on most list endpoints
-- No PWA / installable app
-- No field research or unit economics documented
-- Two-tab same-browser identity collision (localStorage)
-- Tamil/Telugu/Kannada/Malayalam safety strings fall back to English
+- Render free tier: 503 on cold start, no backups, ephemeral filesystem
+- No pagination on admin endpoints
+- Two-tab same-browser JWT collision
+- Notification dropdown hardcoded English
+- Safety translations complete in 7 languages, but material-specific guidance
+  falls back to English for ta/te/kn/ml
 - Admin delete recycler is client-only (no backend endpoint)
-- Notification dropdown strings are hardcoded English
-
----
+- Base64 images inflate payloads (~130 KB per photo)
 
 ## 37. Future Improvements
 
 Short-term:
-- TF.js MobileNet v2 in-browser classifier with backend fallback
-- PWA manifest + service worker
-- Distance-based backend ranking of recyclers
-- Field research + unit economics docs
+- Real TF.js MobileNet v2 classifier (in-browser, ~30s warm-up)
+- Cloudinary/S3 for image storage
+- Field research docs + unit economics slide
+- Pitch deck + demo script
 
 Medium-term:
-- Play Store Android app via Capacitor
+- Play Store submission via Capacitor
 - Refresh tokens
 - Rate limiting on auth
-- Backend recycler CRUD endpoints
+- Backend admin CRUD endpoints
+- Web Push notifications
 
 Long-term:
 - EPR certificate generation
-- Payment gateway integration (Razorpay / UPI)
+- Razorpay/UPI payment integration
 - Real-time GPS tracking
-- Managed cloud deployment
-- ML fine-tuning on labeled e-waste images
-
----
+- ML fine-tuning on labeled e-waste photos
 
 ## 38. Technical Debt
 
-| Area | Why it matters | Suggested fix |
+| Area | Why | Fix |
 |---|---|---|
-| No tests | Regression risk | Add JUnit + Vitest |
-| No @ControllerAdvice | Inconsistent errors | Add global handler |
-| Secrets in properties | jwt.secret plaintext | Env vars + @Value |
-| findAll() on admin | Slow at scale | Add pagination |
+| No tests | Regression risk | JUnit + Vitest |
+| No @ControllerAdvice | Inconsistent errors | Global handler |
+| Base64 in DB | Bloats rows | Object storage |
+| Render ephemeral FS | uploads wiped | Cloudinary |
 | No CI | Manual deploy risk | GitHub Actions |
+| Hardcoded strings | Navbar notifications | Extend translations |
 
----
+## 39. Contribution Guide
 
-## 39. Contribution Guide (recommended)
-
-- Fork + branch per feature: feat/<short-name>
-- Commit convention: feat: / fix: / chore: / docs:
-- PR requires: mvn -q compile passes + npm run dev boots
-- No automated test requirement yet
-
----
+Branch per feature: feat/<short-name>.
+Commit: feat: / fix: / chore: / docs:.
+PR requires: mvn -q compile passes + npm run dev boots.
 
 ## 40. Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Backend fails on port 8080 | Process already running | fuser -k 8080/tcp |
-| material_lots_status_check violation on bid | Missing BIDDING in constraint | Run section 20 step 3 SQL |
-| Login OK but POST /lots 403 | Wrong role JWT | Log out, log back in as collector |
-| Recyclers 403 on pending-handovers | Not logged in as recycler | Log out, log in as recycler |
-| QR scan opens blank | Camera permission denied | Allow camera in browser |
-| navigator.share unavailable | Desktop Firefox | Copy button still works |
-| Blank page after Create Lot | Component crash | Check browser console for JS error |
-| Recycler sees no lots | No lots in DB or role mismatch | Check JWT role, refresh |
-| WebSocket disconnects | Backend restarted | Auto-reconnects in 5s |
+| Backend 500 on POST /lots | image_url VARCHAR(255) | ALTER COLUMN image_url TYPE TEXT |
+| Images show 2/2 but blank | base64 comma split | Newline separator in imageUrls |
+| Sync never finishes | Render cold start 503 | Wait 20s, retry fires automatically |
+| CORS error from Vercel | Missing origin in env var | Add to CORS_ALLOWED_ORIGINS on Render |
+| WebSocket blocked | WebSocketConfig hardcoded localhost | Read from app.cors.allowed-origins |
+| Login 400 Bad credentials | DataSeeder guard blocked extras | seedTestAccounts runs before guard |
+| Recycler lots blink | setLoading every 3s poll | silent flag on fetchAll |
+| APK can't reach backend | VITE_API_URL not set at build | Set in Vercel, rebuild APK |
+| Photo 404 after redeploy | Render wiped /uploads/ | Base64 fix — new photos survive |
+| Brute-force test loops | 400 auth | Check credentials vs seeder |
 
----
+## 41. Hackathon Demonstration Flow (3 min)
 
-## 41. Hackathon Demonstration Flow
+1. Problem slide
+2. Solution slide
+3. Live: collector login → Create Lot (5 kg PCB + photo)
+4. LotDetail opens, 24h timer counting down
+5. Second window (private): recycler login → lot appears live via WS
+6. Recycler bids ₹500 → live total shows ₹2,500
+7. Collector sees bid stream in real time
+8. Collector → Close Auction Now → lot flips to MATCHED
+9. Recycler → Handovers → scan QR → weight + price + Cash → PAID
+10. Collector → Earnings → shows completed transaction
+11. Architecture + tech stack slide
+12. Roadmap slide (field research + unit economics + AI v2)
 
-1. Slide: The problem - informal kabadiwalas, unfair prices, no traceability
-2. Slide: RE-CIRCLE - auction + QR + 7 languages
-3. Live: Log in as collector, Create Lot (5 kg PCB, with photo)
-4. Live: LotDetail opens, timer shows 23:59:xx
-5. Live: Second window (private), log in as recycler, see lot appear live
-6. Live: Recycler bids 500, live total: 2500
-7. Live: Collector sees bid stream in real time
-8. Live: Collector closes auction early, lot flips to MATCHED
-9. Live: Recycler scans QR, confirms weight + price + Cash, PAID
-10. Live: Collector Earnings page shows completed transaction
-11. Slide: Architecture + tech stack
-12. Slide: DATASETS.md (7 documented datasets)
-13. Slide: Roadmap + unit economics + field research plan
+## 42. Judge-Focused Highlights
 
----
-
-## 42. Judge-Focused Technical Highlights
-
-- Reverse auction with WebSocket live updates (real-time multi-user)
-- 24h auto-close scheduler (Spring @Scheduled, 60s cadence)
-- QR-verified handover with state machine
-- 7-language i18n with English fallback (custom hook, not library)
-- Offline-first lot creation (localStorage queue + auto-sync)
-- Photo upload + AI hint pipeline
-- Spoken prices via Web Speech API
-
----
+- Reverse auction (better than PS "recycler matching") — collective bargaining
+- Real-time WebSocket multi-user flow
+- 24h auto-close scheduler (@Scheduled 60s)
+- QR handover with EPR-ready state machine
+- 7 languages (PS asked min 2)
+- Offline-first with auto-sync and photo persistence
+- PWA installable + Android APK
+- Photo + AI classification pipeline (baseline, honest about v2)
 
 ## 43. Project Metrics
 
@@ -839,62 +677,51 @@ Long-term:
 | Backend controllers | 13 |
 | Backend service classes | ~6 |
 | Backend entities | ~8 |
-| Backend repositories | 8 |
 | Frontend pages | ~20 |
-| Frontend components (common) | ~9 |
-| Languages supported | 7 |
+| Languages | 7 |
 | Auth roles | 3 |
-| REST endpoints (approx.) | ~30 |
+| REST endpoints | ~30 |
 | WebSocket topics | 2 |
 | DB tables | 8 |
-
----
+| Test accounts | 20+ |
 
 ## 44. Glossary
 
-| Term | Meaning |
-|---|---|
-| Kabadiwala | Informal scrap collector |
-| EPR | Extended Producer Responsibility |
-| CPCB | Central Pollution Control Board (India) |
-| Lot | A declared batch of e-waste material |
-| Bid | Per-kg offer by a recycler on a lot |
-| Auction window | The 24h period a lot accepts bids |
-| Handover | Physical transfer of material to recycler |
-| Match | Lot assigned to a winning recycler |
-| PAID | Fully settled transaction |
+Kabadiwala = informal scrap collector
+EPR = Extended Producer Responsibility
+CPCB = Central Pollution Control Board (India)
+Lot = declared batch of e-waste
+Bid = per-kg offer by recycler
+Handover = physical transfer
+Match = lot assigned to winning recycler
+PAID = fully settled transaction
 
----
+## 45. Final Summary
 
-## 45. Final Architecture Summary
-
-RE-CIRCLE is a two-tier application: React SPA + Spring Boot REST/STOMP API, backed
-by PostgreSQL. Runs entirely on localhost for demo purposes. Core flow is a reverse
-auction with WebSocket-driven live updates, followed by a QR-verified handover and
-status transition to PAID. State stored in JPA entities with a small state machine on
-MaterialLot. Authentication is JWT + BCrypt. Offline tolerance via localStorage queue
-with auto-sync on reconnect. UI available in 7 languages with English fallback. No
-automated test suite, no CI/CD, no production deployment. These are primary gaps for
-v2.
-
----
+RE-CIRCLE is a two-tier React SPA + Spring Boot REST/STOMP API, backed by
+PostgreSQL, deployed on Vercel + Render, installable as PWA + APK. Core flow
+is a reverse auction with WebSocket live updates, followed by a QR-verified
+handover and status transition to PAID. JWT + BCrypt auth. Offline queue with
+auto-sync. 7 languages. Base64 image storage to survive ephemeral hosting.
+Primary gaps: no automated tests, no field research docs, no unit economics
+slide — all on the near-term roadmap.
 
 ## 46. Source Code Reference
 
 | Feature | Files |
 |---|---|
-| Auth | AuthController.java, AuthService.java, JwtUtil.java, JwtRequestFilter.java, SecurityConfig.java, AuthContext.jsx |
-| Lot CRUD | LotController.java, LotService.java, MaterialLot.java, MaterialLotRepository.java |
-| Auction | BidController.java, BidService.java, AuctionScheduler.java, Bid.java, BidRepository.java, AuctionTimer.jsx, BidPanel.jsx |
+| Auth | AuthController, AuthService, JwtUtil, JwtRequestFilter, SecurityConfig, AuthContext.jsx |
+| Lot CRUD | LotController, LotService, MaterialLot, MaterialLotRepository |
+| Auction | BidController, BidService, AuctionScheduler, Bid, BidRepository, AuctionTimer.jsx, BidPanel.jsx, LotPreviewModal.jsx |
 | Handover | RecyclerHandovers.jsx, LotService.confirmHandover, QRScanner.jsx, useScanner.js |
-| Scanner FAB | ScanFAB.jsx, ScanFAB.css, Layout.jsx |
+| Scanner FAB | ScanFAB.jsx, Layout.jsx |
 | Offline | services/db.js, OfflineContext.jsx |
-| i18n | hooks/useTranslation.js, context/LanguageContext.jsx, translations/index.js |
-| Photo + AI | CreateLot.jsx, api/ai.js, AIController.java, WebConfig.java |
+| i18n | hooks/useTranslation.js, LanguageContext.jsx, translations/index.js |
+| Photo + AI | CreateLot.jsx, ImageGallery.jsx, api/ai.js, AIController.java |
+| PWA | manifest.webmanifest, sw.js, InstallPrompt.jsx, main.jsx |
 | Admin | AdminController.java, AdminDashboard.jsx |
-| Earnings | EarningsController.java, EarningsService.java, Earnings.jsx |
-| Prices | PriceController.java, PriceService.java, Prices.jsx |
-| Datasets | DATASETS.md |
+| Earnings | EarningsController, EarningsService, Earnings.jsx |
+| Deploy | backend/Dockerfile, frontend/config.js, DatabaseConfig.java |
 
 ---
 
