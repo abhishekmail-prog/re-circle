@@ -31,7 +31,7 @@ public class MaterialLot {
     @JoinColumn(name = "recycler_id")
     private Recycler selectedRecycler;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(columnDefinition = "TEXT")
