@@ -6,7 +6,7 @@ import { API_URL as IMG_BASE } from '../../config'
 
 const resolveUrl = (u) => {
   if (!u) return null
-  if (u.startsWith('http')) return u
+  if (u.startsWith('http') || u.startsWith('data:')) return u
   return IMG_BASE + (u.startsWith('/') ? u : '/' + u)
 }
 

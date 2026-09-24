@@ -9,6 +9,6 @@ export const WS_URL = import.meta.env.VITE_WS_URL || API_URL
 // Convenience: resolve an image path to a full URL
 export const resolveImageUrl = (path) => {
   if (!path) return null
-  if (path.startsWith('http')) return path
+  if (path.startsWith('http') || path.startsWith('data:')) return path
   return API_URL + (path.startsWith('/') ? path : '/' + path)
 }

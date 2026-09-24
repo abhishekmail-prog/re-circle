@@ -90,7 +90,7 @@ const LotPreviewModal = ({ lot, onClose, onBidPlaced }) => {
   if (!lot) return null
 
   const imgSrc = lot.imageUrl
-    ? (lot.imageUrl.startsWith('http') ? lot.imageUrl : IMG_BASE + lot.imageUrl)
+    ? ((lot.imageUrl.startsWith('http') || lot.imageUrl.startsWith('data:')) ? lot.imageUrl : IMG_BASE + lot.imageUrl)
     : null
 
   return (

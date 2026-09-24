@@ -21,11 +21,10 @@ public class AIController {
     @PostMapping("/classify")
     public ResponseEntity<?> classifyImage(@RequestParam("image") MultipartFile file) {
         try {
-            // Save file
-            String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(UPLOAD_DIR + filename);
-            Files.createDirectories(path.getParent());
-            Files.write(path, file.getBytes());
+            // Encode as base64 data URL — survives Render redeploys
+            String mimeType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
+            String base64 = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+            String dataUrl = "data:" + mimeType + ";base64," + base64;
 
             // Demo classification based on filename keywords
             String suggestedCategory = classifyByFilename(file.getOriginalFilename());
@@ -37,7 +36,7 @@ public class AIController {
             response.put("isDemo", true);
             response.put("message", "⚠️ DEMO MODE: Classification is simulated based on filename");
             response.put("filename", file.getOriginalFilename());
-            response.put("imageUrl", "/uploads/" + filename);
+            response.put("imageUrl", dataUrl);
 
             return ResponseEntity.ok(response);
         } catch (IOException e) {

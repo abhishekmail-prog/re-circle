@@ -127,7 +127,8 @@ const RecyclerLots = () => {
       if (Array.isArray(arr) && arr.length > 0) first = arr[0].trim()
     }
     if (!first) return null
-    return first.startsWith('http') ? first : IMG_BASE + (first.startsWith('/') ? first : '/' + first)
+    if (first.startsWith('http') || first.startsWith('data:')) return first
+    return IMG_BASE + (first.startsWith('/') ? first : '/' + first)
   }
 
   return (
