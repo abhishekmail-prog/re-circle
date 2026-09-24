@@ -163,6 +163,56 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("  Recycler2: ecorecycle@recircle.demo / Recycler@123");
         System.out.println("  Recycler3: techrecycle@recircle.demo / Recycler@123");
         System.out.println("  Recycler4: ewastehub@recircle.demo / Recycler@123");
+
+        // Idempotent: creates extra test accounts if they don't exist yet.
+        // Runs on every startup (outside the count()>0 guard above).
+        seedTestAccounts();
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Extra test accounts — safe to run on existing DBs.
+    // All passwords: 12345678
+    // ─────────────────────────────────────────────────────────────────
+    private void seedTestAccounts() {
+        System.out.println("🌱 Checking extra test accounts...");
+        final String password = "12345678";
+
+        // Collectors: { email, name, phone, address, lat, lng, language }
+        String[][] collectors = {
+            {"badmacharan_collector@recircle.demo",  "Badmacharan",  "9000000001", "Mumbai, Maharashtra",     "19.0760", "72.8777", "Hindi"},
+            {"abhishek_collector@recircle.demo",     "Abhishek",     "9000000002", "Pune, Maharashtra",       "18.5204", "73.8567", "Marathi"},
+            {"hanishamary_collector@recircle.demo",  "Hanisha Mary", "9000000003", "Thane, Maharashtra",      "19.2183", "72.9781", "Hindi"},
+            {"harishree_collector@recircle.demo",    "Harishree",    "9000000004", "Nashik, Maharashtra",     "19.9975", "73.7898", "Marathi"},
+            {"pranesh_collector@recircle.demo",      "Pranesh",      "9000000005", "Nagpur, Maharashtra",     "21.1458", "79.0882", "Hindi"},
+            {"aadhilakshmi_collector@recircle.demo", "Aadhilakshmi", "9000000006", "Aurangabad, Maharashtra", "19.8762", "75.3433", "Marathi"}
+        };
+        for (String[] c : collectors) {
+            if (userRepository.findByEmail(c[0]).isEmpty()) {
+                User u = createUser(c[0], password, c[1], c[2], User.UserRole.COLLECTOR);
+                createCollectorProfile(u, c[3], Double.parseDouble(c[4]), Double.parseDouble(c[5]), c[6]);
+                System.out.println("✅ Test collector created: " + c[0]);
+            }
+        }
+
+        // Recyclers: { email, name, phone, company, address, lat, lng, authNo, contactName, contactPhone, pickup, serviceArea, radiusKm }
+        String[][] recyclers = {
+            {"badmacharan_recycler@recircle.demo",  "Badmacharan",  "9000000007", "Badmacharan Recycling",       "Mumbai, Maharashtra",     "19.0760", "72.8777", "AUTH-T01", "Badmacharan",  "9000000007", "true",  "Mumbai",     "15.0"},
+            {"abhishek_recycler@recircle.demo",     "Abhishek",     "9000000008", "Abhishek E-Waste Solutions",  "Pune, Maharashtra",       "18.5204", "73.8567", "AUTH-T02", "Abhishek",     "9000000008", "true",  "Pune",       "15.0"},
+            {"hanishamary_recycler@recircle.demo",  "Hanisha Mary", "9000000009", "Hanisha Mary Recyclers",      "Thane, Maharashtra",      "19.2183", "72.9781", "AUTH-T03", "Hanisha Mary", "9000000009", "true",  "Thane",      "12.0"},
+            {"harishree_recycler@recircle.demo",    "Harishree",    "9000000010", "Harishree Metals",            "Nashik, Maharashtra",     "19.9975", "73.7898", "AUTH-T04", "Harishree",    "9000000010", "false", "Nashik",     "10.0"},
+            {"pranesh_recycler@recircle.demo",      "Pranesh",      "9000000011", "Pranesh Eco Recycling",       "Nagpur, Maharashtra",     "21.1458", "79.0882", "AUTH-T05", "Pranesh",      "9000000011", "true",  "Nagpur",     "18.0"},
+            {"aadhilakshmi_recycler@recircle.demo", "Aadhilakshmi", "9000000012", "Aadhilakshmi Green Tech",     "Aurangabad, Maharashtra", "19.8762", "75.3433", "AUTH-T06", "Aadhilakshmi", "9000000012", "true",  "Aurangabad", "12.0"}
+        };
+        for (String[] r : recyclers) {
+            if (userRepository.findByEmail(r[0]).isEmpty()) {
+                User u = createUser(r[0], password, r[1], r[2], User.UserRole.RECYCLER);
+                createRecycler(u, r[3], r[4], Double.parseDouble(r[5]), Double.parseDouble(r[6]),
+                    r[7], true, r[8], r[9], Boolean.parseBoolean(r[10]), r[11], Double.parseDouble(r[12]));
+                System.out.println("✅ Test recycler created: " + r[0]);
+            }
+        }
+
+        System.out.println("✅ Extra test accounts check complete.");
     }
 
     private User createUser(String email, String password, String name, String phone, User.UserRole role) {
