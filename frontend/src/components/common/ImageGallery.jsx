@@ -34,7 +34,17 @@ const ImageGallery = ({
     if (Array.isArray(imageUrls)) {
       list.push(...imageUrls)
     } else if (typeof imageUrls === 'string' && imageUrls.trim()) {
-      list.push(...imageUrls.split(',').map((s) => s.trim()))
+      // New format uses '\n' separator (safe for base64, which contains commas).
+      // Legacy comma-separated rows still work for /uploads/ paths.
+      // Single data: URLs must NOT be split — the first comma is part of the syntax.
+      const trimmed = imageUrls.trim()
+      if (trimmed.includes('\n')) {
+        list.push(...trimmed.split('\n').map((s) => s.trim()).filter(Boolean))
+      } else if (trimmed.startsWith('data:')) {
+        list.push(trimmed)
+      } else {
+        list.push(...trimmed.split(',').map((s) => s.trim()).filter(Boolean))
+      }
     }
     if (list.length === 0 && imageUrl) list.push(imageUrl)
     return list.filter((u) => u && u.trim())

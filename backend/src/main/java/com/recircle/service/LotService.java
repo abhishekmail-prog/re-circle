@@ -66,7 +66,7 @@ public class LotService {
                 .limit(10)
                 .collect(java.util.stream.Collectors.toList());
             if (!urls.isEmpty()) {
-                lot.setImageUrls(String.join(",", urls));
+                lot.setImageUrls(String.join("\n", urls));
                 lot.setImageUrl(urls.get(0));
             }
         } else if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
