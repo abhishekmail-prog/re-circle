@@ -19,8 +19,8 @@ const RecyclerLots = () => {
   const [error, setError] = useState(null)
   const [selectedLot, setSelectedLot] = useState(null)
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true)
+  const fetchAll = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true)
     setError(null)
     try {
       const res = await api.get('/lots')
@@ -48,7 +48,7 @@ const RecyclerLots = () => {
       setAllLots([])
       setSummaries({})
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [t])
 
@@ -57,13 +57,13 @@ const RecyclerLots = () => {
   // Live refresh on any lot event
   useEffect(() => {
     if (!client || !connected) return
-    const sub = client.subscribe('/topic/lots', () => fetchAll())
+    const sub = client.subscribe('/topic/lots', () => fetchAll({ silent: true }))
     return () => sub.unsubscribe()
   }, [client, connected, fetchAll])
 
   // Refresh on tab focus
   useEffect(() => {
-    const h = () => { if (document.visibilityState === 'visible') fetchAll() }
+    const h = () => { if (document.visibilityState === 'visible') fetchAll({ silent: true }) }
     document.addEventListener('visibilitychange', h)
     return () => document.removeEventListener('visibilitychange', h)
   }, [fetchAll])
@@ -72,7 +72,7 @@ const RecyclerLots = () => {
   useEffect(() => {
     const id = setInterval(() => {
       if (document.visibilityState === 'visible' && navigator.onLine) {
-        fetchAll()
+        fetchAll({ silent: true })
       }
     }, 3000)
     return () => clearInterval(id)
@@ -93,25 +93,6 @@ const RecyclerLots = () => {
       setSelectedLot(null)
     }
   }, [allLots, selectedLot])
-
-  // Refresh on any bid on any lot (my session or someone else's)
-  useEffect(() => {
-    if (!client || !connected) return
-    // Subscribe to a broad topic? Simpler: re-fetch summaries when any lot updates
-    // The /topic/lots event already covers it, but bids trigger /topic/lots/{id}/bids
-    // We'll also poll summaries every 8s while page is visible
-    const id = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        const open = allLots.filter(l => l.status === 'CREATED' || l.status === 'BIDDING')
-        if (open.length > 0) {
-          api.post('/lots/bids-summary', { lotIds: open.map(l => l.lotId) })
-            .then(r => setSummaries(r.data || {}))
-            .catch(() => {})
-        }
-      }
-    }, 8000)
-    return () => clearInterval(id)
-  }, [client, connected, allLots])
 
   const openLots = allLots.filter(
     l => l.status === 'CREATED' || l.status === 'BIDDING'
