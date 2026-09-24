@@ -38,6 +38,10 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("🌱 Seeding demo data...");
 
+        // Idempotent: creates extra test accounts if missing.
+        // Runs on BOTH fresh and existing DBs (before the early-return guard).
+        seedTestAccounts();
+
         // Check if data already exists
         if (userRepository.count() > 0) {
             System.out.println("✅ Data already seeded. Skipping.");
@@ -163,10 +167,6 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("  Recycler2: ecorecycle@recircle.demo / Recycler@123");
         System.out.println("  Recycler3: techrecycle@recircle.demo / Recycler@123");
         System.out.println("  Recycler4: ewastehub@recircle.demo / Recycler@123");
-
-        // Idempotent: creates extra test accounts if they don't exist yet.
-        // Runs on every startup (outside the count()>0 guard above).
-        seedTestAccounts();
     }
 
     // ─────────────────────────────────────────────────────────────────
